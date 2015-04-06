@@ -1,0 +1,11 @@
+{
+    "name": "hack24-api",
+    "description": "Hack24 Application",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "express": "4.x",
+        "mongoose":"4.x",
+        "body-parser":"1.x"
+    }
+}
