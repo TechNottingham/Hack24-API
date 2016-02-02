@@ -1,11 +1,21 @@
 {
-    "name": "hack24-api",
-    "description": "Hack24 Application",
-    "version": "0.0.1",
-    "private": true,
-    "dependencies": {
-        "express": "4.x",
-        "mongoose":"4.x",
-        "body-parser":"1.x"
-    }
+  "name": "hack24-api",
+  "description": "Hack24 Application",
+  "version": "0.0.1",
+  "private": true,
+  "main": "bin/server.js",
+  "scripts": {
+    "start": "node --use_strict .",
+    "postinstall": "cd src/server && typings install && gulp build"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "del": "^2.2.0",
+    "express": "^4.13.4",
+    "gulp": "^3.9.0",
+    "gulp-util": "^3.0.7",
+    "mongoose": "^4.3.7",
+    "typescript": "^1.7.5",
+    "typings": "^0.6.5"
+  }
 }
