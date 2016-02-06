@@ -5,5 +5,9 @@
     "removeComments": true,
     "outDir": "../../build/test",
     "sourceMap": true
-  }
+  },
+  "exclude": [
+    "typings/browser.d.ts",
+    "typings/browser"
+  ]
 }

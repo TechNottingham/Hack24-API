@@ -59,5 +59,13 @@ export class Server {
       });
     });
   }
+  
+  close(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this._server.close(() => {
+        resolve();
+      });
+    });
+  }
 }
 

@@ -1,4 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/TechNottingham/Hackbot.svg?label=ready&title=Ready)](http://waffle.io/TechNottingham/Hackbot)
+[![Build Status]](https://semaphoreci.com/codesleuth/hack24-api) [![Stories in Ready]](http://waffle.io/TechNottingham/Hackbot)
 
 # Hack24-API
 An API for storing users, teams, hacks, challenges and sponsors
@@ -53,3 +53,6 @@ You will need installations of the following:
     ```
 
 7. Open a pull request!
+
+[Build Status]: https://semaphoreci.com/api/v1/codesleuth/hack24-api/branches/master/badge.svg
+[Stories in Ready]: https://badge.waffle.io/TechNottingham/Hackbot.svg?label=ready&title=Ready

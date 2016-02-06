@@ -22,20 +22,20 @@ function gulpPrint(data) {
 function compile(projectPath, watch, done) {
   var args = ['--project', projectPath]
   if (watch === true) args.push('-w')
-  
+
   var tsc = spawn(getBinary('tsc'), args, { cwd: process.cwd() })
-  
+
   tsc.stdout.setEncoding('utf8')
   tsc.stderr.setEncoding('utf8')
-  
+
   tsc.stdout.on('data', gulpPrint)
   tsc.stderr.on('data', gulpPrint)
-  
+
   tsc.on('close', function (code) {
     if (code !== 0) return done(new Error('tsc finished with non-zero exit code (' + code + ')'))
     done(null)
   })
-  
+
   tsc.on('error', done)
 }
 
@@ -49,7 +49,11 @@ gulp.task('build:server', ['clean'], function (done) {
   compile('src/server', false, done)
 })
 
-gulp.task('build', ['build:server'])
+gulp.task('build:test', ['clean'], function (done) {
+  compile('src/test', false, done)
+})
+
+gulp.task('build', ['build:server', 'build:test'])
 
 
 
@@ -57,7 +61,8 @@ gulp.task('build:server:watch', function (done) {
   compile('src/server', true, done)
 })
 
-gulp.task('watch', ['build:server:watch'])
+gulp.task('build:test:watch', function (done) {
+  compile('src/test', true, done)
+})
 
-
-gulp.task('test', [])
+gulp.task('watch', ['build:server:watch', 'build:test:watch'])

@@ -6,7 +6,8 @@
   "main": "bin/server.js",
   "scripts": {
     "start": "node --use_strict .",
-    "postinstall": "cd src/server && typings install && gulp build"
+    "postinstall": "cd src/server && typings install && cd ../test && typings install && gulp build",
+    "test": "cd build && mocha --require source-map-support/register --use_strict -R spec"
   },
   "dependencies": {
     "body-parser": "^1.14.2",
@@ -15,7 +16,11 @@
     "gulp": "^3.9.0",
     "gulp-util": "^3.0.7",
     "mongoose": "^4.3.7",
+    "source-map-support": "^0.4.0",
     "typescript": "^1.7.5",
     "typings": "^0.6.5"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5"
   }
 }
