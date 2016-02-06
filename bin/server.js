@@ -1,6 +1,8 @@
-var Server = require('../build/server/server');
+require('source-map-support').install();
 
-const server = new Server.Server();
+var Server = require('../build/server/server').Server;
+
+var server = new Server();
 server.listen()
       .then((info) => {
         console.log(`Server started on port ${info.Port}`)
