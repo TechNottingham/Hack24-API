@@ -1,3 +1,20 @@
+import {Request, Response} from 'express'
+import {UserModel, TeamModel} from '../models'
+import {Model, Document} from 'mongoose';
+
+interface IModels {
+  User: Model<Document>;
+  Team: Model<Document>;
+}
+
+declare interface RequestWithModels extends Request {
+  models: IModels
+}
+
+function send500(res: Response) {
+  res.status(500).send('Internal Server Error');
+}
+
 export var Get = function(req, res) {
   if (req.query.slackUsername) {
     return req.models.User.findOne({ 'slackUsername': req.query.slackUsername })
@@ -44,14 +61,10 @@ export var Get = function(req, res) {
   });
 });
 */
-export var GetById = function(req, res) {
-  return req.models.User.findById(req.params.id, function(err, user) {
-    if (!err) {
-      return res.send(user);
-    } else {
-      console.log(err);
-      return res.status(404).send('Not found');
-    }
+export var GetById = function(req: RequestWithModels, res: Response) {
+  return req.models.User.findOne({ id: req.params.id }, 'id name modified' , (err, user) => {
+    if (err) return send500(res);
+    return res.status(200).send(user);
   });
 };
 
@@ -59,7 +72,7 @@ export var GetByName = function(req, res) {
 
 };
 
-export var Create = (req, res) => {
+export var Create = (req: RequestWithModels, res: Response) => {
   const user = new req.models.User({
     id: req.body.id,
     name: req.body.name

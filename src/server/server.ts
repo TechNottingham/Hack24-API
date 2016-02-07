@@ -3,14 +3,13 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
-import {UserModel} from './models'
-import {TeamModel} from './models'
+import {UserModel, TeamModel} from './models'
 import {json as jsonParser} from 'body-parser'
 
 function createModels(req, res, next) {
   req.models = {
-    User: mongoose.model('User', UserModel),
-    Team: mongoose.model('Team', TeamModel)
+    User: UserModel,
+    Team: TeamModel
   };
   return next();
 }

@@ -65,7 +65,6 @@ describe('Users resource', () => {
   describe('POST user with existing ID', () => {
 
     let user: IUser;
-    let createdUser: IUser;
     let statusCode: number;
 
     before((done) => {
@@ -90,6 +89,58 @@ describe('Users resource', () => {
 
     it('should respond with status code 409 Conflict', () => {
       assert.strictEqual(statusCode, 409);
+    });
+
+    after((done) => {
+      MongoDB.Users.removeById(user.id).then(done).catch(done);
+    });
+
+  });
+
+  describe('GET user by ID', () => {
+
+    let user: IUser;
+    let testStart: Date;
+    let statusCode: number;
+    let contentType: string;
+    let body;
+
+    before((done) => {
+      user = {
+        id: 'U' + Random.int(10000, 99999),
+        name: 'Name_' + Random.str(5),
+        modified: new Date
+      };
+      
+      testStart = new Date;
+
+      MongoDB.Users.createUser(user).then(() => {
+        api.get('/users/' + user.id)
+          .set('Accept', 'application/json')
+          .end((err, res) => {
+            if (err) return done(err);
+
+            statusCode = res.status;
+            contentType = res.header['content-type'];
+            body = res.body;
+            
+            done();
+          });
+      });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    });
+
+    it('should return the expected user', () => {
+      assert.strictEqual(body.id, user.id);
+      assert.strictEqual(body.name, user.name);
+      assert.strictEqual(body.modified, user.modified.toISOString());
     });
 
     after((done) => {
