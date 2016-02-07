@@ -16,11 +16,10 @@
     "express": "^4.13.4",
     "gulp": "^3.9.0",
     "gulp-util": "^3.0.7",
-    "kerberos": "0.0.18",
-    "mongoose": "^4.4.2",
+    "mongoose": "^4.3.7",
     "source-map-support": "^0.4.0",
     "typescript": "^1.7.5",
-    "typings": "^0.6.6"
+    "typings": "^0.6.5"
   },
   "devDependencies": {
     "mocha": "^2.4.5",
