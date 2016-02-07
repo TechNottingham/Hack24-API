@@ -64,8 +64,8 @@ export var Create = function(req, res) {
   console.log("POST: ");
   console.log(req.body);
   user = new req.models.User({
-    name: req.body.name,
-    slackUsername: req.body.slackUsername
+    id: req.body.id,
+    name: req.body.name
   });
   user.save(function(err) {
     if (!err) {

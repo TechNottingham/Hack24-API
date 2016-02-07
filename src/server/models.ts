@@ -1,8 +1,8 @@
 import {Schema} from 'mongoose';
 
 export var UserModel = new Schema({
-    name: { type: String, required: true },
-    slackUsername: { type: String, unique : true, required : false, dropDups: true  },
+    id: { type: String, unique : true, required: true },
+    name: { type: String, required : true  },
     modified: { type: Date, default: Date.now }
 });
 

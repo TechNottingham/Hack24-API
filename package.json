@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node --use_strict .",
     "postinstall": "cd src/server && typings install && cd ../test && typings install && gulp build",
-    "test": "cd build && mocha --require source-map-support/register --use_strict -R spec"
+    "test": "cd build && mocha --require source-map-support/register --use_strict -R spec",
+    "test:watch": "cd build && mocha --require source-map-support/register --use_strict -R spec -w"
   },
   "dependencies": {
     "body-parser": "^1.14.2",
@@ -15,12 +16,15 @@
     "express": "^4.13.4",
     "gulp": "^3.9.0",
     "gulp-util": "^3.0.7",
-    "mongoose": "^4.3.7",
+    "kerberos": "0.0.18",
+    "mongoose": "^4.4.2",
     "source-map-support": "^0.4.0",
     "typescript": "^1.7.5",
-    "typings": "^0.6.5"
+    "typings": "^0.6.6"
   },
   "devDependencies": {
-    "mocha": "^2.4.5"
+    "mocha": "^2.4.5",
+    "mongodb": "^2.1.6",
+    "supertest": "^1.1.0"
   }
 }
