@@ -31,8 +31,7 @@ export class Server {
     this._app.use(jsonParser());
 
     this._app.get('/users', createModels, UsersRoute.Get);
-    this._app.get('/users/:id', createModels, UsersRoute.GetById);
-    this._app.get('/users/:id', createModels, UsersRoute.GetByName);
+    this._app.get('/users/:userid', createModels, UsersRoute.GetByUserId);
     this._app.delete('/users/:id', createModels, UsersRoute.Delete);
     this._app.post('/users/', createModels, UsersRoute.Create);
     this._app.put('/users/:id,createModels', UsersRoute.Update);

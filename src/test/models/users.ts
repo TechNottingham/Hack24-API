@@ -1,7 +1,7 @@
-import {Db, Collection} from 'mongodb';
+import {Db, Collection, ObjectID} from 'mongodb';
 
 export interface IUser {
-  id: string;
+  userid: string;
   name: string;
   modified: Date;
 }
@@ -30,9 +30,9 @@ export class Users {
     });
   }
   
-  public removeById(id: string): Promise<void> {
+  public removeByUserId(userid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this._collection.deleteOne({ id: id }).then(() => {
+      this._collection.deleteOne({ userid: userid}).then(() => {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove user: ' + err.message));
@@ -40,19 +40,19 @@ export class Users {
     });
   }
   
-  public createUser(user: IUser): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      this._collection.insertOne(user).then(() => {
-        resolve();
+  public createUser(user: IUser): Promise<ObjectID> {
+    return new Promise<ObjectID>((resolve, reject) => {
+      this._collection.insertOne(user).then((result) => {
+        resolve(result.insertedId);
       }).catch((err) => {
         reject(new Error('Could not insert user: ' + err.message));
       })
     });
   }
   
-  public findbyId(id: string): Promise<IUser> {
+  public findbyUserId(userid: string): Promise<IUser> {
     return new Promise<IUser>((resolve, reject) => {
-      this._collection.find({ id: id }).limit(1).toArray().then((users: IUser[]) => {
+      this._collection.find({ userid: userid }).limit(1).toArray().then((users: IUser[]) => {
         resolve(users.length > 0 ? users[0] : null);
       }).catch((err) => {
         reject(new Error('Error when finding user: ' + err.message));

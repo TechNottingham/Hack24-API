@@ -1,7 +1,13 @@
-import {Db, Collection} from 'mongodb';
+import {Db, Collection, ObjectID} from 'mongodb';
 
 export interface ITeam {
   name: string;
+  members: ObjectID[]
+}
+
+export interface ITeamResponse {
+  name: string;
+  members: string[];
 }
 
 export class Teams {
@@ -34,6 +40,16 @@ export class Teams {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove team: ' + err.message));
+      })
+    });
+  }
+  
+  public createTeam(team: ITeam): Promise<ObjectID> {
+    return new Promise<ObjectID>((resolve, reject) => {
+      this._collection.insertOne(team).then(() => {
+        resolve();
+      }).catch((err) => {
+        reject(new Error('Could not insert team: ' + err.message));
       })
     });
   }

@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
+import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
@@ -22,21 +23,21 @@ describe('Users resource', () => {
 
     before((done) => {
       user = {
-        id: 'U' + Random.int(10000, 99999),
+        userid: 'U' + Random.int(10000, 99999),
         name: 'Name_' + Random.str(5),
         modified: new Date
       };
 
       api.post('/users')
-        .send({ id: user.id, name: user.name })
+        .send({ userid: user.userid, name: user.name })
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
-
+          
           statusCode = res.status;
           contentType = res.header['content-type'];
 
-          MongoDB.Users.findbyId(user.id).then((user) => {
+          MongoDB.Users.findbyUserId(user.userid).then((user) => {
             createdUser = user;
             done();
           }).catch(done);
@@ -53,12 +54,12 @@ describe('Users resource', () => {
 
     it('should create the user with the expected ID and name', () => {
       assert.ok(createdUser, 'User not found');
-      assert.strictEqual(createdUser.id, user.id);
+      assert.strictEqual(createdUser.userid, user.userid);
       assert.strictEqual(createdUser.name, user.name);
     });
 
     after((done) => {
-      MongoDB.Users.removeById(user.id).then(done).catch(done);
+      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
     });
 
   });
@@ -70,14 +71,14 @@ describe('Users resource', () => {
 
     before((done) => {
       user = {
-        id: 'U' + Random.int(10000, 99999),
+        userid: 'U' + Random.int(10000, 99999),
         name: 'Name_' + Random.str(5),
         modified: new Date
       };
 
       MongoDB.Users.createUser(user).then(() => {
         api.post('/users')
-          .send({ id: user.id, name: 'Name_' + Random.str(5) })
+          .send({ userid: user.userid, name: 'Name_' + Random.str(5) })
           .set('Accept', 'application/json')
           .end((err, res) => {
             if (err) return done(err);
@@ -93,7 +94,7 @@ describe('Users resource', () => {
     });
 
     after((done) => {
-      MongoDB.Users.removeById(user.id).then(done).catch(done);
+      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
     });
 
   });
@@ -101,22 +102,19 @@ describe('Users resource', () => {
   describe('GET user by ID', () => {
 
     let user: IUser;
-    let testStart: Date;
     let statusCode: number;
     let contentType: string;
     let body;
 
     before((done) => {
       user = {
-        id: 'U' + Random.int(10000, 99999),
+        userid: 'U' + Random.int(10000, 99999),
         name: 'Name_' + Random.str(5),
         modified: new Date
       };
       
-      testStart = new Date;
-
       MongoDB.Users.createUser(user).then(() => {
-        api.get('/users/' + user.id)
+        api.get('/users/' + user.userid)
           .set('Accept', 'application/json')
           .end((err, res) => {
             if (err) return done(err);
@@ -139,13 +137,12 @@ describe('Users resource', () => {
     });
 
     it('should return the expected user', () => {
-      assert.strictEqual(body.id, user.id);
+      assert.strictEqual(body.userid, user.userid);
       assert.strictEqual(body.name, user.name);
-      assert.strictEqual(body.modified, user.modified.toISOString());
     });
 
     after((done) => {
-      MongoDB.Users.removeById(user.id).then(done).catch(done);
+      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
     });
 
   });
@@ -168,6 +165,65 @@ describe('Users resource', () => {
 
     it('should respond with status code 404 Not Found', () => {
       assert.strictEqual(statusCode, 404);
+    });
+
+  });
+
+  describe('GET user by ID in team', () => {
+
+    let user: IUser;
+    let team: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body;
+
+    before((done) => {
+      user = {
+        userid: 'U' + Random.int(10000, 99999),
+        name: 'Name_' + Random.str(5),
+        modified: new Date
+      };
+      
+      MongoDB.Users.createUser(user).then((userId) => {
+        team = {
+          name: 'Team_' + Random.str(10),
+          members: [userId]
+        };
+        return MongoDB.Teams.createTeam(team).then(() => {
+          api.get('/users/' + user.userid)
+            .set('Accept', 'application/json')
+            .end((err, res) => {
+              if (err) return done(err);
+
+              statusCode = res.status;
+              contentType = res.header['content-type'];
+              body = res.body;
+              
+              done();
+            });
+        });
+      }).catch(done);
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    });
+
+    it('should return the expected user', () => {
+      assert.strictEqual(body.userid, user.userid);
+      assert.strictEqual(body.name, user.name);
+    });
+
+    it('should return the team name for which this user is a member', () => {
+      assert.strictEqual(body.team, team.name);
+    });
+
+    after((done) => {
+      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
     });
 
   });

@@ -1,11 +1,26 @@
-import {Schema, model} from 'mongoose';
+import {Schema, model, Document, Model} from 'mongoose';
+
+export interface IUser {
+  userid: string;
+  name: string;
+  modified: Date;
+}
+
+export interface IUserModel extends IUser, Document { }
 
 export const UserSchema = new Schema({
-    id: { type: String, unique : true, required: true },
+    userid: { type: String, unique : true, required: true },
     name: { type: String, required : true  },
     modified: { type: Date, default: Date.now }
 });
-export const UserModel = model('User', UserSchema);
+export const UserModel = model<IUserModel>('User', UserSchema);
+
+export interface ITeam {
+  name: string;
+  members: string[];
+}
+
+export interface ITeamModel extends ITeam, Document { }
 
 export const TeamSchema = new Schema({
     name: { type: String, unique : true, required : true },
@@ -13,4 +28,9 @@ export const TeamSchema = new Schema({
     modified: { type: Date, default: Date.now },
     members : [{ type: Schema.Types.ObjectId, ref: 'User' }]
 });
-export const TeamModel = model('Team', TeamSchema);
+export const TeamModel = model<ITeamModel>('Team', TeamSchema);
+
+export interface IModels {
+  User: Model<IUserModel>;
+  Team: Model<ITeamModel>;
+}
