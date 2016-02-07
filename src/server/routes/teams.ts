@@ -31,21 +31,18 @@ export var GetByName = function(req, res) {
 
 
 export var Create = function(req, res) {
-  var team;
-  console.log("POST: ");
-  console.log(req.body);
-  team = new req.models.Team({
-    name: req.body.name,
-    motto: req.body.motto
+  const team = new req.models.Team({
+    name: req.body.name
   });
-  team.save(function(err) {
-    if (!err) {
-      return console.log("created");
-    } else {
-      return console.log(err);
-    }
+  req.models.User.find({ name: req.body.name }, (err, teams) => {
+    if (err) return res.status(500).send('Internal server error');
+    if (teams.length !== 0) return res.status(409).send('Team already exists');
+    
+    team.save((err) => {
+      if (err) return res.status(500).send('Internal server error');
+      res.status(201).send(team);
+    });
   });
-  return res.send(team);
 };
 
 

@@ -8,7 +8,7 @@ export const UserSchema = new Schema({
 export const UserModel = model('User', UserSchema);
 
 export const TeamSchema = new Schema({
-    name: { type: String, unique : true, required : true, dropDups: true },
+    name: { type: String, unique : true, required : true },
     motto: { type: String, required: false },
     modified: { type: Date, default: Date.now },
     members : [{ type: Schema.Types.ObjectId, ref: 'User' }]

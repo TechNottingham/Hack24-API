@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import {MongoDB, IUser} from './utils/mongodb';
+import {MongoDB} from './utils/mongodb';
+import {IUser} from './models/users';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
