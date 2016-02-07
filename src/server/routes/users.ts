@@ -59,23 +59,20 @@ export var GetByName = function(req, res) {
 
 };
 
-export var Create = function(req, res) {
-  var user;
-  console.log("POST: ");
-  console.log(req.body);
-  user = new req.models.User({
+export var Create = (req, res) => {
+  const user = new req.models.User({
     id: req.body.id,
     name: req.body.name
   });
-  user.save(function(err) {
-    if (!err) {
-      return res.send(user);
-    } else {
-      console.log(err);
-      return res.status(400).send('Create failed');
-    }
+  req.models.User.find({ id: req.body.id }, (err, users) => {
+    if (err) return res.status(500).send('Internal server error');
+    if (users.length !== 0) return res.status(409).send('User already exists');
+    
+    user.save((err) => {
+      if (err) return res.status(500).send('Internal server error');
+      res.status(201).send(user);
+    });
   });
-
 };
 
 
