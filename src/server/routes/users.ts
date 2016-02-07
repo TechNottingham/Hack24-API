@@ -64,6 +64,7 @@ export var Get = function(req, res) {
 export var GetById = function(req: RequestWithModels, res: Response) {
   return req.models.User.findOne({ id: req.params.id }, 'id name modified' , (err, user) => {
     if (err) return send500(res);
+    if (!user) return res.status(404).send('User not found');
     return res.status(200).send(user);
   });
 };

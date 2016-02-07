@@ -150,4 +150,26 @@ describe('Users resource', () => {
 
   });
 
+  describe('GET missing user by ID', () => {
+
+    let statusCode: number;
+
+    before((done) => {
+      api.get('/users/U' + Random.int(10000, 99999))
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 404 Not Found', () => {
+      assert.strictEqual(statusCode, 404);
+    });
+
+  });
+
 });
