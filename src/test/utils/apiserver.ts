@@ -22,9 +22,10 @@ export class ApiServer {
       
       this._api.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString('utf8');
-        //console.log('dataStr: ' + dataStr)
-        if (dataStr.startsWith('Server started on port'))
+        if (dataStr.startsWith('Server started on port')) {
+          this._api.stdout.removeAllListeners();
           resolve();
+        }
       });
     
       this._api.on('close', function (code) {

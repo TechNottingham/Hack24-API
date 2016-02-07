@@ -1,7 +1,8 @@
 import * as assert from 'assert';
 import {MongoDB, IUser} from './utils/mongodb';
 import {ApiServer} from './utils/apiserver';
-import * as request from 'supertest'
+import * as request from 'supertest';
+import {Random} from './utils/random';
 
 describe('Users resource', () => {
   
@@ -18,8 +19,8 @@ describe('Users resource', () => {
     
     before((done) => {
       user = {
-        id: 'U12345',
-        name: 'Nigel',
+        id: 'U' + Random.int(10000, 99999),
+        name: 'Name_' + Random.str(5),
         modified: new Date
       };
       
