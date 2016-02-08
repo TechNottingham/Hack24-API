@@ -28,14 +28,10 @@ function send403(res) {
      .send('Forbidden');
 }
 
-function requiresBasicAuth(req: Request, res: Response, next: Function) {
+function requiresHackbotUser(req: Request, res: Response, next: Function) {
   if (req.headers['authorization'] === undefined)
     return send401(res);
-
-  next();
-}
-
-function requiresHackbotUser(req: Request, res: Response, next: Function) {
+    
   const authParts = req.headers['authorization'].split(' ');
   if (authParts.length < 2 || authParts[0] !== 'Basic')
     return send403(res);
@@ -70,7 +66,7 @@ export class Server {
     this._app = express();
 
     this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
-    this._app.post('/users/', requiresBasicAuth, requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
 
     this._app.post('/teams/', bodyParser, createModels, TeamsRoute.Create);
 
