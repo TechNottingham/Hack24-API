@@ -3,9 +3,14 @@ import {fork, ChildProcess} from 'child_process';
 export class ApiServer {
   private static _api: ChildProcess;
   private static _port: number = 12123;
+  private static _hackbotPassword: string = 'password123456789';
   
   public static get Port(): number {
     return this._port;
+  }
+  
+  public static get HackbotPassword(): string {
+    return this._hackbotPassword;
   }
   
   static start(): Promise<void> {
@@ -16,14 +21,15 @@ export class ApiServer {
       
       this._api = fork('../bin/server.js', [], {
         cwd: process.cwd(),
-        env: { PORT: this._port },
+        env: { PORT: this._port, HACKBOT_PASSWORD: this._hackbotPassword },
         silent: true
       });
       
       this._api.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString('utf8');
+        console.log(dataStr);
         if (dataStr.startsWith('Server started on port')) {
-          this._api.stdout.removeAllListeners();
+          //this._api.stdout.removeAllListeners();
           resolve();
         }
       });

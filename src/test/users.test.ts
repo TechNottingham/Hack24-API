@@ -14,7 +14,7 @@ describe('Users resource', () => {
     api = request('http://localhost:' + ApiServer.Port);
   });
 
-  describe('POST new user', () => {
+  describe.only('POST new user', () => {
 
     let user: IUser;
     let createdUser: IUser;
@@ -30,6 +30,7 @@ describe('Users resource', () => {
 
       api.post('/users')
         .send({ userid: user.userid, name: user.name })
+        .auth('hackbot', ApiServer.HackbotPassword)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -79,6 +80,7 @@ describe('Users resource', () => {
       MongoDB.Users.createUser(user).then(() => {
         api.post('/users')
           .send({ userid: user.userid, name: 'Name_' + Random.str(5) })
+          .auth('hackbot', ApiServer.HackbotPassword)
           .set('Accept', 'application/json')
           .end((err, res) => {
             if (err) return done(err);
@@ -224,6 +226,109 @@ describe('Users resource', () => {
 
     after((done) => {
       MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
+    });
+
+  });
+  
+  describe('POST new user without authentication', () => {
+
+    let userId: string;
+    let createdUser: IUser;
+    let statusCode: number;
+    let contentType: string;
+    let authenticateHeader: string;
+    let body: string;
+
+    before((done) => {
+      userId = 'U' + Random.int(10000, 99999);
+      api.post('/users')
+        .send({ userid: userId, name: 'Name_' + Random.str(5) })
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+          
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          authenticateHeader = res.header['www-authenticate'];
+          body = res.text;
+
+          done();
+        });
+    });
+
+    it('should respond with status code 401 Unauthorized', () => {
+      assert.strictEqual(statusCode, 401);
+    });
+
+    it('should respond with WWW-Authenticate header for basic realm "api.hack24.co.uk"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="api.hack24.co.uk"');
+    });
+
+    it('should return text/plain content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    });
+
+    it('should respond with body text "Unauthorized"', () => {
+      assert.strictEqual(body, 'Unauthorized');
+    });
+
+    it('should not create the user document', (done) => {
+      MongoDB.Users.findbyUserId(userId).then((user) => {
+        done(user ? new Error('User was created') : null);
+      }).catch(done);
+    });
+
+    after((done) => {
+      MongoDB.Users.removeByUserId(userId).then(done).catch(done);
+    });
+
+  });
+  
+  describe('POST new user with incorrect authentication', () => {
+
+    let userId: string;
+    let createdUser: IUser;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before((done) => {
+      userId = 'U' + Random.int(10000, 99999);
+      api.post('/users')
+        .send({ userid: userId, name: 'Name_' + Random.str(5) })
+        .auth('hackbot', 'incorrect_password')
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+          
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          done();
+        });
+    });
+
+    it('should respond with status code 403 Forbidden', () => {
+      assert.strictEqual(statusCode, 403);
+    });
+
+    it('should return text/plain content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    });
+
+    it('should respond with body text "Forbidden"', () => {
+      assert.strictEqual(body, 'Forbidden');
+    });
+
+    it('should not create the user document', (done) => {
+      MongoDB.Users.findbyUserId(userId).then((user) => {
+        done(user ? new Error('User was created') : null);
+      }).catch(done);
+    });
+
+    after((done) => {
+      MongoDB.Users.removeByUserId(userId).then(done).catch(done);
     });
 
   });
