@@ -3,14 +3,13 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
-import {UserModel} from './models'
-import {TeamModel} from './models'
+import {UserModel, TeamModel} from './models'
 import {json as jsonParser} from 'body-parser'
 
 function createModels(req, res, next) {
   req.models = {
-    User: mongoose.model('User', UserModel),
-    Team: mongoose.model('Team', TeamModel)
+    User: UserModel,
+    Team: TeamModel
   };
   return next();
 }
@@ -26,25 +25,17 @@ export class Server {
 
   constructor() {
     mongoose.connect(process.env.MONGODB_URL || 'mongodb://localhost/hack24db');
+    
+    const bodyParser = jsonParser();
 
     this._app = express();
 
-    this._app.use(jsonParser());
+    this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
+    this._app.post('/users/', bodyParser, createModels, UsersRoute.Create);
 
-    this._app.get('/users', createModels, UsersRoute.Get);
-    this._app.get('/users/:id', createModels, UsersRoute.GetById);
-    this._app.get('/users/:id', createModels, UsersRoute.GetByName);
-    this._app.delete('/users/:id', createModels, UsersRoute.Delete);
-    this._app.post('/users/', createModels, UsersRoute.Create);
-    this._app.put('/users/:id,createModels', UsersRoute.Update);
+    this._app.post('/teams/', bodyParser, createModels, TeamsRoute.Create);
 
-    this._app.get('/teams', createModels, TeamsRoute.Get);
-    this._app.get('/teams/:id', createModels, TeamsRoute.GetById);
-    this._app.delete('/teams/:id', createModels, TeamsRoute.Delete);
-    this._app.post('/teams/', createModels, TeamsRoute.Create);
-    this._app.put('/teams/:id', createModels, TeamsRoute.Update);
-
-    this._app.get('/api', function(req, res) {
+    this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');
     });
   }
