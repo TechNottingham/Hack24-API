@@ -30,7 +30,7 @@ describe('Users resource', () => {
 
       api.post('/users')
         .send({ userid: user.userid, name: user.name })
-        .auth('hackbot', ApiServer.HackbotPassword)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -80,7 +80,7 @@ describe('Users resource', () => {
       MongoDB.Users.createUser(user).then(() => {
         api.post('/users')
           .send({ userid: user.userid, name: 'Name_' + Random.str(5) })
-          .auth('hackbot', ApiServer.HackbotPassword)
+          .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
           .set('Accept', 'application/json')
           .end((err, res) => {
             if (err) return done(err);

@@ -41,9 +41,7 @@ function requiresHackbotUser(req: Request, res: Response, next: Function) {
   if (decodedParts.length < 2)
     return send403(res);
   
-  console.log(decodedParts);
-  
-  if (decodedParts[0] !== 'hackbot' || decodedParts[1] !== process.env.HACKBOT_PASSWORD)
+  if (decodedParts[0] !== process.env.HACKBOT_USERNAME || decodedParts[1] !== process.env.HACKBOT_PASSWORD)
     return send403(res);
   
   next();
