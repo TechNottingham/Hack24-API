@@ -14,7 +14,7 @@ describe('Users resource', () => {
     api = request('http://localhost:' + ApiServer.Port);
   });
 
-  describe.only('POST new user', () => {
+  describe('POST new user', () => {
 
     let user: IUser;
     let createdUser: IUser;

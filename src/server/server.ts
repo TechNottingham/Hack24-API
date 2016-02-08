@@ -36,11 +36,9 @@ function requiresBasicAuth(req: Request, res: Response, next: Function) {
 }
 
 function requiresHackbotUser(req: Request, res: Response, next: Function) {
-  const authParts = req.headers['authorization'].split('');
+  const authParts = req.headers['authorization'].split(' ');
   if (authParts.length < 2 || authParts[0] !== 'Basic')
     return send403(res);
-    
-  console.log(authParts);
     
   const decoded = new Buffer(authParts[1], 'base64').toString("ascii");
   const decodedParts = decoded.split(':');

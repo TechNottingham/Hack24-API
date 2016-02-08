@@ -27,9 +27,8 @@ export class ApiServer {
       
       this._api.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString('utf8');
-        console.log(dataStr);
         if (dataStr.startsWith('Server started on port')) {
-          //this._api.stdout.removeAllListeners();
+          this._api.stdout.removeAllListeners();
           resolve();
         }
       });
