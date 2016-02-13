@@ -1,3 +1,5 @@
+"use strict";
+
 import {fork, ChildProcess} from 'child_process';
 
 export class ApiServer {
@@ -18,7 +20,7 @@ export class ApiServer {
     return this._hackbotPassword;
   }
   
-  static start(): Promise<void> {
+  static start() {
     
     console.log('Starting API server...');
     
@@ -43,7 +45,7 @@ export class ApiServer {
       });
     
       this._api.on('close', function (code) {
-        if (code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
+        if (code !== null && code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
         console.log('API closed.');
       });
     

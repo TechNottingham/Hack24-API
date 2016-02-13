@@ -1,1 +1,0 @@
-web: node --use_strict ./bin/server.js

@@ -1,3 +1,5 @@
+"use strict";
+
 import {spawn, ChildProcess} from 'child_process';
 import {MongoClient, Db} from 'mongodb';
 import {Users} from '../models/users'
@@ -21,28 +23,21 @@ export class MongoDB {
     return this._teams;
   }
   
-  static start(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      
-      this.connectMongo().then((db) => {
-        resolve(this.loadDb(db));
-      }).catch((err) => {
-        this._spawn = this.spawn();
-        
-        this.connectMongo().then((db) => {
-          this._db = db;
-          resolve();
-        }).catch((err) => {
-          reject(err);
-        });
-        
-      });
-      
-    });
+  static async start() {
+    let db: Db;
+    
+    try {
+      db = await this.connectMongo();
+    } catch (err) {
+      await this.spawnMongoDB();
+      db = await this.connectMongo();
+    }
+    
+    await this.prepareDb(db);
   }
   
-  private static loadDb(db: Db): Promise<void> {
-    return new Promise<void>((resolve, reject) => {    
+  private static prepareDb(db: Db): Promise<void> {
+    return new Promise<void>((resolve) => {    
       this._db = db;
       Users.Create(db).then((users) => {
         this._users = users;
@@ -54,8 +49,12 @@ export class MongoDB {
     })
   }
   
-  private static connectMongo(): Promise<Db> {
-    return MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost/hack24db');
+  private static async spawnMongoDB() {
+    this._spawn = this.spawn();
+  }
+  
+  private static async connectMongo() {
+    return await MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost/hack24db');
   }
   
   private static spawn() {
@@ -72,7 +71,7 @@ export class MongoDB {
     }
   
     mongod.on('close', function (code) {
-      if (code !== 0) return console.error(new Error('MongoDB finished with non-zero exit code (' + code + ')'));
+      if (code !== null && code !== 0) return console.error(new Error('MongoDB finished with non-zero exit code (' + code + ')'));
       console.log('MongoDB closed.');
     });
   

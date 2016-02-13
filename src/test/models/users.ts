@@ -1,3 +1,5 @@
+"use strict";
+
 import {Db, Collection, ObjectID} from 'mongodb';
 
 export interface IUser {

@@ -1,3 +1,5 @@
+"use strict";
+
 import * as assert from 'assert';
 import {ObjectID} from 'mongodb';
 import {MongoDB} from './utils/mongodb';

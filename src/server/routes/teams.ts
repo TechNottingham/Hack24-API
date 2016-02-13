@@ -1,3 +1,5 @@
+"use strict";
+
 import {Request, Response} from 'express'
 import {IModels, ITeamModel} from '../models'
 

@@ -1,13 +1,18 @@
 import {ApiServer} from './utils/apiserver';
 import {MongoDB} from './utils/mongodb';
 
-before((done) => {
-  MongoDB.start().then(() => {
-    ApiServer.start().then(done).catch(done);
-  }).catch(done);
+before(async (done) => {
+  try {
+    await MongoDB.start();
+    await ApiServer.start();
+    done();
+  } catch (err) {
+    done(err);
+  }
 });
 
-after((done) => {
+after(async (done) => {
   ApiServer.stop();
-  MongoDB.stop().then(done);
+  await MongoDB.stop();
+  done();
 });

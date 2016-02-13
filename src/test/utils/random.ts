@@ -1,3 +1,5 @@
+"use strict";
+
 export class Random {
   /**
    * Generates a random number between min and max.
