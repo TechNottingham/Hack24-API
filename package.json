@@ -11,6 +11,7 @@
     "prestart": "npm run build",
     "start": "node bin/server.js",
     "test": "cd build && mocha --timeout 10000",
+    "prebuild:watch": "npm run prebuild",
     "build:watch": "node node_modules/typescript/bin/tsc -p src/ -w",
     "test:watch": "cd build && mocha  --timeout 10000 -w"
   },

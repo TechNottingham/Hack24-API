@@ -39,5 +39,19 @@ Since this is a TypeScript project, the `.ts` files will need to be transcompile
 
 You can begin your CI process by executing either `ci` or `ci.cmd` in the root of the repository. Note also that if you see strange results when testing, it's worth deleting the `build` path and restarting the CI script - this is due to the `tsc -w` command being unable to remove any scripts that you may have deleted in the source path.
 
+## Type Definitions
+
+The typings used by this project are provided by the [`typings`](https://www.npmjs.com/package/typings) tool. To add or update typings, you will need to install the tool:
+
+```bash
+$ npm install typings --global
+```
+
+All typings are stored in the `src/typings` path, and are committed with the respository to simplify building. Ensure they are saved to the `typings.json` by using the `--save` option when installing typings. For example, to install `express`:
+
+```bash
+$ typings install express --ambient --save
+```
+
 [Build Status]: https://semaphoreci.com/api/v1/codesleuth/hack24-api/branches/master/badge.svg
 [Stories in Ready]: https://badge.waffle.io/TechNottingham/Hackbot.svg?label=ready&title=Ready
