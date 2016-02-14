@@ -36,10 +36,17 @@ export class ApiServer {
         silent: true
       });
       
+      this._api.stderr.on('data', (data: Buffer) => {
+        console.log(`!> ${data.toString('utf8')}`);
+      });
+      
+      let waitingForResolve = true;
+      
       this._api.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString('utf8');
-        if (dataStr.startsWith('Server started on port')) {
-          this._api.stdout.removeAllListeners();
+        console.log(`>> ${dataStr}`);
+        if (waitingForResolve && dataStr.startsWith('Server started on port')) {
+          waitingForResolve = false;
           resolve();
         }
       });
