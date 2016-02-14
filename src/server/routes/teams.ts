@@ -18,8 +18,17 @@ function slugify(name: string): string {
   return slug(name, { lower: true });
 }
 
+function send400(res: Response) {
+  res.status(400).contentType('text/plain').send('Bad Request');
+}
+
 function send409(res: Response) {
   res.status(409).contentType('text/plain').send('Conflict');
+}
+
+function send500(res: Response, err?: Error) {
+  console.error('Sending 500 response', err);
+  res.status(500).send('Internal Server Error');
 }
 
 export var GetAll = function(req: RequestWithModels, res: Response) {
@@ -43,46 +52,77 @@ export var GetAll = function(req: RequestWithModels, res: Response) {
     });
 };
 
-export var Create = function(req: RequestWithModels, res: Response) {
+export var Create = function (req: RequestWithModels, res: Response) {
+  if (req.body.name === undefined || typeof req.body.name !== 'string')
+    return send400(res);
+    
+  if (!Array.isArray(req.body.members))
+    return send400(res);
+  
   let teamName = req.body.name;
+  let members = req.body.members;
   let teamId = slugify(teamName);
   
-  req.models.Team.find({ teamid: teamId }, (err, teams) => {
-    if (err) return res.status(500).send('Internal server error');
-    if (teams.length !== 0) return send409(res);
-    
-    function saveTeam(team: ITeamModel, res: Response) {
-      team.save((err, result) => {
-        if (err) return res.status(500).send('Internal server error');
-        
-        let teamResponse: ITeamResponse = {
-          teamid: team.teamid,
-          name: team.name,
-          members: []
-        };
-        
-        req.models.User.find({ _id: { $in: team.members }}, 'userid', (err, users) => {
-          teamResponse.members = users.map((user) => user.userid);
-          res.status(201).send(teamResponse);
-        });
-      });
-    }
-    
-    let team = new req.models.Team({
-      teamid: slugify(teamName),
-      name: teamName
-    });
-    
-    if (req.body.members && req.body.members.length > 0) {
-      return req.models.User.find({ userid: { $in: req.body.members }}, '_id', (err, users) => {
-        
-        team.members = users.map((user) => {
-          return user._id;
-        });
-        saveTeam(team, res);
-      });
-    }
-    
-    saveTeam(team, res);
+  let team = new req.models.Team({
+    teamid: slugify(teamName),
+    name: teamName,
+    members: []
   });
+  
+  if (members === undefined) {
+    return team.save((err, result) => {
+      if (err) {
+        if (err.code === 11000)
+          return send409(res);
+        return send500(res, err);
+      }
+      
+      let teamResponse: ITeamResponse = {
+        teamid: team.teamid,
+        name: team.name,
+        members: []
+      };
+      
+      res.status(201).send(teamResponse);
+    });
+  }
+  
+  let membersQuery = {
+    userid: {
+      $in: members.map((member) => member.toString())
+    }
+  };
+    
+  req.models.User
+    .find(membersQuery, '_id')
+    .exec()
+    .then((users) => {
+      
+      let team = new req.models.Team({
+        teamid: slugify(teamName),
+        name: teamName,
+        members: users.map((user) => user._id)
+      });
+      
+      team.save((err, result: ITeamModel) => {
+        if (err) {
+          if (err.code === 11000)
+            return send409(res);
+          return send500(res, err);
+        }
+        
+        req.models.Team.findById(result._id)
+          .populate('members', 'userid')
+          .exec()
+          .then((team) => {
+            let teamResponse: ITeamResponse = {
+              teamid: team.teamid,
+              name: team.name,
+              members: team.members.map((member) => member.userid)
+            };
+            res.status(201).send(teamResponse);
+          }, send500.bind(res));
+      });
+      
+    }, send500.bind(res));
 };

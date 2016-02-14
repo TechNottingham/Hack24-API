@@ -19,7 +19,7 @@ describe('Teams resource', () => {
 
   describe('POST new team', () => {
 
-    let team: ITeamRequest;
+    let teamName: string;
     let expectedTeamId: string;
     let createdTeam: ITeam;
     let statusCode: number;
@@ -29,15 +29,16 @@ describe('Teams resource', () => {
     before((done) => {
       let randomPart = Random.str(5);
       
-      team = {
-        name: `Team ${randomPart}`,
+      teamName = `Team ${randomPart}`;
+      expectedTeamId = `team-${randomPart}`;
+      
+      let teamRequest: ITeamRequest = {
+        name: teamName,
         members: []
       };
       
-      expectedTeamId = `team-${randomPart}`;
-
       api.post('/teams')
-        .send({ name: team.name })
+        .send(teamRequest)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -46,7 +47,7 @@ describe('Teams resource', () => {
           contentType = res.header['content-type'];
           responseBody = res.body;
 
-          MongoDB.Teams.findbyName(team.name).then((team) => {
+          MongoDB.Teams.findbyTeamId(expectedTeamId).then((team) => {
             createdTeam = team;
             done();
           }).catch(done);
@@ -64,18 +65,18 @@ describe('Teams resource', () => {
     it('should create the team with the expected name', () => {
       assert.ok(createdTeam, 'Team not found');
       assert.strictEqual(createdTeam.teamid, expectedTeamId);
-      assert.strictEqual(createdTeam.name, team.name);
+      assert.strictEqual(createdTeam.name, teamName);
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
     it('should return the created team', () => {
       assert.strictEqual(responseBody.teamid, expectedTeamId);
-      assert.strictEqual(responseBody.name, team.name);
+      assert.strictEqual(responseBody.name, teamName);
       assert.strictEqual(responseBody.members.length, 0);
     });
 
     after((done) => {
-      MongoDB.Teams.removeByName(team.name).then(done, done);
+      MongoDB.Teams.removeByTeamId(expectedTeamId).then(done, done);
     });
 
   });
@@ -91,7 +92,7 @@ describe('Teams resource', () => {
     let contentType: string;
     let responseBody: ITeamResponse;
 
-    before((done) => {
+    before(async (done) => {
       userId = `U${Random.int(10000, 99999)}`;
       
       let user: IUser = {
@@ -100,35 +101,30 @@ describe('Teams resource', () => {
         modified: new Date
       };
       
-      MongoDB.Users.createUser(user).then((userObjectId) => {
-        expectedUserObjectId = userObjectId;
+      expectedUserObjectId = await MongoDB.Users.createUser(user);
         
-        let randomPart = Random.str(5);
-        
-        teamName = `ú-x.€ ${randomPart}`;
-        expectedTeamId = `u-xeuro-${randomPart}`;
-        
-        let team: ITeamRequest = {
-          name: teamName,
-          members: [user.userid]
-        };
+      let randomPart = Random.str(5);
+      teamName = `ú-x.€ ${randomPart}`;
+      expectedTeamId = `u-xeuro-${randomPart}`;
       
-        api.post('/teams')
-          .send({ name: team.name, members: [user.userid] })
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
+      let teamRequest: ITeamRequest = {
+        name: teamName,
+        members: [user.userid]
+      };
+    
+      api.post('/teams')
+        .send(teamRequest)
+        .set('Accept', 'application/json')
+        .end(async (err, res) => {
+          if (err) return done(err);
 
-            statusCode = res.status;
-            contentType = res.header['content-type'];
-            responseBody = res.body;
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          responseBody = res.body;
 
-            MongoDB.Teams.findbyTeamId(expectedTeamId).then((team) => {
-              createdTeam = team;
-              done();
-            }).catch(done);
-          });
-      });
+          createdTeam = await MongoDB.Teams.findbyTeamId(expectedTeamId);
+          done();
+        });
     });
 
     it('should respond with status code 201 Created', () => {
@@ -175,7 +171,7 @@ describe('Teams resource', () => {
     let contentType: string;
     let body: string;
 
-    before((done) => {
+    before(async (done) => {
       let randomPart = Random.str(5);
       teamId = `u-xeuro-${randomPart}`;
       
@@ -185,20 +181,20 @@ describe('Teams resource', () => {
         members: []
       };
       
-      MongoDB.Teams.createTeam(teamDoc).then((teamObjectId) => {
-        api.post('/teams')
-          .send({ name: teamDoc.name, members: [] })
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
+      let randomTeam = await MongoDB.Teams.createTeam(teamDoc);
+      
+      api.post('/teams')
+        .send({ name: teamDoc.name, members: [] })
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
 
-            statusCode = res.status;
-            contentType = res.header['content-type'];
-            body = res.text;
-            
-            done();
-          });
-      }).catch(done);
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+          
+          done();
+        });
     });
 
     it('should respond with status code 409 Conflict', () => {
