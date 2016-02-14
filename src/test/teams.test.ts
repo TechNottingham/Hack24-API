@@ -164,27 +164,21 @@ describe('Teams resource', () => {
 
   describe('POST team which already exists', () => {
 
-    let user: IUser;
-    let teamId: string;
-    let createdTeam: ITeam;
+    let randomTeam: ITeam;
     let statusCode: number;
     let contentType: string;
     let body: string;
 
     before(async (done) => {
-      let randomPart = Random.str(5);
-      teamId = `u-xeuro-${randomPart}`;
+      randomTeam = await MongoDB.Teams.createRandomTeam();
       
-      let teamDoc: ITeam = { 
-        teamid: teamId,
-        name: `ú-x.€ ${randomPart}`,
+      let teamRequest: ITeamRequest = {
+        name: randomTeam.name,
         members: []
       };
       
-      let randomTeam = await MongoDB.Teams.createTeam(teamDoc);
-      
       api.post('/teams')
-        .send({ name: teamDoc.name, members: [] })
+        .send(teamRequest)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -210,7 +204,7 @@ describe('Teams resource', () => {
     });
 
     after((done) => {
-      MongoDB.Teams.removeByTeamId(teamId).then(done, done);
+      MongoDB.Teams.removeByTeamId(randomTeam.teamid).then(done, done);
     });
 
   });
@@ -219,19 +213,24 @@ describe('Teams resource', () => {
 
     let firstUser: IUser;
     let secondUser: IUser;
-    let teams: ITeam[];
+    let teams: { team: ITeam; member: IUser }[];
     let statusCode: number;
     let contentType: string;
     let responseBody: ITeamResponse;
 
     before(async (done) => {
+      await MongoDB.Teams.removeAll();
+      
       firstUser = await MongoDB.Users.createRandomUser();
       secondUser = await MongoDB.Users.createRandomUser();
       
       let firstTeam = await MongoDB.Teams.createRandomTeam([firstUser._id]);
       let secondTeam = await MongoDB.Teams.createRandomTeam([secondUser._id]);
       
-      teams = [firstTeam, secondTeam].sort((teamA, teamB) => teamA.teamid <= teamB.teamid ? -1 : 1);
+      teams = [
+        { team: firstTeam, member: firstUser },
+        { team: secondTeam, member: secondUser }
+      ].sort((teamA, teamB) => teamA.team.teamid <= teamB.team.teamid ? -1 : 1);
       
       api.get('/teams')
         .set('Accept', 'application/json')
@@ -255,23 +254,25 @@ describe('Teams resource', () => {
     });
 
     it('should return the first team', () => {
-      assert.strictEqual(responseBody[0].teamid, teams[0].teamid);
-      assert.strictEqual(responseBody[0].name, teams[0].name);
+      assert.strictEqual(responseBody[0].teamid, teams[0].team.teamid);
+      assert.strictEqual(responseBody[0].name, teams[0].team.name);
       assert.strictEqual(responseBody[0].members.length, 1);
-      assert.strictEqual(responseBody[0].members[0], firstUser.userid);
+      assert.strictEqual(responseBody[0].members[0], teams[0].member.userid);
     });
 
     it('should return the second team', () => {
-      assert.strictEqual(responseBody[1].teamid, teams[1].teamid);
-      assert.strictEqual(responseBody[1].name, teams[1].name);
+      assert.strictEqual(responseBody[1].teamid, teams[1].team.teamid);
+      assert.strictEqual(responseBody[1].name, teams[1].team.name);
       assert.strictEqual(responseBody[1].members.length, 1);
-      assert.strictEqual(responseBody[1].members[0], secondUser.userid);
+      assert.strictEqual(responseBody[1].members[0], teams[1].member.userid);
     });
 
     after(async (done) => {
       try {
-        await MongoDB.Teams.removeByTeamId(teams[0].teamid);
-        await MongoDB.Teams.removeByTeamId(teams[1].teamid);
+        await MongoDB.Users.removeByUserId(firstUser.userid);
+        await MongoDB.Users.removeByUserId(secondUser.userid);
+        await MongoDB.Teams.removeByTeamId(teams[0].team.teamid);
+        await MongoDB.Teams.removeByTeamId(teams[1].team.teamid);
         done();
       } catch (err) {
         done(err);
