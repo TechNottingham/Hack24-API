@@ -1,8 +1,9 @@
 "use strict";
 
-import {Request, Response} from 'express'
-import {IModels, ITeamModel} from '../models'
-import * as slug from 'slug'
+import {Request, Response} from 'express';
+import {IModels, ITeamModel} from '../models';
+import * as slug from 'slug';
+import * as respond from './respond';
 
 declare interface RequestWithModels extends Request {
   models: IModels
@@ -23,23 +24,6 @@ interface ITeamsResponse {
 
 function slugify(name: string): string {
   return slug(name, { lower: true });
-}
-
-function send400(res: Response) {
-  res.status(400).contentType('text/plain').send('Bad Request');
-}
-
-function send404(res: Response) {
-  res.status(404).contentType('text/plain').send('Not Found');
-}
-
-function send409(res: Response) {
-  res.status(409).contentType('text/plain').send('Conflict');
-}
-
-function send500(res: Response, err?: Error) {
-  console.error('Sending 500 response', err);
-  res.status(500).send('Internal Server Error');
 }
 
 export var GetAll = function (req: RequestWithModels, res: Response) {
@@ -77,8 +61,8 @@ export var GetAll = function (req: RequestWithModels, res: Response) {
           };
           res.status(200).send(teamsResponse);
           
-        }, send500.bind(res));
-    }, send500.bind(res));
+        }, respond.Send500.bind(res));
+    }, respond.Send500.bind(res));
 };
 
 export var GetByTeamId = function (req: RequestWithModels, res: Response) {
@@ -88,22 +72,22 @@ export var GetByTeamId = function (req: RequestWithModels, res: Response) {
     .populate('members', 'userid')
     .exec()
     .then((team) => {
-      if (team === null) return send404(res);
+      if (team === null) return respond.Send404(res);
       let teamResponse: ITeamResponse = {
         teamid: team.teamid,
         name: team.name,
         members: team.members.map((member) => member.userid)
       };
       res.status(200).send(teamResponse);
-    }, send500.bind(res));
+    }, respond.Send500.bind(res));
 };
 
 export var Create = function (req: RequestWithModels, res: Response) {
   if (req.body.name === undefined || typeof req.body.name !== 'string')
-    return send400(res);
+    return respond.Send400(res);
     
   if (!Array.isArray(req.body.members))
-    return send400(res);
+    return respond.Send400(res);
   
   let teamName = req.body.name;
   let members = req.body.members;
@@ -119,8 +103,8 @@ export var Create = function (req: RequestWithModels, res: Response) {
     return team.save((err, result) => {
       if (err) {
         if (err.code === 11000)
-          return send409(res);
-        return send500(res, err);
+          return respond.Send409(res);
+        return respond.Send500(res, err);
       }
       
       let teamResponse: ITeamResponse = {
@@ -153,8 +137,8 @@ export var Create = function (req: RequestWithModels, res: Response) {
       team.save((err, result: ITeamModel) => {
         if (err) {
           if (err.code === 11000)
-            return send409(res);
-          return send500(res, err);
+            return respond.Send409(res);
+          return respond.Send500(res, err);
         }
         
         req.models.Team.findById(result._id)
@@ -167,8 +151,8 @@ export var Create = function (req: RequestWithModels, res: Response) {
               members: team.members.map((member) => member.userid)
             };
             res.status(201).send(teamResponse);
-          }, send500.bind(res));
+          }, respond.Send500.bind(res));
       });
       
-    }, send500.bind(res));
+    }, respond.Send500.bind(res));
 };

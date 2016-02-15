@@ -192,7 +192,7 @@ describe('Users resource', () => {
       teamId = team.teamid;
       teamName = team.name;
       
-      api.get('/users/' + user.userid)
+      api.get(`/users/${user.userid}`)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -223,13 +223,10 @@ describe('Users resource', () => {
     });
 
     after(async (done) => {
-      try {
-        await MongoDB.Teams.removeByTeamId(teamId);
-        await MongoDB.Users.removeByUserId(userId);
-        done();
-      } catch (err) {
-        done(err);
-      }
+      Promise.all([
+        MongoDB.Teams.removeByTeamId(teamId),
+        MongoDB.Users.removeByUserId(userId)
+      ]).then(() => done(), done);
     });
 
   });

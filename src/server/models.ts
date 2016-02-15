@@ -13,7 +13,7 @@ export interface IUserModel extends IUser, Document { }
 export const UserSchema = new Schema({
   userid: { type: String, unique: true, required: true },
   name: { type: String, required: true },
-  modified: { type: Date, default: Date.now }
+  modified: { type: Date, default: Date.now },
 });
 export const UserModel = model<IUserModel>('User', UserSchema);
 
