@@ -337,5 +337,39 @@ describe('Teams resource', () => {
     });
 
   });
+  
+  describe('GET team by slug (teamid) which does not exist', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async (done) => {
+      api.get(`/teams/does not exist`)
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 404 OK', () => {
+      assert.strictEqual(statusCode, 404);
+    });
+
+    it('should return text/plain content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    });
+
+    it('should respond with body text "Not Found"', () => {
+      assert.strictEqual(body, 'Not Found');
+    });
+
+  });
 
 });

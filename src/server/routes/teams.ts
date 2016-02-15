@@ -22,6 +22,10 @@ function send400(res: Response) {
   res.status(400).contentType('text/plain').send('Bad Request');
 }
 
+function send404(res: Response) {
+  res.status(404).contentType('text/plain').send('Not Found');
+}
+
 function send409(res: Response) {
   res.status(409).contentType('text/plain').send('Conflict');
 }
@@ -59,6 +63,7 @@ export var GetByTeamId = function (req: RequestWithModels, res: Response) {
     .populate('members', 'userid')
     .exec()
     .then((team) => {
+      if (team === null) return send404(res);
       let teamResponse: ITeamResponse = {
         teamid: team.teamid,
         name: team.name,
