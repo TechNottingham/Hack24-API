@@ -218,11 +218,15 @@ describe('Users resource', () => {
       assert.strictEqual(body.name, userName);
     });
 
-    it('should return the team name for which this user is a member', () => {
-      assert.strictEqual(body.team, teamName);
+    it('should return the expected team slug (teamId)', () => {
+      assert.strictEqual(body.team.teamid, teamId);
     });
 
-    after(async (done) => {
+    it('should return the expected team name', () => {
+      assert.strictEqual(body.team.name, teamName);
+    });
+
+    after((done) => {
       Promise.all([
         MongoDB.Teams.removeByTeamId(teamId),
         MongoDB.Users.removeByUserId(userId)

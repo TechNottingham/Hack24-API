@@ -12,7 +12,10 @@ declare interface RequestWithModels extends Request {
 interface IUserResponse {
   userid: string;
   name: string;
-  team?: string;
+  team?: {
+    teamid: string;
+    name: string;
+  };
 }
 
 export var GetByUserId = function(req: RequestWithModels, res: Response) {
@@ -27,7 +30,7 @@ export var GetByUserId = function(req: RequestWithModels, res: Response) {
         return respond.Send404(res);
       
       req.models.Team
-        .findOne({ members: { $in: [user._id] }}, 'name')
+        .findOne({ members: { $in: [user._id] }}, 'teamid name')
         .exec()
         .then((team) => {
           let userResponse: IUserResponse = {
@@ -35,8 +38,12 @@ export var GetByUserId = function(req: RequestWithModels, res: Response) {
             name: user.name
           };
           
-          if (team)
-            userResponse.team = team.name;
+          if (team) {
+            userResponse.team = {
+              teamid: team.teamid,
+              name: team.name
+            };
+          }
           
           res.status(200).send(userResponse);    
         }, respond.Send500.bind(res))
