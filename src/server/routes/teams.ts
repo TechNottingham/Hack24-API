@@ -14,6 +14,13 @@ interface ITeamResponse {
   members: string[];
 }
 
+interface ITeamsResponse {
+  count: number;
+  startindex: number;
+  totalcount: number;
+  teams: ITeamResponse[];
+}
+
 function slugify(name: string): string {
   return slug(name, { lower: true });
 }
@@ -36,24 +43,32 @@ function send500(res: Response, err?: Error) {
 }
 
 export var GetAll = function (req: RequestWithModels, res: Response) {
+  let startindex = req.query.startindex !== undefined ? parseInt(req.query.startindex, 10) : 0;
+  let count = req.query.count !== undefined ? parseInt(req.query.count, 10) : 15;
+  
   req.models.Team
     .find({}, 'teamid name members')
     .sort({ teamid: 1 })
+    .skip(startindex)
+    .limit(count)
     .populate('members', 'userid')
     .exec()
     .then((teams) => {
-      let teamsResponse = teams.map((team) => {
-        let teamResponse: ITeamResponse = {
-          teamid: team.teamid,
-          name: team.name,
-          members: team.members.map((member) => member.userid)
-        };
-        return teamResponse;
-      });
+      let teamsResponse: ITeamsResponse = {
+        count: teams.length,
+        startindex: startindex,
+        totalcount: 4,
+        teams: teams.map((team) => {
+          let teamResponse: ITeamResponse = {
+            teamid: team.teamid,
+            name: team.name,
+            members: team.members.map((member) => member.userid)
+          };
+          return teamResponse;
+        })
+      };
       res.status(200).send(teamsResponse);
-    }, (err) => {
-      res.status(500).send('Internal server error');
-    });
+    }, send500.bind(res));
 };
 
 export var GetByTeamId = function (req: RequestWithModels, res: Response) {

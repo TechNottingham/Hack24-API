@@ -21,6 +21,13 @@ export interface ITeamResponse {
   members: string[];
 }
 
+export interface ITeamsResponse {
+  count: number;
+  startindex: number;
+  totalcount: number;
+  teams: ITeamResponse[];
+}
+
 export class Teams {
   private _collection: Collection;
   

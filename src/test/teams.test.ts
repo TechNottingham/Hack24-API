@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import {ObjectID} from 'mongodb';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
-import {ITeamRequest, ITeam, ITeamResponse} from './models/teams';
+import {ITeamRequest, ITeam, ITeamResponse, ITeamsResponse} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
@@ -213,26 +213,39 @@ describe('Teams resource', () => {
 
     let firstUser: IUser;
     let secondUser: IUser;
-    let teams: { team: ITeam; member: IUser }[];
+    let thirdUser: IUser;
+    let fourthUser: IUser;
+    let firstTeam: ITeam;
+    let secondTeam: ITeam;
+    let thirdTeam: ITeam;
+    let fourthTeam: ITeam;
+    let teamOrder: { team: ITeam; member: IUser }[];
     let statusCode: number;
     let contentType: string;
-    let responseBody: ITeamResponse;
+    let responseBody: ITeamsResponse;
 
     before(async (done) => {
       await MongoDB.Teams.removeAll();
       
       firstUser = await MongoDB.Users.createRandomUser();
       secondUser = await MongoDB.Users.createRandomUser();
+      thirdUser = await MongoDB.Users.createRandomUser();
+      fourthUser = await MongoDB.Users.createRandomUser();
       
-      let firstTeam = await MongoDB.Teams.createRandomTeam([firstUser._id]);
-      let secondTeam = await MongoDB.Teams.createRandomTeam([secondUser._id]);
+      firstTeam = await MongoDB.Teams.createRandomTeam([firstUser._id]);
+      secondTeam = await MongoDB.Teams.createRandomTeam([secondUser._id]);
+      thirdTeam = await MongoDB.Teams.createRandomTeam([thirdUser._id]);
+      fourthTeam = await MongoDB.Teams.createRandomTeam([fourthUser._id]);
       
-      teams = [
+      teamOrder = [
         { team: firstTeam, member: firstUser },
-        { team: secondTeam, member: secondUser }
+        { team: secondTeam, member: secondUser },
+        { team: thirdTeam, member: thirdUser },
+        { team: fourthTeam, member: fourthUser }
       ].sort((teamA, teamB) => teamA.team.teamid <= teamB.team.teamid ? -1 : 1);
       
       api.get('/teams')
+        .query({ startindex: 1, count: 2 })
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
@@ -253,30 +266,42 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, 'application/json; charset=utf-8');
     });
 
-    it('should return the first team', () => {
-      assert.strictEqual(responseBody[0].teamid, teams[0].team.teamid);
-      assert.strictEqual(responseBody[0].name, teams[0].team.name);
-      assert.strictEqual(responseBody[0].members.length, 1);
-      assert.strictEqual(responseBody[0].members[0], teams[0].member.userid);
+    it('should return the expected count and start index', () => {
+      assert.strictEqual(responseBody.count, 2);
+      assert.strictEqual(responseBody.totalcount, 4);
+      assert.strictEqual(responseBody.startindex, 1);
+    });
+
+    it('should return two teams', () => {
+      assert.strictEqual(responseBody.teams.length, 2);
     });
 
     it('should return the second team', () => {
-      assert.strictEqual(responseBody[1].teamid, teams[1].team.teamid);
-      assert.strictEqual(responseBody[1].name, teams[1].team.name);
-      assert.strictEqual(responseBody[1].members.length, 1);
-      assert.strictEqual(responseBody[1].members[0], teams[1].member.userid);
+      assert.strictEqual(responseBody.teams[0].teamid, teamOrder[1].team.teamid);
+      assert.strictEqual(responseBody.teams[0].name, teamOrder[1].team.name);
+      assert.strictEqual(responseBody.teams[0].members.length, 1);
+      assert.strictEqual(responseBody.teams[0].members[0], teamOrder[1].member.userid);
+    });
+
+    it('should return the third team', () => {
+      assert.strictEqual(responseBody.teams[1].teamid, teamOrder[2].team.teamid);
+      assert.strictEqual(responseBody.teams[1].name, teamOrder[2].team.name);
+      assert.strictEqual(responseBody.teams[1].members.length, 1);
+      assert.strictEqual(responseBody.teams[1].members[0], teamOrder[2].member.userid);
     });
 
     after(async (done) => {
-      try {
-        await MongoDB.Users.removeByUserId(firstUser.userid);
-        await MongoDB.Users.removeByUserId(secondUser.userid);
-        await MongoDB.Teams.removeByTeamId(teams[0].team.teamid);
-        await MongoDB.Teams.removeByTeamId(teams[1].team.teamid);
-        done();
-      } catch (err) {
-        done(err);
-      }
+      Promise.all([
+        MongoDB.Users.removeByUserId(firstUser.userid),
+        MongoDB.Users.removeByUserId(secondUser.userid),
+        MongoDB.Users.removeByUserId(thirdUser.userid),
+        MongoDB.Users.removeByUserId(fourthUser.userid),
+  
+        MongoDB.Teams.removeByTeamId(firstTeam.teamid),
+        MongoDB.Teams.removeByTeamId(secondTeam.teamid),
+        MongoDB.Teams.removeByTeamId(thirdTeam.teamid),
+        MongoDB.Teams.removeByTeamId(fourthTeam.teamid)
+      ]).then(() => done(), done);
     });
 
   });
