@@ -54,20 +54,30 @@ export var GetAll = function (req: RequestWithModels, res: Response) {
     .populate('members', 'userid')
     .exec()
     .then((teams) => {
-      let teamsResponse: ITeamsResponse = {
-        count: teams.length,
-        startindex: startindex,
-        totalcount: 4,
-        teams: teams.map((team) => {
-          let teamResponse: ITeamResponse = {
-            teamid: team.teamid,
-            name: team.name,
-            members: team.members.map((member) => member.userid)
+      
+      let teamResponses: ITeamResponse[] = teams.map((team) => {
+        let teamResponse: ITeamResponse = {
+          teamid: team.teamid,
+          name: team.name,
+          members: team.members.map((member) => member.userid)
+        };
+        return teamResponse;
+      });
+      
+      req.models.Team
+        .count({})
+        .exec()
+        .then((totalCount) => {
+          
+          let teamsResponse: ITeamsResponse = {
+            count: teams.length,
+            startindex: startindex,
+            totalcount: totalCount,
+            teams: teamResponses
           };
-          return teamResponse;
-        })
-      };
-      res.status(200).send(teamsResponse);
+          res.status(200).send(teamsResponse);
+          
+        }, send500.bind(res));
     }, send500.bind(res));
 };
 
