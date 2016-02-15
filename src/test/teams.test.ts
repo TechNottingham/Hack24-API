@@ -280,5 +280,62 @@ describe('Teams resource', () => {
     });
 
   });
+  
+  describe('GET team by slug (teamid)', () => {
+
+    let firstUser: IUser;
+    let secondUser: IUser;
+    let team: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let responseBody: ITeamResponse;
+
+    before(async (done) => {
+      firstUser = await MongoDB.Users.createRandomUser();
+      secondUser = await MongoDB.Users.createRandomUser();
+      
+      team = await MongoDB.Teams.createRandomTeam([firstUser._id, secondUser._id]);
+      
+      api.get(`/teams/${team.teamid}`)
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          responseBody = res.body;
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    });
+
+    it('should return the team', () => {
+      assert.strictEqual(responseBody.teamid, team.teamid);
+      assert.strictEqual(responseBody.name, team.name);
+      assert.strictEqual(responseBody.members.length, 2);
+      assert.strictEqual(responseBody.members[0], firstUser.userid);
+      assert.strictEqual(responseBody.members[1], secondUser.userid);
+    });
+
+    after(async (done) => {
+      try {
+        await MongoDB.Users.removeByUserId(firstUser.userid);
+        await MongoDB.Users.removeByUserId(secondUser.userid);
+        await MongoDB.Teams.removeByTeamId(team.teamid);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+  });
 
 });

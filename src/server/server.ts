@@ -67,6 +67,7 @@ export class Server {
     this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
 
     this._app.get('/teams/', createModels, TeamsRoute.GetAll);
+    this._app.get('/teams/:teamId', createModels, TeamsRoute.GetByTeamId);
     this._app.post('/teams/', bodyParser, createModels, TeamsRoute.Create);
 
     this._app.get('/api', (req, res) => {

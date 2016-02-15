@@ -31,7 +31,7 @@ function send500(res: Response, err?: Error) {
   res.status(500).send('Internal Server Error');
 }
 
-export var GetAll = function(req: RequestWithModels, res: Response) {
+export var GetAll = function (req: RequestWithModels, res: Response) {
   req.models.Team
     .find({}, 'teamid name members')
     .sort({ teamid: 1 })
@@ -50,6 +50,22 @@ export var GetAll = function(req: RequestWithModels, res: Response) {
     }, (err) => {
       res.status(500).send('Internal server error');
     });
+};
+
+export var GetByTeamId = function (req: RequestWithModels, res: Response) {
+  let teamId = req.params.teamId;
+  req.models.Team
+    .findOne({ teamid: teamId }, 'teamid name members')
+    .populate('members', 'userid')
+    .exec()
+    .then((team) => {
+      let teamResponse: ITeamResponse = {
+        teamid: team.teamid,
+        name: team.name,
+        members: team.members.map((member) => member.userid)
+      };
+      res.status(200).send(teamResponse);
+    }, send500.bind(res));
 };
 
 export var Create = function (req: RequestWithModels, res: Response) {
