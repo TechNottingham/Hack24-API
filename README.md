@@ -1,4 +1,4 @@
-[![Build Status]](https://semaphoreci.com/codesleuth/hack24-api) [![Stories in Ready]](http://waffle.io/TechNottingham/Hackbot)
+[![Build Status]](https://travis-ci.org/TechNottingham/Hack24-API) [![Stories in Ready]](http://waffle.io/TechNottingham/Hackbot)
 
 # Hack24-API
 An API for storing users, teams, hacks, challenges and sponsors
@@ -53,5 +53,5 @@ All typings are stored in the `src/typings` path, and are committed with the res
 $ typings install express --ambient --save
 ```
 
-[Build Status]: https://semaphoreci.com/api/v1/codesleuth/hack24-api/branches/master/badge.svg
+[Build Status]: https://travis-ci.org/TechNottingham/Hack24-API.svg?branch=master
 [Stories in Ready]: https://badge.waffle.io/TechNottingham/Hackbot.svg?label=ready&title=Ready
