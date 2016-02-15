@@ -1,3 +1,5 @@
+"use strict";
+
 import {Schema, model, Document, Model} from 'mongoose';
 
 export interface IUser {
@@ -9,24 +11,26 @@ export interface IUser {
 export interface IUserModel extends IUser, Document { }
 
 export const UserSchema = new Schema({
-    userid: { type: String, unique : true, required: true },
-    name: { type: String, required : true  },
-    modified: { type: Date, default: Date.now }
+  userid: { type: String, unique: true, required: true },
+  name: { type: String, required: true },
+  modified: { type: Date, default: Date.now }
 });
 export const UserModel = model<IUserModel>('User', UserSchema);
 
 export interface ITeam {
+  teamid: string;
   name: string;
-  members: string[];
+  members: IUserModel[];
 }
 
 export interface ITeamModel extends ITeam, Document { }
 
 export const TeamSchema = new Schema({
-    name: { type: String, unique : true, required : true },
-    motto: { type: String, required: false },
-    modified: { type: Date, default: Date.now },
-    members : [{ type: Schema.Types.ObjectId, ref: 'User' }]
+  teamid: { type: String, unique: true, required: true },
+  name: { type: String, unique : true, required : true },
+  motto: { type: String, required: false },
+  modified: { type: Date, default: Date.now },
+  members : [{ type: Schema.Types.ObjectId, ref: 'User' }]
 });
 export const TeamModel = model<ITeamModel>('Team', TeamSchema);
 

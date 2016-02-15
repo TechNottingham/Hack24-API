@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+npm run build:watch &
+npm run test:watch & 

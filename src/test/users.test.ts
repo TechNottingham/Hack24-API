@@ -1,3 +1,5 @@
+"use strict";
+
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -173,38 +175,34 @@ describe('Users resource', () => {
 
   describe('GET user by ID in team', () => {
 
-    let user: IUser;
-    let team: ITeam;
+    let userId: string;
+    let userName: string;
+    let teamId: string;
+    let teamName: string;
     let statusCode: number;
     let contentType: string;
     let body;
 
-    before((done) => {
-      user = {
-        userid: 'U' + Random.int(10000, 99999),
-        name: 'Name_' + Random.str(5),
-        modified: new Date
-      };
+    before(async (done) => {
+      let user = await MongoDB.Users.createRandomUser();
+      userId = user.userid;
+      userName = user.name;
       
-      MongoDB.Users.createUser(user).then((userId) => {
-        team = {
-          name: 'Team_' + Random.str(10),
-          members: [userId]
-        };
-        return MongoDB.Teams.createTeam(team).then(() => {
-          api.get('/users/' + user.userid)
-            .set('Accept', 'application/json')
-            .end((err, res) => {
-              if (err) return done(err);
+      let team = await MongoDB.Teams.createRandomTeam([user._id]);
+      teamId = team.teamid;
+      teamName = team.name;
+      
+      api.get('/users/' + user.userid)
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
 
-              statusCode = res.status;
-              contentType = res.header['content-type'];
-              body = res.body;
-              
-              done();
-            });
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.body;
+          
+          done();
         });
-      }).catch(done);
     });
 
     it('should respond with status code 200 OK', () => {
@@ -216,16 +214,22 @@ describe('Users resource', () => {
     });
 
     it('should return the expected user', () => {
-      assert.strictEqual(body.userid, user.userid);
-      assert.strictEqual(body.name, user.name);
+      assert.strictEqual(body.userid, userId);
+      assert.strictEqual(body.name, userName);
     });
 
     it('should return the team name for which this user is a member', () => {
-      assert.strictEqual(body.team, team.name);
+      assert.strictEqual(body.team, teamName);
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
+    after(async (done) => {
+      try {
+        await MongoDB.Teams.removeByTeamId(teamId);
+        await MongoDB.Users.removeByUserId(userId);
+        done();
+      } catch (err) {
+        done(err);
+      }
     });
 
   });

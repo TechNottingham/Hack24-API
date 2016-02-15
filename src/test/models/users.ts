@@ -1,6 +1,10 @@
+"use strict";
+
 import {Db, Collection, ObjectID} from 'mongodb';
+import {Random} from '../utils/random';
 
 export interface IUser {
+  _id?: ObjectID;
   userid: string;
   name: string;
   modified: Date;
@@ -46,6 +50,23 @@ export class Users {
         resolve(result.insertedId);
       }).catch((err) => {
         reject(new Error('Could not insert user: ' + err.message));
+      })
+    });
+  }
+  
+  public createRandomUser(): Promise<IUser> {
+    let randomPart = Random.str(5);
+    let userDoc: IUser = { 
+      userid: `U${randomPart}`,
+      name: `Random user ${randomPart}`,
+      modified: new Date
+    };
+    return new Promise<IUser>((resolve, reject) => {
+      this._collection.insertOne(userDoc).then((result) => {
+        userDoc._id = result.insertedId;
+        resolve(userDoc);
+      }).catch((err) => {
+        reject(new Error('Could not insert random user: ' + err.message));
       })
     });
   }

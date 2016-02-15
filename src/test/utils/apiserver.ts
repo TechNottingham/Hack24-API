@@ -1,3 +1,5 @@
+"use strict";
+
 import {fork, ChildProcess} from 'child_process';
 
 export class ApiServer {
@@ -18,7 +20,7 @@ export class ApiServer {
     return this._hackbotPassword;
   }
   
-  static start(): Promise<void> {
+  static start() {
     
     console.log('Starting API server...');
     
@@ -34,16 +36,23 @@ export class ApiServer {
         silent: true
       });
       
+      this._api.stderr.on('data', (data: Buffer) => {
+        console.log(`!> ${data.toString('utf8')}`);
+      });
+      
+      let waitingForResolve = true;
+      
       this._api.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString('utf8');
-        if (dataStr.startsWith('Server started on port')) {
-          this._api.stdout.removeAllListeners();
+        console.log(`>> ${dataStr}`);
+        if (waitingForResolve && dataStr.startsWith('Server started on port')) {
+          waitingForResolve = false;
           resolve();
         }
       });
     
       this._api.on('close', function (code) {
-        if (code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
+        if (code !== null && code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
         console.log('API closed.');
       });
     

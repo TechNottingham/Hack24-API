@@ -3,7 +3,7 @@
     "target": "es6",
     "module": "commonjs",
     "removeComments": true,
-    "outDir": "../../build/test",
+    "outDir": "../build",
     "sourceMap": true
   },
   "exclude": [

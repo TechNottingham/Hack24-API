@@ -1,3 +1,5 @@
+"use strict";
+
 import {Request, Response} from 'express'
 import {IUserModel, ITeamModel, IModels} from '../models'
 import {Model, Document} from 'mongoose';

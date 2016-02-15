@@ -28,6 +28,3 @@ node_modules
 
 # Build artefacts
 build
-
-# Typings
-typings
