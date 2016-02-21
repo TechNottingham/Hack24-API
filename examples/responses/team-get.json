@@ -1,0 +1,43 @@
+{
+  "_links": {
+    "self": {
+      "href": "/teams/refactor-tractor"
+    },
+    "members": {
+      "href": "/teams/refactor-tractor/members"
+    }
+  },
+  "_embedded": {
+    "members": {
+      "_links": {
+        "self": {
+          "href": "/teams/refactor-tractor/members"
+        }
+      },
+      "item": [
+        {
+          "_links": {
+            "self": {
+              "href": "/users/barry"
+            }
+          },
+          "userid": "barry",
+          "name": "Barry",
+          "joined": "2016-01-23T12:00:00.0000000Z"
+        },
+        {
+          "_links": {
+            "self": {
+              "href": "/users/mary"
+            }
+          },
+          "userid": "mary",
+          "name": "Mary",
+          "joined": "2016-01-21T12:00:00.0000000Z"
+        }
+      ]
+    },
+    "teamid": "refactor-tractor",
+    "name": "Refactor Tractor"
+  }
+}

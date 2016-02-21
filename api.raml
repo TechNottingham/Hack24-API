@@ -1,0 +1,96 @@
+#%RAML 0.8
+---
+title: Hack 24
+baseUri: https://api.hack24.co.uk
+version: 2016-02-19
+/teams:
+  displayName: Teams Resource
+  description: |
+    Allows creating and modifying teams and team members
+  get:
+    responses:
+      200:
+        body:
+          application/hal+json:
+            example: !include examples/responses/teams-get.json
+  post:
+    body:
+      application/hal+jso:
+        example: |
+          {
+            "name": "Refactor Tractor"
+          }
+    responses:
+      201:
+        
+  /{teamId}:
+    displayName: Team Resource
+    description: |
+      Returns a specific team.
+    uriParameters:
+      teamId:
+        displayName: Team ID
+        type: string
+    get:
+      responses:
+        200:
+          body:
+            application/hal+json:
+              example: !include examples/responses/team-get.json
+
+    /members:
+      displayName: Team Members Resource
+      description: |
+        Returns team members for the current team.
+      get:
+        responses:
+          200:
+            body:
+              application/hal+json:
+                example: !include examples/responses/team-members-get.json
+
+      /{userId}:
+        displayName: Team Member Resource
+        description: |
+          Returns the specific team member of the current team.
+        uriParameters:
+          userId:
+            displayName: User ID
+            type: string
+        get:
+          responses:
+            200:
+              body:
+                application/hal+json:
+                  example: !include examples/responses/team-member-get.json
+
+/users:
+  displayName: Users Resource
+  description: |
+    Allows creating and modifying users
+  get:
+    responses:
+      200:
+        body:
+          application/hal+json:
+            example: !include examples/responses/users-get.json
+  post:
+    body:
+      application/json:
+        example: |
+          {
+            "name": "Refactor Tractor"
+          }
+    responses:
+      201:
+
+  /{userId}:
+    displayName: User Resource
+    description: |
+      Returns a specific user.
+    get:
+      responses:
+        200:
+          body:
+            application/hal+json:
+              example: !include examples/responses/user-get.json

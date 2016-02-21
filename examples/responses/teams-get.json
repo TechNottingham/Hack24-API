@@ -1,0 +1,35 @@
+{
+  "_links": {
+    "self": {
+      "href": "/teams"
+    }
+  },
+  "_embedded": {
+    "item": [
+      {
+        "_links": {
+          "self": {
+            "href": "/teams/refactor-tractor"
+          },
+          "members": {
+            "href": "/teams/refactor-tractor/members"
+          }
+        },
+        "teamid": "refactor-tractor",
+        "name": "Refactor Tractor"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/teams/code-monkeys"
+          },
+          "members": {
+            "href": "/teams/code-monkeys/members"
+          }
+        },
+        "teamid": "code-monkeys",
+        "name": "Code Monkeys"
+      }
+    ]
+  }
+}
