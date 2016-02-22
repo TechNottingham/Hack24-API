@@ -1,6 +1,6 @@
 {
   "links": {
-    "self": "/teams/refactor-tractor/relationships/members/barry"
+    "self": "/teams/refactor-tractor/members/barry"
   },
   "data": [{
     "type": "users",

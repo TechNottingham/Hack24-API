@@ -1,17 +1,17 @@
 {
   "data": [{
+    "links": {
+      "self": "/teams/refactor-tractor"
+    },
     "type": "teams",
     "id": "refactor-tractor",
     "attributes": {
       "name": "Refactor Tractor"
     },
-    "links": {
-      "self": "/teams/refactor-tractor"
-    },
     "relationships": {
       "members": {
         "links": {
-          "self": "/teams/refactor-tractor/relationships/members"
+          "self": "/teams/refactor-tractor/members"
         },
         "data": [
           { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
@@ -20,18 +20,18 @@
       }
     }
   },{
+    "links": {
+      "self": "/teams/code-monkeys"
+    },
     "type": "teams",
     "id": "code-monkeys",
     "attributes": {
       "name": "Code Monkeys"
     },
-    "links": {
-      "self": "/teams/code-monkeys"
-    },
     "relationships": {
       "members": {
         "links": {
-          "self": "/teams/refactor-tractor/relationships/members"
+          "self": "/teams/refactor-tractor/members"
         },
         "data": [
           { "type": "users", "id": "adam", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } },
@@ -41,22 +41,22 @@
     }
   }],
   "included": [{
+    "links": {
+      "self": "/users/barry"
+    },
     "type": "users",
     "id": "barry",
     "attributes": {
       "name": "Barry"
-    },
-    "links": {
-      "self": "/users/barry"
     }
   },{
+    "links": {
+      "self": "/users/mary"
+    },
     "type": "users",
     "id": "mary",
     "attributes": {
       "name": "Mary"
-    },
-    "links": {
-      "self": "/users/mary"
     }
   }]
 }

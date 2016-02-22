@@ -1,21 +1,23 @@
 {
-  "type": "teams",
-  "id": "refactor-tractor",
-  "attributes": {
-    "name": "Refactor Tractor"
-  },
   "links": {
     "self": "/teams/refactor-tractor"
   },
-  "relationships": {
-    "members": {
-      "links": {
-        "self": "/teams/refactor-tractor/relationships/members"
-      },
-      "data": [
-        { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
-        { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
-      ]
+  "data": {
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/members"
+        },
+        "data": [
+          { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
+          { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+        ]
+      }
     }
   },
   "included": [{

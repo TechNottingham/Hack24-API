@@ -1,8 +1,8 @@
 {
+  "links": {
+    "self": "/users/barry"
+  },
   "data": {
-    "links": {
-      "self": "/users/barry"
-    },
     "type": "users",
     "id": "barry",
     "attributes": {
@@ -26,7 +26,7 @@
     "relationships": {
       "members": {
         "links": {
-          "self": "/teams/refactor-tractor/relationships/members"
+          "self": "/teams/refactor-tractor/members"
         },
         "data": [
           { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
