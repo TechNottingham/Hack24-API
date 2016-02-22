@@ -1,43 +1,40 @@
 {
-  "_links": {
-    "self": {
-      "href": "/teams/refactor-tractor"
-    },
+  "type": "teams",
+  "id": "refactor-tractor",
+  "attributes": {
+    "name": "Refactor Tractor"
+  },
+  "links": {
+    "self": "/teams/refactor-tractor"
+  },
+  "relationships": {
     "members": {
-      "href": "/teams/refactor-tractor/members"
+      "links": {
+        "self": "/teams/refactor-tractor/relationships/members"
+      },
+      "data": [
+        { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
+        { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+      ]
     }
   },
-  "_embedded": {
-    "members": {
-      "_links": {
-        "self": {
-          "href": "/teams/refactor-tractor/members"
-        }
-      },
-      "item": [
-        {
-          "_links": {
-            "self": {
-              "href": "/users/barry"
-            }
-          },
-          "userid": "barry",
-          "name": "Barry",
-          "joined": "2016-01-23T12:00:00.0000000Z"
-        },
-        {
-          "_links": {
-            "self": {
-              "href": "/users/mary"
-            }
-          },
-          "userid": "mary",
-          "name": "Mary",
-          "joined": "2016-01-21T12:00:00.0000000Z"
-        }
-      ]
+  "included": [{
+    "type": "users",
+    "id": "barry",
+    "attributes": {
+      "name": "Barry"
     },
-    "teamid": "refactor-tractor",
-    "name": "Refactor Tractor"
-  }
+    "links": {
+      "self": "/users/barry"
+    }
+  },{
+    "type": "users",
+    "id": "mary",
+    "attributes": {
+      "name": "Mary"
+    },
+    "links": {
+      "self": "/users/mary"
+    }
+  }]
 }

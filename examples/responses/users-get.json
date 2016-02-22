@@ -1,49 +1,100 @@
 {
-  "_links": {
-    "self": {
-      "href": "/users"
+  "data": [{
+    "links": {
+      "self": "/users/adam"
+    },
+    "type": "users",
+    "id": "adam",
+    "attributes": {
+      "name": "Adam"
+    },
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "code-monkeys", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+      }
     }
-  },
-  "item": [
-    {
-      "_links": {
-        "self": {
-          "href": "/users/adam"
-        }
-      },
-      "userid": "adam",
-      "name": "Adam",
-      "joined": "2016-01-19T12:00:00.0000000Z"
+  },{
+    "links": {
+      "self": "/users/barry"
     },
-    {
-      "_links": {
-        "self": {
-          "href": "/users/barry"
-        }
-      },
-      "userid": "barry",
-      "name": "Barry",
-      "joined": "2016-01-23T12:00:00.0000000Z"
+    "type": "users",
+    "id": "barry",
+    "attributes": {
+      "name": "Barry"
     },
-    {
-      "_links": {
-        "self": {
-          "href": "/users/mary"
-        }
-      },
-      "userid": "mary",
-      "name": "Mary",
-      "joined": "2016-01-21T12:00:00.0000000Z"
-    },
-    {
-      "_links": {
-        "self": {
-          "href": "/users/zack"
-        }
-      },
-      "userid": "zack",
-      "name": "Zack",
-      "joined": "2016-01-03T12:00:00.0000000Z"
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "refactor-tractor", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } }
+      }
     }
-  ]
+  },{
+    "links": {
+      "self": "/users/mary"
+    },
+    "type": "users",
+    "id": "mary",
+    "attributes": {
+      "name": "Mary"
+    },
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "refactor-tractor", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+      }
+    }
+  },{
+    "links": {
+      "self": "/users/zack"
+    },
+    "type": "users",
+    "id": "zack",
+    "attributes": {
+      "name": "Zack"
+    },
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "code-monkeys", "meta": { "joined": "2016-01-12T12:00:00.0000000Z" } }
+      }
+    }
+  }],
+  "included": [{
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    },
+    "links": {
+      "self": "/teams/refactor-tractor"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/relationships/members"
+        },
+        "data": [
+          { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
+          { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+        ]
+      }
+    }
+  },{
+    "type": "teams",
+    "id": "code-monkeys",
+    "attributes": {
+      "name": "Code Monkeys"
+    },
+    "links": {
+      "self": "/teams/code-monkeys"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/relationships/members"
+        },
+        "data": [
+          { "type": "users", "id": "adam", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } },
+          { "type": "users", "id": "zack", "meta": { "joined": "2016-01-12T12:00:00.0000000Z" } }
+        ]
+      }
+    }
+  }]
 }

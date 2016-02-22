@@ -1,0 +1,37 @@
+{
+  "links": {
+    "self": "/teams/refactor-tractor/relationships/members/barry"
+  },
+  "data": [{
+    "type": "users",
+    "id": "barry",
+    "meta": {
+      "joined": "2016-01-45T12:00:00.0000000Z"
+    }
+  },{
+    "type": "users",
+    "id": "mary",
+    "meta": {
+      "joined": "2016-01-45T12:00:00.0000000Z"
+    }
+  }],
+  "included": [{
+    "links": {
+      "self": "/users/barry"
+    },
+    "type": "users",
+    "id": "barry",
+    "attributes": {
+      "name": "Barry"
+    }
+  },{
+    "links": {
+      "self": "/users/mary"
+    },
+    "type": "users",
+    "id": "mary",
+    "attributes": {
+      "name": "Mary"
+    }
+  }]
+}

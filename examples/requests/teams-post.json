@@ -1,0 +1,16 @@
+{
+  "data": {
+    "type": "teams",
+    "attributes": {
+      "name": "Refactor Tractor"
+    },
+    "relationships": {
+      "members": {
+        "data": [
+          { "type": "users", "id": "barry" },
+          { "type": "users", "id": "mary" }
+        ]
+      }
+    }
+  }
+}

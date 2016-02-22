@@ -1,35 +1,62 @@
 {
-  "_links": {
-    "self": {
-      "href": "/teams"
-    }
-  },
-  "_embedded": {
-    "item": [
-      {
-        "_links": {
-          "self": {
-            "href": "/teams/refactor-tractor"
-          },
-          "members": {
-            "href": "/teams/refactor-tractor/members"
-          }
+  "data": [{
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    },
+    "links": {
+      "self": "/teams/refactor-tractor"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/relationships/members"
         },
-        "teamid": "refactor-tractor",
-        "name": "Refactor Tractor"
-      },
-      {
-        "_links": {
-          "self": {
-            "href": "/teams/code-monkeys"
-          },
-          "members": {
-            "href": "/teams/code-monkeys/members"
-          }
-        },
-        "teamid": "code-monkeys",
-        "name": "Code Monkeys"
+        "data": [
+          { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
+          { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+        ]
       }
-    ]
-  }
+    }
+  },{
+    "type": "teams",
+    "id": "code-monkeys",
+    "attributes": {
+      "name": "Code Monkeys"
+    },
+    "links": {
+      "self": "/teams/code-monkeys"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/relationships/members"
+        },
+        "data": [
+          { "type": "users", "id": "adam", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } },
+          { "type": "users", "id": "zack", "meta": { "joined": "2016-01-12T12:00:00.0000000Z" } }
+        ]
+      }
+    }
+  }],
+  "included": [{
+    "type": "users",
+    "id": "barry",
+    "attributes": {
+      "name": "Barry"
+    },
+    "links": {
+      "self": "/users/barry"
+    }
+  },{
+    "type": "users",
+    "id": "mary",
+    "attributes": {
+      "name": "Mary"
+    },
+    "links": {
+      "self": "/users/mary"
+    }
+  }]
 }
