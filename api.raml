@@ -19,6 +19,9 @@ version: 2016-02-19
         example: !include examples/requests/teams-post.json
     responses:
       201:
+        body:
+          application/vnd.api+json:
+            example: !include examples/responses/teams-post.json
         
   /{teamId}:
     displayName: Team Resource
@@ -36,15 +39,39 @@ version: 2016-02-19
               example: !include examples/responses/team-get.json
 
     /members:
-      displayName: Team Members Resource
+      displayName: Team Members Relationship
       description: |
-        Returns team members for the current team.
+        Manages team members for the current team.
       get:
         responses:
           200:
             body:
               application/vnd.api+json:
                 example: !include examples/responses/team-members-get.json
+      post:
+        body:
+          application/vnd.api+json:
+            example: !include examples/requests/team-members-post.json
+        responses:
+          200:
+            body:
+              application/vnd.api+json:
+                example: !include examples/responses/team-members-post.json
+      patch:
+        body:
+          application/vnd.api+json:
+            example: !include examples/requests/team-members-patch.json
+        responses:
+          200:
+            body:
+              application/vnd.api+json:
+                example: !include examples/responses/team-members-patch.json
+      delete:
+        body:
+          application/vnd.api+json:
+            example: !include examples/requests/team-members-delete.json
+        responses:
+          204:
 
 /users:
   displayName: Users Resource
@@ -59,8 +86,12 @@ version: 2016-02-19
   post:
     body:
       application/vnd.api+json:
+        example: !include examples/requests/users-post.json
     responses:
       201:
+        body:
+          application/vnd.api+json:
+            example: !include examples/responses/users-post.json
 
   /{userId}:
     displayName: User Resource
@@ -72,3 +103,20 @@ version: 2016-02-19
           body:
             application/vnd.api+json:
               example: !include examples/responses/user-get.json
+
+    /team:
+      displayName: User Team Relationship
+      description: |
+        Manages a user's team.
+      get:
+        responses:
+          200:
+            body:
+              application/vnd.api+json:
+                example: !include examples/responses/user-team-get.json
+      patch:
+        body:
+          application/vnd.api+json:
+            example: !include examples/requests/user-team-patch.json
+        responses:
+          204:

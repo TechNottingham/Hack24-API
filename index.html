@@ -143,10 +143,10 @@
         background-color: #f5f5f5;
       }
     </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Hack 24 API documentation <small>version 2016-02-19</small></h1><p>https://api.hack24.co.uk</p></div><div class="panel panel-default"><div class="panel-heading"><h3 id="teams" class="panel-title">Teams Resource</h3></div><div class="panel-body"><div class="top-resource-description"><p>Allows creating and modifying teams and team members</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_teams"><span class="parent"></span>/teams</a> <span class="methods"><a href="#teams_get"><span class="badge badge_get">get</span></a> <a href="#teams_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_teams" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#teams_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#teams_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/teams</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li><a href="#teams_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane" id="teams_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
-  "data": [{
-    "links": {
-      "self": "/teams/refactor-tractor"
-    },
+  "links": {
+    "self": "/teams/refactor-tractor"
+  },
+  "data": {
     "type": "teams",
     "id": "refactor-tractor",
     "attributes": {
@@ -163,46 +163,7 @@
         ]
       }
     }
-  },{
-    "links": {
-      "self": "/teams/code-monkeys"
-    },
-    "type": "teams",
-    "id": "code-monkeys",
-    "attributes": {
-      "name": "Code Monkeys"
-    },
-    "relationships": {
-      "members": {
-        "links": {
-          "self": "/teams/refactor-tractor/members"
-        },
-        "data": [
-          { "type": "users", "id": "adam", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } },
-          { "type": "users", "id": "zack", "meta": { "joined": "2016-01-12T12:00:00.0000000Z" } }
-        ]
-      }
-    }
-  }],
-  "included": [{
-    "links": {
-      "self": "/users/barry"
-    },
-    "type": "users",
-    "id": "barry",
-    "attributes": {
-      "name": "Barry"
-    }
-  },{
-    "links": {
-      "self": "/users/mary"
-    },
-    "type": "users",
-    "id": "mary",
-    "attributes": {
-      "name": "Mary"
-    }
-  }]
+  }
 }</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/teams</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams_post_request" data-toggle="tab">Request</a></li><li><a href="#teams_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams_post_request"><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
   "data": {
     "type": "teams",
@@ -218,7 +179,29 @@
       }
     }
   }
-}</code></pre></div><div class="tab-pane" id="teams_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_teams__teamId_"><span class="parent">/teams</span>/{teamId}</a> <span class="methods"><a href="#teams__teamId__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_teams__teamId_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Returns a specific team.</p></div><div class="list-group"><div onclick="window.location.href = '#teams__teamId__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/teams</span>/{teamId}</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__get_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__get_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="teams__teamId__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+}</code></pre></div><div class="tab-pane" id="teams_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/teams/refactor-tractor"
+  },
+  "data": {
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    },
+    "relationships": {
+      "members": {
+        "links": {
+          "self": "/teams/refactor-tractor/members"
+        },
+        "data": [
+          { "type": "users", "id": "barry", "meta": { "joined": "2016-01-23T12:00:00.0000000Z" } },
+          { "type": "users", "id": "mary", "meta": { "joined": "2016-01-21T12:00:00.0000000Z" } }
+        ]
+      }
+    }
+  }
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_teams__teamId_"><span class="parent">/teams</span>/{teamId}</a> <span class="methods"><a href="#teams__teamId__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_teams__teamId_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Returns a specific team.</p></div><div class="list-group"><div onclick="window.location.href = '#teams__teamId__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/teams</span>/{teamId}</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__get_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__get_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="teams__teamId__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
   "links": {
     "self": "/teams/refactor-tractor"
   },
@@ -259,9 +242,9 @@
       "self": "/users/mary"
     }
   }]
-}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_teams__teamId__members"><span class="parent">/teams/{teamId}</span>/members</a> <span class="methods"><a href="#teams__teamId__members_get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_teams__teamId__members" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Returns team members for the current team.</p></div><div class="list-group"><div onclick="window.location.href = '#teams__teamId__members_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__members_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/teams/{teamId}</span>/members</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__members_get_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__members_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__members_get_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="teams__teamId__members_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_teams__teamId__members"><span class="parent">/teams/{teamId}</span>/members</a> <span class="methods"><a href="#teams__teamId__members_get"><span class="badge badge_get">get</span></a> <a href="#teams__teamId__members_post"><span class="badge badge_post">post</span></a> <a href="#teams__teamId__members_patch"><span class="badge badge_patch">patch</span></a> <a href="#teams__teamId__members_delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel_teams__teamId__members" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Manages team members for the current team.</p></div><div class="list-group"><div onclick="window.location.href = '#teams__teamId__members_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#teams__teamId__members_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#teams__teamId__members_patch'" class="list-group-item"><span class="badge badge_patch">patch</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#teams__teamId__members_delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__members_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/teams/{teamId}</span>/members</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__members_get_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__members_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__members_get_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="teams__teamId__members_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
   "links": {
-    "self": "/teams/refactor-tractor/members/barry"
+    "self": "/teams/refactor-tractor/members"
   },
   "data": [{
     "type": "users",
@@ -295,7 +278,97 @@
       "name": "Mary"
     }
   }]
-}</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="users" class="panel-title">Users Resource</h3></div><div class="panel-body"><div class="top-resource-description"><p>Allows creating and modifying users</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_users"><span class="parent"></span>/users</a> <span class="methods"><a href="#users_get"><span class="badge badge_get">get</span></a> <a href="#users_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_users" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#users_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#users_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="users_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/users</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li><a href="#users_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane" id="users_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__members_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent">/teams/{teamId}</span>/members</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__members_post_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__members_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__members_post_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "data": [{
+    "type": "users",
+    "id": "zack"
+  }]
+}</code></pre></div><div class="tab-pane" id="teams__teamId__members_post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/teams/refactor-tractor/members"
+  },
+  "data": [{
+    "type": "users",
+    "id": "barry",
+    "meta": {
+      "joined": "2016-01-23T12:00:00.0000000Z"
+    }
+  },{
+    "type": "users",
+    "id": "mary",
+    "meta": {
+      "joined": "2016-01-21T12:00:00.0000000Z"
+    }
+  },{
+    "type": "users",
+    "id": "zack",
+    "meta": {
+      "joined": "2016-01-31T12:00:00.0000000Z"
+    }
+  }],
+  "included": [{
+    "links": {
+      "self": "/users/barry"
+    },
+    "type": "users",
+    "id": "barry",
+    "attributes": {
+      "name": "Barry"
+    }
+  },{
+    "links": {
+      "self": "/users/mary"
+    },
+    "type": "users",
+    "id": "mary",
+    "attributes": {
+      "name": "Mary"
+    }
+  },{
+    "links": {
+      "self": "/users/zack"
+    },
+    "type": "users",
+    "id": "zack",
+    "attributes": {
+      "name": "Zack"
+    }
+  }]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__members_patch"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_patch">patch</span> <span class="parent">/teams/{teamId}</span>/members</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__members_patch_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__members_patch_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__members_patch_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "data": [{
+    "type": "users",
+    "id": "adam"
+  }]
+}</code></pre></div><div class="tab-pane" id="teams__teamId__members_patch_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/teams/refactor-tractor/members"
+  },
+  "data": [{
+    "type": "users",
+    "id": "adam",
+    "meta": {
+      "joined": "2016-01-31T12:00:00.0000000Z"
+    }
+  }],
+  "included": [{
+    "links": {
+      "self": "/users/adam"
+    },
+    "type": "users",
+    "id": "adam",
+    "attributes": {
+      "name": "Adam"
+    }
+  }]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="teams__teamId__members_delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent">/teams/{teamId}</span>/members</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#teams__teamId__members_delete_request" data-toggle="tab">Request</a></li><li><a href="#teams__teamId__members_delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="teams__teamId__members_delete_request"><h3>URI Parameters</h3><ul><li><strong>Team ID</strong>: <em>required (string)</em></li></ul><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "data": [{
+    "type": "users",
+    "id": "mary"
+  }]
+}</code></pre></div><div class="tab-pane" id="teams__teamId__members_delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="users" class="panel-title">Users Resource</h3></div><div class="panel-body"><div class="top-resource-description"><p>Allows creating and modifying users</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_users"><span class="parent"></span>/users</a> <span class="methods"><a href="#users_get"><span class="badge badge_get">get</span></a> <a href="#users_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_users" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#users_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#users_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="users_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/users</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li><a href="#users_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane" id="users_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/users"
+  },
   "data": [{
     "links": {
       "self": "/users/adam"
@@ -394,7 +467,35 @@
       }
     }
   }]
-}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="users_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/users</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users_post_request" data-toggle="tab">Request</a></li><li><a href="#users_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users_post_request"><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p></div><div class="tab-pane" id="users_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_users__userId_"><span class="parent">/users</span>/{userId}</a> <span class="methods"><a href="#users__userId__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_users__userId_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Returns a specific user.</p></div><div class="list-group"><div onclick="window.location.href = '#users__userId__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="users__userId__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/users</span>/{userId}</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users__userId__get_request" data-toggle="tab">Request</a></li><li><a href="#users__userId__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users__userId__get_request"><h3>URI Parameters</h3><ul><li><strong>userId</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="users__userId__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="users_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/users</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users_post_request" data-toggle="tab">Request</a></li><li><a href="#users_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users_post_request"><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "data": {
+    "type": "users",
+    "attributes": {
+      "name": "Steven"
+    },
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "refactor-tractor" }
+      }
+    }
+  }
+}</code></pre></div><div class="tab-pane" id="users_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/users/steven"
+  },
+  "data": {
+    "type": "users",
+    "id": "steven",
+    "attributes": {
+      "name": "Steven"
+    },
+    "relationships": {
+      "team": {
+        "data": { "type": "teams", "id": "refactor-tractor", "meta": { "joined": "2016-02-09T12:00:00.0000000Z" } }
+      }
+    }
+  }
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_users__userId_"><span class="parent">/users</span>/{userId}</a> <span class="methods"><a href="#users__userId__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_users__userId_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Returns a specific user.</p></div><div class="list-group"><div onclick="window.location.href = '#users__userId__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="users__userId__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/users</span>/{userId}</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users__userId__get_request" data-toggle="tab">Request</a></li><li><a href="#users__userId__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users__userId__get_request"><h3>URI Parameters</h3><ul><li><strong>userId</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="users__userId__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
   "links": {
     "self": "/users/barry"
   },
@@ -445,4 +546,30 @@
       }
     }
   }]
-}</code></pre></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#teams">Teams Resource</a></li><li><a href="#users">Users Resource</a></li></ul></div></div></div></div></body></html>
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_users__userId__team"><span class="parent">/users/{userId}</span>/team</a> <span class="methods"><a href="#users__userId__team_get"><span class="badge badge_get">get</span></a> <a href="#users__userId__team_patch"><span class="badge badge_patch">patch</span></a></span></h4></div><div id="panel_users__userId__team" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Manages a user&#39;s team.</p></div><div class="list-group"><div onclick="window.location.href = '#users__userId__team_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"></div><div class="clearfix"></div></div><div onclick="window.location.href = '#users__userId__team_patch'" class="list-group-item"><span class="badge badge_patch">patch</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="users__userId__team_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/users/{userId}</span>/team</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users__userId__team_get_request" data-toggle="tab">Request</a></li><li><a href="#users__userId__team_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users__userId__team_get_request"><h3>URI Parameters</h3><ul><li><strong>userId</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="users__userId__team_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "links": {
+    "self": "/users/barry/team"
+  },
+  "data": {
+    "type": "teams",
+    "id": "refactor-tractor",
+    "meta": {
+      "joined": "2016-01-23T12:00:00.0000000Z"
+    }
+  },
+  "included": [{
+    "links": {
+      "self": "/team/refactor-tractor"
+    },
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    }
+  }]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="users__userId__team_patch"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_patch">patch</span> <span class="parent">/users/{userId}</span>/team</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#users__userId__team_patch_request" data-toggle="tab">Request</a></li><li><a href="#users__userId__team_patch_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="users__userId__team_patch_request"><h3>URI Parameters</h3><ul><li><strong>userId</strong>: <em>required (string)</em></li></ul><h3>Body</h3><p><strong>Type: application/vnd.api+json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+  "data": {
+    "type": "teams",
+    "id": "code-monkeys"
+  }
+}</code></pre></div><div class="tab-pane" id="users__userId__team_patch_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#teams">Teams Resource</a></li><li><a href="#users">Users Resource</a></li></ul></div></div></div></div></body></html>

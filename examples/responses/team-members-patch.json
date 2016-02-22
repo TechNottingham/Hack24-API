@@ -1,0 +1,22 @@
+{
+  "links": {
+    "self": "/teams/refactor-tractor/members"
+  },
+  "data": [{
+    "type": "users",
+    "id": "adam",
+    "meta": {
+      "joined": "2016-01-31T12:00:00.0000000Z"
+    }
+  }],
+  "included": [{
+    "links": {
+      "self": "/users/adam"
+    },
+    "type": "users",
+    "id": "adam",
+    "attributes": {
+      "name": "Adam"
+    }
+  }]
+}

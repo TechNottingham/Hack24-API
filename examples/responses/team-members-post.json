@@ -6,13 +6,19 @@
     "type": "users",
     "id": "barry",
     "meta": {
-      "joined": "2016-01-45T12:00:00.0000000Z"
+      "joined": "2016-01-23T12:00:00.0000000Z"
     }
   },{
     "type": "users",
     "id": "mary",
     "meta": {
-      "joined": "2016-01-45T12:00:00.0000000Z"
+      "joined": "2016-01-21T12:00:00.0000000Z"
+    }
+  },{
+    "type": "users",
+    "id": "zack",
+    "meta": {
+      "joined": "2016-01-31T12:00:00.0000000Z"
     }
   }],
   "included": [{
@@ -32,6 +38,15 @@
     "id": "mary",
     "attributes": {
       "name": "Mary"
+    }
+  },{
+    "links": {
+      "self": "/users/zack"
+    },
+    "type": "users",
+    "id": "zack",
+    "attributes": {
+      "name": "Zack"
     }
   }]
 }

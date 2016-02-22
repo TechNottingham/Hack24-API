@@ -1,0 +1,22 @@
+{
+  "links": {
+    "self": "/users/barry/team"
+  },
+  "data": {
+    "type": "teams",
+    "id": "refactor-tractor",
+    "meta": {
+      "joined": "2016-01-23T12:00:00.0000000Z"
+    }
+  },
+  "included": [{
+    "links": {
+      "self": "/team/refactor-tractor"
+    },
+    "type": "teams",
+    "id": "refactor-tractor",
+    "attributes": {
+      "name": "Refactor Tractor"
+    }
+  }]
+}

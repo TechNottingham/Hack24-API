@@ -1,4 +1,7 @@
 {
+  "links": {
+    "self": "/users"
+  },
   "data": [{
     "links": {
       "self": "/users/adam"
