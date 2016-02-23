@@ -28,6 +28,13 @@ export interface ITeamsResponse {
   teams: ITeamResponse[];
 }
 
+export interface ITeamMemberResponse {
+  userid: number;
+  name: number;
+  joined: Date;
+  teams: ITeamResponse[];
+}
+
 export class Teams {
   private _collection: Collection;
   

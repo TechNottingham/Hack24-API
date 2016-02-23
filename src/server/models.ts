@@ -38,3 +38,7 @@ export interface IModels {
   User: Model<IUserModel>;
   Team: Model<ITeamModel>;
 }
+
+export enum MongoDBErrors {
+  E11000_DUPLICATE_KEY = 11000
+}

@@ -54,11 +54,12 @@ export class Users {
     });
   }
   
-  public createRandomUser(): Promise<IUser> {
+  public createRandomUser(prefix?: string): Promise<IUser> {
     let randomPart = Random.str(5);
+      
     let userDoc: IUser = { 
-      userid: `U${randomPart}`,
-      name: `Random user ${randomPart}`,
+      userid: `U${prefix}-${randomPart}`,
+      name: `${prefix} - Random user ${randomPart}`,
       modified: new Date
     };
     return new Promise<IUser>((resolve, reject) => {

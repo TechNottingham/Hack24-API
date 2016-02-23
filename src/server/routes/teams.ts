@@ -1,7 +1,7 @@
 "use strict";
 
 import {Request, Response} from 'express';
-import {IModels, ITeamModel} from '../models';
+import {IModels, ITeamModel, MongoDBErrors} from '../models';
 import * as slug from 'slug';
 import * as respond from './respond';
 
@@ -102,7 +102,7 @@ export var Create = function (req: RequestWithModels, res: Response) {
   if (members === undefined) {
     return team.save((err, result) => {
       if (err) {
-        if (err.code === 11000)
+        if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
           return respond.Send409(res);
         return respond.Send500(res, err);
       }
@@ -136,12 +136,13 @@ export var Create = function (req: RequestWithModels, res: Response) {
       
       team.save((err, result: ITeamModel) => {
         if (err) {
-          if (err.code === 11000)
+          if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
             return respond.Send409(res);
           return respond.Send500(res, err);
         }
         
-        req.models.Team.findById(result._id)
+        req.models.Team
+          .findById(result._id)
           .populate('members', 'userid')
           .exec()
           .then((team) => {

@@ -7,6 +7,7 @@ import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
+import {UserResponse, TeamsResponse} from './models/responses'
 
 describe('Users resource', () => {
 
@@ -16,12 +17,186 @@ describe('Users resource', () => {
     api = request('http://localhost:' + ApiServer.Port);
   });
 
+  describe('GET user by ID', () => {
+
+    let user: IUser;
+    let statusCode: number;
+    let contentType: string;
+    let response: UserResponse.TopLevelDocument;
+
+    before((done) => {
+      user = {
+        userid: 'U' + Random.int(10000, 99999),
+        name: 'Name_' + Random.str(5),
+        modified: new Date
+      };
+      
+      MongoDB.Users.createUser(user).then(() => {
+        api.get('/users/' + user.userid)
+          .set('Accept', 'application/json')
+          .end((err, res) => {
+            if (err) return done(err);
+
+            statusCode = res.status;
+            contentType = res.header['content-type'];
+            response = res.body;
+            
+            done();
+          });
+      });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the user resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users/${user.userid}`);
+    });
+
+    it('should return the users type', () => {
+      assert.strictEqual(response.data.type, 'users');
+    });
+
+    it('should return the user id', () => {
+      assert.strictEqual(response.data.id, user.userid);
+    });
+
+    it('should return the user name', () => {
+      assert.strictEqual(response.data.attributes.name, user.name);
+    });
+
+    it('should return the team relationship self link', () => {
+      assert.strictEqual(response.data.relationships.team.links.self, `/users/${user.userid}/team`);
+    });
+
+    it('should not return a team relationship', () => {
+      assert.strictEqual(response.data.relationships.team.data, null);
+    });
+
+    after((done) => {
+      MongoDB.Users.removeByUserId(user.userid).then(done, done);
+    });
+
+  });
+
+  describe('GET user by ID in team', () => {
+
+    let user: IUser;
+    let otherUser: IUser;
+    let team: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: UserResponse.TopLevelDocument;
+    let includedTeam: TeamsResponse.ResourceObject;
+    let includedUser: UserResponse.ResourceObject;
+
+    before(async (done) => {
+      user = await MongoDB.Users.createRandomUser('A');
+      otherUser = await MongoDB.Users.createRandomUser('B');
+      team = await MongoDB.Teams.createRandomTeam([user._id, otherUser._id]);
+      
+      api.get(`/users/${user.userid}`)
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          includedTeam = <TeamsResponse.ResourceObject> response.included.find((element) => element.type === 'teams');
+          includedUser = <UserResponse.ResourceObject> response.included.find((element) => element.type === 'users');
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the user resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users/${user.userid}`);
+    });
+
+    it('should return the users type', () => {
+      assert.strictEqual(response.data.type, 'users');
+    });
+
+    it('should return the user id', () => {
+      assert.strictEqual(response.data.id, user.userid);
+    });
+
+    it('should return the user name', () => {
+      assert.strictEqual(response.data.attributes.name, user.name);
+    });
+
+    it('should return the team relationship self link', () => {
+      assert.strictEqual(response.data.relationships.team.links.self, `/users/${user.userid}/team`);
+    });
+
+    it('should return the team relationship', () => {
+      assert.strictEqual(response.data.relationships.team.data.type, 'teams');
+      assert.strictEqual(response.data.relationships.team.data.id, team.teamid);
+    });
+
+    it('should include the related team', () => {
+      assert.ok(includedTeam, 'Included team missing');
+      assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
+      assert.strictEqual(includedTeam.id, team.teamid);
+      assert.strictEqual(includedTeam.attributes.name, team.name);
+    });
+
+    it('should include the related team members', () => {
+      assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
+      assert.strictEqual(includedTeam.relationships.members.data.length, 2);
+      
+      let relatedUser = includedTeam.relationships.members.data[0];
+      assert.strictEqual(relatedUser.type, 'users');
+      assert.strictEqual(relatedUser.id, user.userid);
+
+      let relatedOtherUser = includedTeam.relationships.members.data[1];
+      assert.strictEqual(relatedOtherUser.type, 'users');
+      assert.strictEqual(relatedOtherUser.id, otherUser.userid);
+    });
+
+    it('should include the related team', () => {
+      assert.ok(includedUser, 'Included user missing');
+      assert.strictEqual(includedUser.id, otherUser.userid);
+      assert.strictEqual(includedUser.attributes.name, otherUser.name);
+    });
+
+    it('should include the related other user team relationship', () => {
+      assert.strictEqual(includedUser.relationships.team.links.self, `/teams/${team.teamid}`);
+      assert.strictEqual(includedUser.relationships.team.data.type, 'teams');
+      assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Teams.removeByTeamId(team.teamid),
+        MongoDB.Users.removeByUserId(user.userid),
+        MongoDB.Users.removeByUserId(otherUser.userid)
+      ]).then(() => done(), done);
+    });
+
+  });
+
   describe('POST new user', () => {
 
     let user: IUser;
     let createdUser: IUser;
     let statusCode: number;
     let contentType: string;
+    let response: UserResponse.TopLevelDocument;
 
     before((done) => {
       user = {
@@ -39,6 +214,7 @@ describe('Users resource', () => {
           
           statusCode = res.status;
           contentType = res.header['content-type'];
+          response = res.body;
 
           MongoDB.Users.findbyUserId(user.userid).then((user) => {
             createdUser = user;
@@ -51,8 +227,24 @@ describe('Users resource', () => {
       assert.strictEqual(statusCode, 201);
     });
 
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the user resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users/${user.userid}`);
+    });
+
+    it('should return the users type', () => {
+      assert.strictEqual(response.data.type, 'users');
+    });
+
+    it('should return the user id', () => {
+      assert.strictEqual(response.data.id, user.userid);
+    });
+
+    it('should return the user name', () => {
+      assert.strictEqual(response.data.attributes.name, user.name);
     });
 
     it('should create the user with the expected ID and name', () => {
@@ -103,54 +295,6 @@ describe('Users resource', () => {
 
   });
 
-  describe('GET user by ID', () => {
-
-    let user: IUser;
-    let statusCode: number;
-    let contentType: string;
-    let body;
-
-    before((done) => {
-      user = {
-        userid: 'U' + Random.int(10000, 99999),
-        name: 'Name_' + Random.str(5),
-        modified: new Date
-      };
-      
-      MongoDB.Users.createUser(user).then(() => {
-        api.get('/users/' + user.userid)
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
-
-            statusCode = res.status;
-            contentType = res.header['content-type'];
-            body = res.body;
-            
-            done();
-          });
-      });
-    });
-
-    it('should respond with status code 200 OK', () => {
-      assert.strictEqual(statusCode, 200);
-    });
-
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
-    });
-
-    it('should return the expected user', () => {
-      assert.strictEqual(body.userid, user.userid);
-      assert.strictEqual(body.name, user.name);
-    });
-
-    after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
-    });
-
-  });
-
   describe('GET missing user by ID', () => {
 
     let statusCode: number;
@@ -169,68 +313,6 @@ describe('Users resource', () => {
 
     it('should respond with status code 404 Not Found', () => {
       assert.strictEqual(statusCode, 404);
-    });
-
-  });
-
-  describe('GET user by ID in team', () => {
-
-    let userId: string;
-    let userName: string;
-    let teamId: string;
-    let teamName: string;
-    let statusCode: number;
-    let contentType: string;
-    let body;
-
-    before(async (done) => {
-      let user = await MongoDB.Users.createRandomUser();
-      userId = user.userid;
-      userName = user.name;
-      
-      let team = await MongoDB.Teams.createRandomTeam([user._id]);
-      teamId = team.teamid;
-      teamName = team.name;
-      
-      api.get(`/users/${user.userid}`)
-        .set('Accept', 'application/json')
-        .end((err, res) => {
-          if (err) return done(err);
-
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.body;
-          
-          done();
-        });
-    });
-
-    it('should respond with status code 200 OK', () => {
-      assert.strictEqual(statusCode, 200);
-    });
-
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
-    });
-
-    it('should return the expected user', () => {
-      assert.strictEqual(body.userid, userId);
-      assert.strictEqual(body.name, userName);
-    });
-
-    it('should return the expected team slug (teamId)', () => {
-      assert.strictEqual(body.team.teamid, teamId);
-    });
-
-    it('should return the expected team name', () => {
-      assert.strictEqual(body.team.name, teamName);
-    });
-
-    after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(teamId),
-        MongoDB.Users.removeByUserId(userId)
-      ]).then(() => done(), done);
     });
 
   });
