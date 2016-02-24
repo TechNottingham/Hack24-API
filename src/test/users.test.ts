@@ -7,9 +7,9 @@ import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
-import {UserResponse, UsersResponse, TeamResponse} from './models/responses'
+import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
 
-describe('Users resource', () => {
+describe.only('Users resource', () => {
 
   let api: request.SuperTest;
 
@@ -22,28 +22,21 @@ describe('Users resource', () => {
     let user: IUser;
     let statusCode: number;
     let contentType: string;
-    let response: UserResponse.TopLevelDocument;
+    let response: UserResource.TopLevelDocument;
 
-    before((done) => {
-      user = {
-        userid: 'U' + Random.int(10000, 99999),
-        name: 'Name_' + Random.str(5),
-        modified: new Date
-      };
+    before(async (done) => {
+      user = await MongoDB.Users.insertRandomUser();
       
-      MongoDB.Users.createUser(user).then(() => {
-        api.get('/users/' + user.userid)
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
+      api.get('/users/' + user.userid)
+        .end((err, res) => {
+          if (err) return done(err);
 
-            statusCode = res.status;
-            contentType = res.header['content-type'];
-            response = res.body;
-            
-            done();
-          });
-      });
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          done();
+        });
     });
 
     it('should respond with status code 200 OK', () => {
@@ -92,17 +85,16 @@ describe('Users resource', () => {
     let otherTeam: ITeam;
     let statusCode: number;
     let contentType: string;
-    let response: UsersResponse.TopLevelDocument;
+    let response: UsersResource.TopLevelDocument;
 
     before(async (done) => {
-      user = await MongoDB.Users.createRandomUser('A');
-      otherUser = await MongoDB.Users.createRandomUser('B');
+      user = await MongoDB.Users.insertRandomUser('A');
+      otherUser = await MongoDB.Users.insertRandomUser('B');
       
-      team = await MongoDB.Teams.createRandomTeam([user._id], 'A');
-      otherTeam = await MongoDB.Teams.createRandomTeam([otherUser._id], 'B');
+      team = await MongoDB.Teams.insertRandomTeam([user._id], 'A');
+      otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
       
       api.get(`/users`)
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
 
@@ -147,7 +139,7 @@ describe('Users resource', () => {
     });
 
     it('should include the first team', () => {
-      let includedTeam = <TeamResponse.ResourceObject> response.included[0];
+      let includedTeam = <TeamResource.ResourceObject> response.included[0];
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
@@ -158,7 +150,7 @@ describe('Users resource', () => {
     });
 
     it('should include the second team', () => {
-      let includedTeam = <TeamResponse.ResourceObject> response.included[1];
+      let includedTeam = <TeamResource.ResourceObject> response.included[1];
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
       assert.strictEqual(includedTeam.id, otherTeam.teamid);
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
@@ -186,25 +178,24 @@ describe('Users resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
-    let response: UserResponse.TopLevelDocument;
-    let includedTeam: TeamResponse.ResourceObject;
-    let includedUser: UserResponse.ResourceObject;
+    let response: UserResource.TopLevelDocument;
+    let includedTeam: TeamResource.ResourceObject;
+    let includedUser: UserResource.ResourceObject;
 
     before(async (done) => {
-      user = await MongoDB.Users.createRandomUser('A');
-      otherUser = await MongoDB.Users.createRandomUser('B');
-      team = await MongoDB.Teams.createRandomTeam([user._id, otherUser._id]);
+      user = await MongoDB.Users.insertRandomUser('A');
+      otherUser = await MongoDB.Users.insertRandomUser('B');
+      team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id]);
       
       api.get(`/users/${user.userid}`)
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
 
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          includedTeam = <TeamResponse.ResourceObject> response.included.find((include) => include.type === 'teams');
-          includedUser = <UserResponse.ResourceObject> response.included.find((include) => include.type === 'users');
+          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
+          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
           
           done();
         });
@@ -291,30 +282,33 @@ describe('Users resource', () => {
     let createdUser: IUser;
     let statusCode: number;
     let contentType: string;
-    let response: UserResponse.TopLevelDocument;
+    let response: UserResource.TopLevelDocument;
 
     before((done) => {
-      user = {
-        userid: 'U' + Random.int(10000, 99999),
-        name: 'Name_' + Random.str(5),
-        modified: new Date
+      user = MongoDB.Users.createRandomUser();
+      
+      let requestDoc: UserResource.TopLevelDocument = {
+        data: {
+          type: 'users',
+          id: user.userid,
+          attributes: {
+            name: user.name
+          }
+        }
       };
 
       api.post('/users')
-        .send({ userid: user.userid, name: user.name })
+        .send(requestDoc)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
-        .set('Accept', 'application/json')
-        .end((err, res) => {
+        .end(async (err, res) => {
           if (err) return done(err);
           
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
-          MongoDB.Users.findbyUserId(user.userid).then((user) => {
-            createdUser = user;
-            done();
-          }).catch(done);
+          createdUser = await MongoDB.Users.findbyUserId(user.userid);
+          done();
         });
     });
 
@@ -358,34 +352,52 @@ describe('Users resource', () => {
 
     let user: IUser;
     let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
 
-    before((done) => {
-      user = {
-        userid: 'U' + Random.int(10000, 99999),
-        name: 'Name_' + Random.str(5),
-        modified: new Date
+    before(async (done) => {
+      user = await MongoDB.Users.insertRandomUser();
+      
+      let requestDoc: UserResource.TopLevelDocument = {
+        data: {
+          type: 'users',
+          id: user.userid,
+          attributes: {
+            name: user.name
+          }
+        }
       };
 
-      MongoDB.Users.createUser(user).then(() => {
-        api.post('/users')
-          .send({ userid: user.userid, name: 'Name_' + Random.str(5) })
-          .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return done(err);
+      api.post('/users')
+        .send(requestDoc)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .end((err, res) => {
+          if (err) return done(err);
 
-            statusCode = res.status;
-            done();
-          });
-      });
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+
+          done();
+        });
     });
 
     it('should respond with status code 409 Conflict', () => {
       assert.strictEqual(statusCode, 409);
     });
 
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 409 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '409');
+      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
+    });
+
     after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
+      MongoDB.Users.removeByUserId(user.userid).then(done, done);
     });
 
   });
@@ -393,14 +405,17 @@ describe('Users resource', () => {
   describe('GET missing user by ID', () => {
 
     let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
 
     before((done) => {
       api.get('/users/U' + Random.int(10000, 99999))
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
-
+          
           statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
           
           done();
         });
@@ -408,6 +423,16 @@ describe('Users resource', () => {
 
     it('should respond with status code 404 Not Found', () => {
       assert.strictEqual(statusCode, 404);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Resource not found" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '404');
+      assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
 
   });
@@ -419,20 +444,19 @@ describe('Users resource', () => {
     let statusCode: number;
     let contentType: string;
     let authenticateHeader: string;
-    let body: string;
+    let response: JSONApi.TopLevelDocument;
 
     before((done) => {
       userId = 'U' + Random.int(10000, 99999);
       api.post('/users')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
           
           statusCode = res.status;
           contentType = res.header['content-type'];
           authenticateHeader = res.header['www-authenticate'];
-          body = res.text;
+          response = res.body;
 
           done();
         });
@@ -442,16 +466,19 @@ describe('Users resource', () => {
       assert.strictEqual(statusCode, 401);
     });
 
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
     it('should respond with WWW-Authenticate header for basic realm "api.hack24.co.uk"', () => {
       assert.strictEqual(authenticateHeader, 'Basic realm="api.hack24.co.uk"');
     });
 
-    it('should return text/plain content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
-    });
-
-    it('should respond with body text "Unauthorized"', () => {
-      assert.strictEqual(body, 'Unauthorized');
+    it('should respond with the expected "Unauthorized" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '401');
+      assert.strictEqual(response.errors[0].title, 'Unauthorized.');
+      assert.strictEqual(response.errors[0].detail, 'An authentication header is required.');
     });
 
     it('should not create the user document', (done) => {
@@ -472,20 +499,19 @@ describe('Users resource', () => {
     let createdUser: IUser;
     let statusCode: number;
     let contentType: string;
-    let body: string;
+    let response: JSONApi.TopLevelDocument;
 
     before((done) => {
       userId = 'U' + Random.int(10000, 99999);
       api.post('/users')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
         .auth('hackbot', 'incorrect_password')
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
           
           statusCode = res.status;
           contentType = res.header['content-type'];
-          body = res.text;
+          response = res.body;
 
           done();
         });
@@ -495,12 +521,15 @@ describe('Users resource', () => {
       assert.strictEqual(statusCode, 403);
     });
 
-    it('should return text/plain content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should respond with body text "Forbidden"', () => {
-      assert.strictEqual(body, 'Forbidden');
+    it('should respond with the expected "Forbidden" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '403');
+      assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
+      assert.strictEqual(response.errors[0].detail, 'Only hackbot has access to do that.');
     });
 
     it('should not create the user document', (done) => {
@@ -510,7 +539,7 @@ describe('Users resource', () => {
     });
 
     after((done) => {
-      MongoDB.Users.removeByUserId(userId).then(done).catch(done);
+      MongoDB.Users.removeByUserId(userId).then(done, done);
     });
 
   });

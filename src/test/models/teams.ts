@@ -79,7 +79,16 @@ export class Teams {
     });
   }
   
-  public createTeam(team: ITeam): Promise<ObjectID> {
+  public createRandomTeam(members?: ObjectID[], prefix?: string): ITeam {
+    let randomPart = Random.str(5);
+    return { 
+      teamid: `random-team-${prefix}-${randomPart}`,
+      name: `Random Team ${prefix}-${randomPart}`,
+      members: members || []
+    };
+  }
+  
+  public insertTeam(team: ITeam): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(team).then(() => {
         resolve();
@@ -89,17 +98,12 @@ export class Teams {
     });
   }
   
-  public createRandomTeam(members?: ObjectID[], prefix?: string): Promise<ITeam> {
-    let randomPart = Random.str(5);
-    let teamDoc: ITeam = { 
-      teamid: `random-team-${prefix}-${randomPart}`,
-      name: `Random Team ${prefix}-${randomPart}`,
-      members: members || []
-    };
+  public insertRandomTeam(members?: ObjectID[], prefix?: string): Promise<ITeam> {
+    let randomTeam = this.createRandomTeam(members, prefix);
     return new Promise<ITeam>((resolve, reject) => {
-      this._collection.insertOne(teamDoc).then((result) => {
-        teamDoc._id = result.insertedId;
-        resolve(teamDoc);
+      this._collection.insertOne(randomTeam).then((result) => {
+        randomTeam._id = result.insertedId;
+        resolve(randomTeam);
       }).catch((err) => {
         reject(new Error('Could not insert random team: ' + err.message));
       })

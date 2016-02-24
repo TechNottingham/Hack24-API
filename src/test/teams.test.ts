@@ -8,6 +8,7 @@ import {ITeamRequest, ITeam, ITeamResponse, ITeamsResponse} from './models/teams
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
+import {JSONApi, TeamsResource} from './resources'
 
 describe('Teams resource', () => {
 
@@ -19,21 +20,18 @@ describe('Teams resource', () => {
 
   describe('POST new team', () => {
 
-    let teamName: string;
+    let team: ITeam;
     let expectedTeamId: string;
     let createdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
-    let responseBody: ITeamResponse;
+    let response: TeamsResource.TopLevelDocument;
 
     before((done) => {
-      let randomPart = Random.str(5);
-      
-      teamName = `Team ${randomPart}`;
-      expectedTeamId = `team-${randomPart}`;
+      team = MongoDB.Teams.createRandomTeam();
       
       let teamRequest: ITeamRequest = {
-        name: teamName,
+        name: team.name,
         members: []
       };
       
@@ -45,7 +43,7 @@ describe('Teams resource', () => {
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          responseBody = res.body;
+          response = res.body;
 
           MongoDB.Teams.findbyTeamId(expectedTeamId).then((team) => {
             createdTeam = team;
@@ -58,8 +56,34 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 201);
     });
 
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the team resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users/${team.userid}`);
+    });
+
+    it('should return the users type', () => {
+      assert.strictEqual(response.data.type, 'users');
+    });
+
+    it('should return the user id', () => {
+      assert.strictEqual(response.data.id, user.userid);
+    });
+
+    it('should return the user name', () => {
+      assert.strictEqual(response.data.attributes.name, user.name);
+    });
+
+    it('should create the user with the expected ID and name', () => {
+      assert.ok(createdUser, 'User not found');
+      assert.strictEqual(createdUser.userid, user.userid);
+      assert.strictEqual(createdUser.name, user.name);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
     it('should create the team with the expected name', () => {
@@ -70,9 +94,9 @@ describe('Teams resource', () => {
     });
 
     it('should return the created team', () => {
-      assert.strictEqual(responseBody.teamid, expectedTeamId);
-      assert.strictEqual(responseBody.name, teamName);
-      assert.strictEqual(responseBody.members.length, 0);
+      assert.strictEqual(response.teamid, expectedTeamId);
+      assert.strictEqual(response.name, teamName);
+      assert.strictEqual(response.members.length, 0);
     });
 
     after((done) => {
@@ -101,7 +125,7 @@ describe('Teams resource', () => {
         modified: new Date
       };
       
-      expectedUserObjectId = await MongoDB.Users.createUser(user);
+      expectedUserObjectId = await MongoDB.Users.insertUser(user);
         
       let randomPart = Random.str(5);
       teamName = `ú-x.€ ${randomPart}`;
@@ -170,7 +194,7 @@ describe('Teams resource', () => {
     let body: string;
 
     before(async (done) => {
-      randomTeam = await MongoDB.Teams.createRandomTeam();
+      randomTeam = await MongoDB.Teams.insertRandomTeam();
       
       let teamRequest: ITeamRequest = {
         name: randomTeam.name,
@@ -227,15 +251,15 @@ describe('Teams resource', () => {
     before(async (done) => {
       await MongoDB.Teams.removeAll();
       
-      firstUser = await MongoDB.Users.createRandomUser();
-      secondUser = await MongoDB.Users.createRandomUser();
-      thirdUser = await MongoDB.Users.createRandomUser();
-      fourthUser = await MongoDB.Users.createRandomUser();
+      firstUser = await MongoDB.Users.insertRandomUser();
+      secondUser = await MongoDB.Users.insertRandomUser();
+      thirdUser = await MongoDB.Users.insertRandomUser();
+      fourthUser = await MongoDB.Users.insertRandomUser();
       
-      firstTeam = await MongoDB.Teams.createRandomTeam([firstUser._id]);
-      secondTeam = await MongoDB.Teams.createRandomTeam([secondUser._id]);
-      thirdTeam = await MongoDB.Teams.createRandomTeam([thirdUser._id]);
-      fourthTeam = await MongoDB.Teams.createRandomTeam([fourthUser._id]);
+      firstTeam = await MongoDB.Teams.insertRandomTeam([firstUser._id]);
+      secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id]);
+      thirdTeam = await MongoDB.Teams.insertRandomTeam([thirdUser._id]);
+      fourthTeam = await MongoDB.Teams.insertRandomTeam([fourthUser._id]);
       
       teamOrder = [
         { team: firstTeam, member: firstUser },
@@ -316,10 +340,10 @@ describe('Teams resource', () => {
     let responseBody: ITeamResponse;
 
     before(async (done) => {
-      firstUser = await MongoDB.Users.createRandomUser();
-      secondUser = await MongoDB.Users.createRandomUser();
+      firstUser = await MongoDB.Users.insertRandomUser();
+      secondUser = await MongoDB.Users.insertRandomUser();
       
-      team = await MongoDB.Teams.createRandomTeam([firstUser._id, secondUser._id]);
+      team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id]);
       
       api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')

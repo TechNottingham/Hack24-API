@@ -10,7 +10,7 @@ export declare module JSONApi {
   }
 
   export interface LinksObject {
-    self: string;
+    self?: string;
     [key: string]: string;
   }
   
@@ -47,17 +47,28 @@ export declare module JSONApi {
     attributes?: AttributesObject;
     relationships?: RelationshipsDictionary;
   }
+  
+  export interface ErrorObject {
+    id?: string;
+    links?: LinksObject;
+    status?: string;
+    code?: string;
+    title?: string;
+    detail?: string;
+    source?: string;
+    meta?: MetaObject;
+  }
 
   export interface TopLevelDocument {
     links?: LinksObject;
     data?: ResourceObject|ResourceObject[];
-    errors?: any;
+    errors?: ErrorObject[]  ;
     meta?: MetaObject;
     included?: ResourceObject[];
   }
 }
 
-export declare module UserResponse {
+export declare module UserResource {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {
     team: JSONApi.ToOneRelationshipsObject
@@ -68,27 +79,27 @@ export declare module UserResponse {
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes: AttributesObject;
+    attributes?: AttributesObject;
     relationships?: RelationshipsDictionary;
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links: JSONApi.LinksObject;
+    links?: JSONApi.LinksObject;
     data: ResourceObject;
   }
   
 }
 
-export declare module UsersResponse {
+export declare module UsersResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
     links: JSONApi.LinksObject;
-    data: UserResponse.ResourceObject[];
+    data: UserResource.ResourceObject[];
   }
   
 }
 
-export declare module TeamResponse {
+export declare module TeamResource {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {
     members: JSONApi.ToManyRelationshipsObject
@@ -100,12 +111,21 @@ export declare module TeamResponse {
 
   export interface ResourceObject extends JSONApi.ResourceObject {
     attributes: AttributesObject;
-    relationships?: RelationshipsDictionary;
+    relationships: RelationshipsDictionary;
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links: JSONApi.LinksObject;
+    links?: JSONApi.LinksObject;
     data: ResourceObject;
   }
 
+}
+
+export declare module TeamsResource {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links: JSONApi.LinksObject;
+    data: TeamResource.ResourceObject[];
+  }
+  
 }

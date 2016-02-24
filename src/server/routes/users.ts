@@ -3,7 +3,7 @@
 import {Request, Response} from 'express'
 import {IUserModel, ITeamModel, IModels, MongoDBErrors} from '../models'
 import * as respond from './respond';
-import {UserResponse, UsersResponse, TeamResponse} from '../responses'
+import {UserResource, UsersResource, TeamResource} from '../resources'
 
 declare interface RequestWithModels extends Request {
   models: IModels
@@ -14,18 +14,18 @@ export function GetAll(req: RequestWithModels, res: Response) {
     .find({}, 'userid name')
     .exec()
     .then((users) => {
-      
+
       let userObjectIds = users.map((user) => user._id);
-      
+
       req.models.Team
-        .find({ members: { $in: userObjectIds }}, 'teamid name members')
+        .find({ members: { $in: userObjectIds } }, 'teamid name members')
         .populate('members', 'userid')
         .exec()
         .then((teams) => {
-          
+
           let userResponses = users.map((user) => {
             let usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
-            let userResponse: UserResponse.ResourceObject = {
+            let userResponse: UserResource.ResourceObject = {
               links: { self: `/users/${encodeURI(user.userid)}` },
               type: 'users',
               id: user.userid,
@@ -39,8 +39,8 @@ export function GetAll(req: RequestWithModels, res: Response) {
             };
             return userResponse;
           });
-          
-          let includedTeams = teams.map<TeamResponse.ResourceObject>((team) => ({
+
+          let includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
             links: { self: `/teams/${encodeURI(team.teamid)}` },
             type: 'teams',
             id: team.teamid,
@@ -52,14 +52,14 @@ export function GetAll(req: RequestWithModels, res: Response) {
               }
             }
           }));
-          
-          let usersResponse: UsersResponse.TopLevelDocument = {
+
+          let usersResponse: UsersResource.TopLevelDocument = {
             links: { self: `/users` },
             data: userResponses,
             included: includedTeams
           };
-          
-          res.status(200).contentType('application/vnd.api+json').send(usersResponse);    
+
+          res.status(200).contentType('application/vnd.api+json').send(usersResponse);
         }, respond.Send500.bind(res))
     }, respond.Send500.bind(res));
 };
@@ -67,20 +67,20 @@ export function GetAll(req: RequestWithModels, res: Response) {
 export function GetByUserId(req: RequestWithModels, res: Response) {
   if (req.params.userid === undefined || typeof req.params.userid !== 'string')
     return respond.Send400(res);
-    
+
   req.models.User
     .findOne({ userid: req.params.userid }, 'userid name')
     .exec()
     .then((user) => {
       if (!user)
         return respond.Send404(res);
-      
+
       req.models.Team
-        .findOne({ members: { $in: [user._id] }}, 'teamid name members')
+        .findOne({ members: { $in: [user._id] } }, 'teamid name members')
         .populate('members', 'userid name')
         .exec()
         .then((team) => {
-          let userResponse: UserResponse.TopLevelDocument = {
+          let userResponse: UserResource.TopLevelDocument = {
             links: { self: `/users/${encodeURI(user.userid)}` },
             data: {
               type: 'users',
@@ -94,12 +94,12 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
               }
             }
           };
-          
-          
+
+
           if (team) {
             userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid };
-            
-            let includedTeam: TeamResponse.ResourceObject = {
+
+            let includedTeam: TeamResource.ResourceObject = {
               links: { self: `/teams/${encodeURI(team.teamid)}` },
               type: 'teams',
               id: team.teamid,
@@ -111,10 +111,10 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
                 }
               }
             }
-            
+
             let includedUsers = team.members
               .filter((member) => member.userid !== user.userid)
-              .map<UserResponse.ResourceObject>((member) => ({
+              .map<UserResource.ResourceObject>((member) => ({
                 links: { self: `/users/${encodeURI(member.userid)}` },
                 type: 'users',
                 id: member.userid,
@@ -126,35 +126,40 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
                   }
                 }
               }));
-              
+
             userResponse.included = [includedTeam, ...includedUsers];
           }
-          
-          res.status(200).contentType('application/vnd.api+json').send(userResponse);    
+
+          res.status(200).contentType('application/vnd.api+json').send(userResponse);
         }, respond.Send500.bind(res))
     }, respond.Send500.bind(res));
 };
 
 export function Create(req: RequestWithModels, res: Response) {
-  if (req.body.userid === undefined || typeof req.body.userid !== 'string')
+  let requestDoc: UserResource.TopLevelDocument = req.body;
+
+  if (!requestDoc || !requestDoc.data
+    || !requestDoc.data.type
+    || requestDoc.data.type !== 'users'
+    || !requestDoc.data.attributes
+    || !requestDoc.data.attributes.name
+    || typeof requestDoc.data.attributes.name !== 'string')
     return respond.Send400(res);
-    
-  if (req.body.name === undefined || typeof req.body.name !== 'string')
-    return respond.Send400(res);
-    
+
   const user = new req.models.User({
-    userid: req.body.userid,
-    name: req.body.name
+    userid: requestDoc.data.id,
+    name: requestDoc.data.attributes.name
   });
-  
+
   user.save((err) => {
     if (err) {
       if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
         return respond.Send409(res);
-      return respond.Send500(res, err);
+
+      return respond.Send500(res);
     }
-    
-    let userResponse: UserResponse.TopLevelDocument = {
+
+    let userResponse: UserResource.TopLevelDocument = {
       links: {
         self: `/users/${encodeURI(user.userid)}`
       },
@@ -174,7 +179,7 @@ export function Create(req: RequestWithModels, res: Response) {
         }
       }
     };
-    
+
     res.status(201).contentType('application/vnd.api+json').send(userResponse);
   });
 };

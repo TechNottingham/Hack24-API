@@ -44,7 +44,16 @@ export class Users {
     });
   }
   
-  public createUser(user: IUser): Promise<ObjectID> {
+  public createRandomUser(prefix?: string): IUser {
+    let randomPart = Random.str(5);
+    return { 
+      userid: `U${prefix}-${randomPart}`,
+      name: `Random user ${prefix}-${randomPart}`,
+      modified: new Date
+    };
+  }
+  
+  public insertUser(user: IUser): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(user).then((result) => {
         resolve(result.insertedId);
@@ -54,18 +63,12 @@ export class Users {
     });
   }
   
-  public createRandomUser(prefix?: string): Promise<IUser> {
-    let randomPart = Random.str(5);
-      
-    let userDoc: IUser = { 
-      userid: `U${prefix}-${randomPart}`,
-      name: `Random user ${prefix}-${randomPart}`,
-      modified: new Date
-    };
+  public insertRandomUser(prefix?: string): Promise<IUser> {
+    let randomUser = this.createRandomUser(prefix);
     return new Promise<IUser>((resolve, reject) => {
-      this._collection.insertOne(userDoc).then((result) => {
-        userDoc._id = result.insertedId;
-        resolve(userDoc);
+      this._collection.insertOne(randomUser).then((result) => {
+        randomUser._id = result.insertedId;
+        resolve(randomUser);
       }).catch((err) => {
         reject(new Error('Could not insert random user: ' + err.message));
       })

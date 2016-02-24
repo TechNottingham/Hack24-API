@@ -8,6 +8,7 @@ import * as TeamsRoute from './routes/teams';
 import {UserModel, TeamModel} from './models';
 import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
+import * as respond from './routes/respond'
 
 function createModels(req, res, next) {
   req.models = {
@@ -17,34 +18,21 @@ function createModels(req, res, next) {
   return next();
 }
 
-function send401(res) {
-  res.status(401)
-     .header('WWW-Authenticate', 'Basic realm="api.hack24.co.uk"')
-     .type('text/plain')
-     .send('Unauthorized');
-}
-
-function send403(res) {
-  res.status(403)
-     .type('text/plain')
-     .send('Forbidden');
-}
-
 function requiresHackbotUser(req: Request, res: Response, next: Function) {
   if (req.headers['authorization'] === undefined)
-    return send401(res);
+    return respond.Send401(res);
     
   const authParts = req.headers['authorization'].split(' ');
   if (authParts.length < 2 || authParts[0] !== 'Basic')
-    return send403(res);
+    return respond.Send403(res);
     
   const decoded = new Buffer(authParts[1], 'base64').toString("ascii");
   const decodedParts = decoded.split(':');
   if (decodedParts.length < 2)
-    return send403(res);
+    return respond.Send403(res);
   
   if (decodedParts[0] !== process.env.HACKBOT_USERNAME || decodedParts[1] !== process.env.HACKBOT_PASSWORD)
-    return send403(res);
+    return respond.Send403(res);
   
   next();
 }
