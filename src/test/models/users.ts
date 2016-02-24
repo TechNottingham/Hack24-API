@@ -45,10 +45,11 @@ export class Users {
   }
   
   public createRandomUser(prefix?: string): IUser {
+    prefix = prefix || '';
     let randomPart = Random.str(5);
     return { 
-      userid: `U${prefix}-${randomPart}`,
-      name: `Random user ${prefix}-${randomPart}`,
+      userid: `U${prefix}${randomPart}`,
+      name: `Random user ${prefix}${randomPart}`,
       modified: new Date
     };
   }

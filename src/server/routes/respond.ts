@@ -3,6 +3,18 @@
 import {Response} from 'express'
 import {JSONApi} from '../resources'
 
+export function Send200(res: Response, model: any) {
+  res.status(200)
+     .contentType('application/vnd.api+json')
+     .send(model);
+}
+
+export function Send201(res: Response, model: any) {
+  res.status(201)
+     .contentType('application/vnd.api+json')
+     .send(model);
+}
+
 export function Send400(res: Response) {
   let errorResponse: JSONApi.TopLevelDocument = {
     errors: [{

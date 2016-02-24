@@ -3,7 +3,7 @@
 import {Request, Response} from 'express'
 import {IUserModel, ITeamModel, IModels, MongoDBErrors} from '../models'
 import * as respond from './respond';
-import {UserResource, UsersResource, TeamResource} from '../resources'
+import {UserResource, UsersResource, TeamResource} from '../resources';
 
 declare interface RequestWithModels extends Request {
   models: IModels
@@ -12,6 +12,7 @@ declare interface RequestWithModels extends Request {
 export function GetAll(req: RequestWithModels, res: Response) {
   req.models.User
     .find({}, 'userid name')
+    .sort({ userid: 1 })
     .exec()
     .then((users) => {
 
@@ -59,7 +60,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
             included: includedTeams
           };
 
-          res.status(200).contentType('application/vnd.api+json').send(usersResponse);
+          respond.Send200(res, usersResponse);
         }, respond.Send500.bind(res))
     }, respond.Send500.bind(res));
 };
@@ -138,7 +139,10 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
 export function Create(req: RequestWithModels, res: Response) {
   let requestDoc: UserResource.TopLevelDocument = req.body;
 
-  if (!requestDoc || !requestDoc.data
+  if (!requestDoc 
+    || !requestDoc.data
+    || !requestDoc.data.id
+    || typeof requestDoc.data.id !== 'string'
     || !requestDoc.data.type
     || requestDoc.data.type !== 'users'
     || !requestDoc.data.attributes
@@ -180,6 +184,6 @@ export function Create(req: RequestWithModels, res: Response) {
       }
     };
 
-    res.status(201).contentType('application/vnd.api+json').send(userResponse);
+    respond.Send201(res, userResponse);
   });
 };

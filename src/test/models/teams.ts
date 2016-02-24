@@ -80,10 +80,11 @@ export class Teams {
   }
   
   public createRandomTeam(members?: ObjectID[], prefix?: string): ITeam {
+    prefix = prefix || '';
     let randomPart = Random.str(5);
     return { 
-      teamid: `random-team-${prefix}-${randomPart}`,
-      name: `Random Team ${prefix}-${randomPart}`,
+      teamid: `random-team-${prefix}${randomPart}`,
+      name: `Random Team ${prefix}${randomPart}`,
       members: members || []
     };
   }

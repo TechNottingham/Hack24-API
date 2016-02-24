@@ -9,7 +9,7 @@ import * as request from 'supertest';
 import {Random} from './utils/random';
 import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
 
-describe.only('Users resource', () => {
+describe('Users resource', () => {
 
   let api: request.SuperTest;
 

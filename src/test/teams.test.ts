@@ -8,7 +8,7 @@ import {ITeamRequest, ITeam, ITeamResponse, ITeamsResponse} from './models/teams
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
-import {JSONApi, TeamsResource} from './resources'
+import {JSONApi, TeamsResource, TeamResource} from './resources'
 
 describe('Teams resource', () => {
 
@@ -21,34 +21,34 @@ describe('Teams resource', () => {
   describe('POST new team', () => {
 
     let team: ITeam;
-    let expectedTeamId: string;
     let createdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
-    let response: TeamsResource.TopLevelDocument;
+    let response: TeamResource.TopLevelDocument;
 
     before((done) => {
       team = MongoDB.Teams.createRandomTeam();
       
-      let teamRequest: ITeamRequest = {
-        name: team.name,
-        members: []
+      let teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name
+          }
+        }
       };
       
       api.post('/teams')
         .send(teamRequest)
-        .set('Accept', 'application/json')
-        .end((err, res) => {
+        .end(async (err, res) => {
           if (err) return done(err);
 
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
-          MongoDB.Teams.findbyTeamId(expectedTeamId).then((team) => {
-            createdTeam = team;
-            done();
-          }).catch(done);
+          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          done();
         });
     });
 
@@ -61,92 +61,75 @@ describe('Teams resource', () => {
     });
 
     it('should return the team resource object self link', () => {
-      assert.strictEqual(response.links.self, `/users/${team.userid}`);
+      assert.strictEqual(response.links.self, `/teams/${team.teamid}`);
     });
 
-    it('should return the users type', () => {
-      assert.strictEqual(response.data.type, 'users');
+    it('should return the team type', () => {
+      assert.strictEqual(response.data.type, 'teams');
     });
 
-    it('should return the user id', () => {
-      assert.strictEqual(response.data.id, user.userid);
+    it('should return the team id', () => {
+      assert.strictEqual(response.data.id, team.teamid);
     });
 
-    it('should return the user name', () => {
-      assert.strictEqual(response.data.attributes.name, user.name);
+    it('should return the team name', () => {
+      assert.strictEqual(response.data.attributes.name, team.name);
     });
 
-    it('should create the user with the expected ID and name', () => {
-      assert.ok(createdUser, 'User not found');
-      assert.strictEqual(createdUser.userid, user.userid);
-      assert.strictEqual(createdUser.name, user.name);
-    });
-
-    it('should return application/vnd.api+json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
-    });
-
-    it('should create the team with the expected name', () => {
+    it('should create the team with the expected id and name', () => {
       assert.ok(createdTeam, 'Team not found');
-      assert.strictEqual(createdTeam.teamid, expectedTeamId);
-      assert.strictEqual(createdTeam.name, teamName);
+      assert.strictEqual(createdTeam.teamid, team.teamid);
+      assert.strictEqual(createdTeam.name, team.name);
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
-    it('should return the created team', () => {
-      assert.strictEqual(response.teamid, expectedTeamId);
-      assert.strictEqual(response.name, teamName);
-      assert.strictEqual(response.members.length, 0);
+    it('should not add any members to the created team', () => {
+      assert.strictEqual(createdTeam.members.length, 0);
     });
 
     after((done) => {
-      MongoDB.Teams.removeByTeamId(expectedTeamId).then(done, done);
+      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
     });
 
   });
 
   describe('POST new team with members', () => {
 
-    let userId: string;
-    let expectedUserObjectId: ObjectID;
-    let teamName: string;
-    let expectedTeamId: string;
+    let user: IUser;
+    let team: ITeam;
     let createdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
-    let responseBody: ITeamResponse;
+    let response: TeamResource.TopLevelDocument;
 
     before(async (done) => {
-      userId = `U${Random.int(10000, 99999)}`;
+      user = await MongoDB.Users.insertRandomUser();
+      team = await MongoDB.Teams.createRandomTeam();
       
-      let user: IUser = {
-        userid: userId,
-        name: `Name_${Random.str(5)}`,
-        modified: new Date
+      let teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name
+          },
+          relationships: {
+            members: {
+              data: [{ type: 'users', id: user.userid}]
+            }
+          }
+        }
       };
       
-      expectedUserObjectId = await MongoDB.Users.insertUser(user);
-        
-      let randomPart = Random.str(5);
-      teamName = `ú-x.€ ${randomPart}`;
-      expectedTeamId = `u-xeuro-${randomPart}`;
-      
-      let teamRequest: ITeamRequest = {
-        name: teamName,
-        members: [user.userid]
-      };
-    
       api.post('/teams')
         .send(teamRequest)
-        .set('Accept', 'application/json')
         .end(async (err, res) => {
           if (err) return done(err);
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          responseBody = res.body;
+          response = res.body;
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(expectedTeamId);
+          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           done();
         });
     });
@@ -155,61 +138,73 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 201);
     });
 
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should create the team with the expected name and the expected members', () => {
+    it('should return the team resource object self link', () => {
+      assert.strictEqual(response.links.self, `/teams/${team.teamid}`);
+    });
+
+    it('should return the team type', () => {
+      assert.strictEqual(response.data.type, 'teams');
+    });
+
+    it('should return the team id', () => {
+      assert.strictEqual(response.data.id, team.teamid);
+    });
+
+    it('should return the team name', () => {
+      assert.strictEqual(response.data.attributes.name, team.name);
+    });
+
+    it('should create the team with the expected id and name', () => {
       assert.ok(createdTeam, 'Team not found');
-      assert.strictEqual(createdTeam.teamid, expectedTeamId);
-      assert.strictEqual(createdTeam.name, teamName);
+      assert.strictEqual(createdTeam.teamid, team.teamid);
+      assert.strictEqual(createdTeam.name, team.name);
+    });
+
+    it('should add the member to the created team', () => {
       assert.strictEqual(createdTeam.members.length, 1);
-      assert.ok(createdTeam.members[0].equals(expectedUserObjectId), 'user ObjectIDs do not match');
+      assert.strictEqual(createdTeam.members[0].equals(user._id), true);
     });
 
-    it('should return the created team', () => {
-      assert.strictEqual(responseBody.teamid, expectedTeamId);
-      assert.strictEqual(responseBody.name, teamName);
-      assert.strictEqual(responseBody.members.length, 1);
-      assert.strictEqual(responseBody.members[0], userId);
-    });
-
-    after(async (done) => {
-      try {
-        await MongoDB.Users.removeByUserId(userId);
-        await MongoDB.Teams.removeByTeamId(expectedTeamId);
-        done();
-      } catch (err) {
-        done(err);
-      }
+    after((done) => {
+      Promise.all([
+        MongoDB.Users.removeByUserId(user.userid),
+        MongoDB.Teams.removeByTeamId(team.teamid)
+      ]).then(() => done(), done);
     });
 
   });
 
   describe('POST team which already exists', () => {
 
-    let randomTeam: ITeam;
+    let team: ITeam;
     let statusCode: number;
     let contentType: string;
-    let body: string;
+    let response: JSONApi.TopLevelDocument;
 
     before(async (done) => {
-      randomTeam = await MongoDB.Teams.insertRandomTeam();
+      team = await MongoDB.Teams.insertRandomTeam();
       
-      let teamRequest: ITeamRequest = {
-        name: randomTeam.name,
-        members: []
+      let teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name
+          }
+        }
       };
       
       api.post('/teams')
         .send(teamRequest)
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          body = res.text;
+          response = res.body;
           
           done();
         });
@@ -219,16 +214,18 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 409);
     });
 
-    it('should return text/plain content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should respond with body text "Conflict"', () => {
-      assert.strictEqual(body, 'Conflict');
+    it('should return an error with status code 409 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '409');
+      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
     after((done) => {
-      MongoDB.Teams.removeByTeamId(randomTeam.teamid).then(done, done);
+      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
     });
 
   });
@@ -238,45 +235,29 @@ describe('Teams resource', () => {
     let firstUser: IUser;
     let secondUser: IUser;
     let thirdUser: IUser;
-    let fourthUser: IUser;
     let firstTeam: ITeam;
     let secondTeam: ITeam;
-    let thirdTeam: ITeam;
-    let fourthTeam: ITeam;
-    let teamOrder: { team: ITeam; member: IUser }[];
     let statusCode: number;
     let contentType: string;
-    let responseBody: ITeamsResponse;
+    let response: TeamsResource.TopLevelDocument;
 
     before(async (done) => {
       await MongoDB.Teams.removeAll();
       
       firstUser = await MongoDB.Users.insertRandomUser();
-      secondUser = await MongoDB.Users.insertRandomUser();
-      thirdUser = await MongoDB.Users.insertRandomUser();
-      fourthUser = await MongoDB.Users.insertRandomUser();
+      secondUser = await MongoDB.Users.insertRandomUser('A');
+      thirdUser = await MongoDB.Users.insertRandomUser('B');
       
-      firstTeam = await MongoDB.Teams.insertRandomTeam([firstUser._id]);
-      secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id]);
-      thirdTeam = await MongoDB.Teams.insertRandomTeam([thirdUser._id]);
-      fourthTeam = await MongoDB.Teams.insertRandomTeam([fourthUser._id]);
-      
-      teamOrder = [
-        { team: firstTeam, member: firstUser },
-        { team: secondTeam, member: secondUser },
-        { team: thirdTeam, member: thirdUser },
-        { team: fourthTeam, member: fourthUser }
-      ].sort((teamA, teamB) => teamA.team.teamid <= teamB.team.teamid ? -1 : 1);
-      
+      firstTeam = await MongoDB.Teams.insertRandomTeam([firstUser._id], 'A');
+      secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id, thirdUser._id], 'B');
+            
       api.get('/teams')
-        .query({ startindex: 1, count: 2 })
-        .set('Accept', 'application/json')
         .end((err, res) => {
           if (err) return done(err);
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          responseBody = res.body;
+          response = res.body;
           
           done();
         });
@@ -286,45 +267,42 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 200);
     });
 
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should return the expected count and start index', () => {
-      assert.strictEqual(responseBody.count, 2);
-      assert.strictEqual(responseBody.totalcount, 4);
-      assert.strictEqual(responseBody.startindex, 1);
+    it('should return the teams resource object self link', () => {
+      assert.strictEqual(response.links.self, `/teams`);
     });
 
-    it('should return two teams', () => {
-      assert.strictEqual(responseBody.teams.length, 2);
+    it('should return the first team', () => {
+      let teamResponse = response.data[0];
+      assert.strictEqual(teamResponse.type, 'teams');
+      assert.strictEqual(teamResponse.id, firstTeam.teamid);
+      assert.strictEqual(teamResponse.attributes.name, firstTeam.name);
+      assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
+      assert.strictEqual(teamResponse.relationships.members.data[0].id, firstUser.userid);
     });
 
     it('should return the second team', () => {
-      assert.strictEqual(responseBody.teams[0].teamid, teamOrder[1].team.teamid);
-      assert.strictEqual(responseBody.teams[0].name, teamOrder[1].team.name);
-      assert.strictEqual(responseBody.teams[0].members.length, 1);
-      assert.strictEqual(responseBody.teams[0].members[0], teamOrder[1].member.userid);
+      let teamResponse = response.data[1];
+      assert.strictEqual(teamResponse.type, 'teams');
+      assert.strictEqual(teamResponse.id, secondTeam.teamid);
+      assert.strictEqual(teamResponse.attributes.name, secondTeam.name);
+      assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
+      assert.strictEqual(teamResponse.relationships.members.data[0].id, secondUser.userid);
+      assert.strictEqual(teamResponse.relationships.members.data[1].type, 'users');
+      assert.strictEqual(teamResponse.relationships.members.data[1].id, thirdUser.userid);
     });
 
-    it('should return the third team', () => {
-      assert.strictEqual(responseBody.teams[1].teamid, teamOrder[2].team.teamid);
-      assert.strictEqual(responseBody.teams[1].name, teamOrder[2].team.name);
-      assert.strictEqual(responseBody.teams[1].members.length, 1);
-      assert.strictEqual(responseBody.teams[1].members[0], teamOrder[2].member.userid);
-    });
-
-    after(async (done) => {
+    after((done) => {
       Promise.all([
         MongoDB.Users.removeByUserId(firstUser.userid),
         MongoDB.Users.removeByUserId(secondUser.userid),
         MongoDB.Users.removeByUserId(thirdUser.userid),
-        MongoDB.Users.removeByUserId(fourthUser.userid),
   
         MongoDB.Teams.removeByTeamId(firstTeam.teamid),
-        MongoDB.Teams.removeByTeamId(secondTeam.teamid),
-        MongoDB.Teams.removeByTeamId(thirdTeam.teamid),
-        MongoDB.Teams.removeByTeamId(fourthTeam.teamid)
+        MongoDB.Teams.removeByTeamId(secondTeam.teamid)
       ]).then(() => done(), done);
     });
 
@@ -337,11 +315,11 @@ describe('Teams resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
-    let responseBody: ITeamResponse;
+    let response: TeamResource.TopLevelDocument;
 
     before(async (done) => {
-      firstUser = await MongoDB.Users.insertRandomUser();
-      secondUser = await MongoDB.Users.insertRandomUser();
+      firstUser = await MongoDB.Users.insertRandomUser('A');
+      secondUser = await MongoDB.Users.insertRandomUser('B');
       
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id]);
       
@@ -352,7 +330,7 @@ describe('Teams resource', () => {
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          responseBody = res.body;
+          response = res.body;
           
           done();
         });
@@ -362,27 +340,33 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 200);
     });
 
-    it('should return application/json content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'application/json; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should return the team', () => {
-      assert.strictEqual(responseBody.teamid, team.teamid);
-      assert.strictEqual(responseBody.name, team.name);
-      assert.strictEqual(responseBody.members.length, 2);
-      assert.strictEqual(responseBody.members[0], firstUser.userid);
-      assert.strictEqual(responseBody.members[1], secondUser.userid);
+    it('should return the team resource object self link', () => {
+      assert.strictEqual(response.links.self, `/teams/${team.teamid}`);
     });
 
-    after(async (done) => {
-      try {
-        await MongoDB.Users.removeByUserId(firstUser.userid);
-        await MongoDB.Users.removeByUserId(secondUser.userid);
-        await MongoDB.Teams.removeByTeamId(team.teamid);
-        done();
-      } catch (err) {
-        done(err);
-      }
+    it('should return the team primary data', () => {
+      assert.strictEqual(response.data.type, 'teams');
+      assert.strictEqual(response.data.id, team.teamid);
+      assert.strictEqual(response.data.attributes.name, team.name);
+    });
+
+    it('should return the team relationships', () => {
+      assert.strictEqual(response.data.relationships.members.data[0].type, 'users');
+      assert.strictEqual(response.data.relationships.members.data[0].id, firstUser.userid);
+      assert.strictEqual(response.data.relationships.members.data[1].type, 'users');
+      assert.strictEqual(response.data.relationships.members.data[1].id, secondUser.userid);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Users.removeByUserId(firstUser.userid),
+        MongoDB.Users.removeByUserId(secondUser.userid),
+        MongoDB.Teams.removeByTeamId(team.teamid)
+      ]).then(() => done(), done);
     });
 
   });
@@ -391,9 +375,9 @@ describe('Teams resource', () => {
 
     let statusCode: number;
     let contentType: string;
-    let body: string;
+    let response: TeamResource.TopLevelDocument;
 
-    before(async (done) => {
+    before((done) => {
       api.get(`/teams/does not exist`)
         .set('Accept', 'application/json')
         .end((err, res) => {
@@ -401,24 +385,25 @@ describe('Teams resource', () => {
 
           statusCode = res.status;
           contentType = res.header['content-type'];
-          body = res.text;
+          response = res.body;
           
           done();
         });
     });
 
-    it('should respond with status code 404 OK', () => {
+    it('should respond with status code 404 Not Found', () => {
       assert.strictEqual(statusCode, 404);
     });
 
-    it('should return text/plain content with charset utf-8', () => {
-      assert.strictEqual(contentType, 'text/plain; charset=utf-8');
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
     });
 
-    it('should respond with body text "Not Found"', () => {
-      assert.strictEqual(body, 'Not Found');
+    it('should respond with the expected "Resource not found" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '404');
+      assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
-
   });
 
 });
