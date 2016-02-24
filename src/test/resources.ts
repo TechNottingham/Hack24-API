@@ -11,7 +11,6 @@ export declare module JSONApi {
 
   export interface LinksObject {
     self?: string;
-    [key: string]: string;
   }
   
   export interface AttributesObject {
@@ -135,6 +134,21 @@ export declare module TeamMembersRelationship {
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
     links: JSONApi.LinksObject;
     data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}
+
+export declare module Root {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    jsonapi: {
+      version: string;
+    },
+    links: {
+      self: string;
+      teams: JSONApi.LinkObject;
+      users: JSONApi.LinkObject;
+    }
   }
   
 }

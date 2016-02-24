@@ -1,13 +1,11 @@
 "use strict";
 
 import * as assert from 'assert';
-import {ObjectID} from 'mongodb';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
-import {ITeamRequest, ITeam, ITeamResponse, ITeamsResponse} from './models/teams';
+import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {Random} from './utils/random';
 import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
 
 describe('Teams resource', () => {

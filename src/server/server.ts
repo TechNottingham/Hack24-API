@@ -5,6 +5,7 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
+import * as Root from './routes/root';
 import {UserModel, TeamModel} from './models';
 import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
@@ -63,6 +64,8 @@ export class Server {
     this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');
     });
+    
+    this._app.get('/', Root.Get);
   }
 
   listen(): Promise<ServerInfo> {
