@@ -8,7 +8,7 @@ import {ITeamRequest, ITeam, ITeamResponse, ITeamsResponse} from './models/teams
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
-import {JSONApi, TeamsResource, TeamResource} from './resources'
+import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
 
 describe('Teams resource', () => {
 
@@ -244,9 +244,9 @@ describe('Teams resource', () => {
     before(async (done) => {
       await MongoDB.Teams.removeAll();
       
-      firstUser = await MongoDB.Users.insertRandomUser();
-      secondUser = await MongoDB.Users.insertRandomUser('A');
-      thirdUser = await MongoDB.Users.insertRandomUser('B');
+      firstUser = await MongoDB.Users.insertRandomUser('A');
+      secondUser = await MongoDB.Users.insertRandomUser('B');
+      thirdUser = await MongoDB.Users.insertRandomUser('C');
       
       firstTeam = await MongoDB.Teams.insertRandomTeam([firstUser._id], 'A');
       secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id, thirdUser._id], 'B');
@@ -272,27 +272,53 @@ describe('Teams resource', () => {
     });
 
     it('should return the teams resource object self link', () => {
-      assert.strictEqual(response.links.self, `/teams`);
+      assert.strictEqual(response.links.self, '/teams');
     });
 
     it('should return the first team', () => {
       let teamResponse = response.data[0];
+      
       assert.strictEqual(teamResponse.type, 'teams');
       assert.strictEqual(teamResponse.id, firstTeam.teamid);
       assert.strictEqual(teamResponse.attributes.name, firstTeam.name);
+      
       assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
       assert.strictEqual(teamResponse.relationships.members.data[0].id, firstUser.userid);
     });
 
     it('should return the second team', () => {
       let teamResponse = response.data[1];
+      
       assert.strictEqual(teamResponse.type, 'teams');
       assert.strictEqual(teamResponse.id, secondTeam.teamid);
       assert.strictEqual(teamResponse.attributes.name, secondTeam.name);
+      
       assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
       assert.strictEqual(teamResponse.relationships.members.data[0].id, secondUser.userid);
+      
       assert.strictEqual(teamResponse.relationships.members.data[1].type, 'users');
       assert.strictEqual(teamResponse.relationships.members.data[1].id, thirdUser.userid);
+    });
+
+    it('should include the related members', () => {
+      assert.strictEqual(response.included.length, 3);
+      assert.strictEqual(response.included.filter((obj) => obj.type === 'users').length, 3);
+    });
+
+    it('should include each expected user', () => {
+      let users = <UserResource.ResourceObject[]> response.included;
+      
+      assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
+      assert.strictEqual(users[0].id, firstUser.userid);
+      assert.strictEqual(users[0].attributes.name, firstUser.name);
+      
+      assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
+      assert.strictEqual(users[1].id, secondUser.userid);
+      assert.strictEqual(users[1].attributes.name, secondUser.name);
+      
+      assert.strictEqual(users[2].links.self, `/users/${thirdUser.userid}`);
+      assert.strictEqual(users[2].id, thirdUser.userid);
+      assert.strictEqual(users[2].attributes.name, thirdUser.name);
     });
 
     after((done) => {
@@ -354,11 +380,28 @@ describe('Teams resource', () => {
       assert.strictEqual(response.data.attributes.name, team.name);
     });
 
-    it('should return the team relationships', () => {
+    it('should return the user relationships', () => {
       assert.strictEqual(response.data.relationships.members.data[0].type, 'users');
       assert.strictEqual(response.data.relationships.members.data[0].id, firstUser.userid);
       assert.strictEqual(response.data.relationships.members.data[1].type, 'users');
       assert.strictEqual(response.data.relationships.members.data[1].id, secondUser.userid);
+    });
+
+    it('should include the related members', () => {
+      assert.strictEqual(response.included.length, 2);
+      assert.strictEqual(response.included.filter((obj) => obj.type === 'users').length, 2);
+    });
+
+    it('should include each expected user', () => {
+      let users = <UserResource.ResourceObject[]> response.included;
+      
+      assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
+      assert.strictEqual(users[0].id, firstUser.userid);
+      assert.strictEqual(users[0].attributes.name, firstUser.name);
+      
+      assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
+      assert.strictEqual(users[1].id, secondUser.userid);
+      assert.strictEqual(users[1].attributes.name, secondUser.name);
     });
 
     after((done) => {

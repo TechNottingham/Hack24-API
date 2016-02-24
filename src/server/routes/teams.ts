@@ -3,7 +3,7 @@
 import {Request, Response} from 'express';
 import {IModels, ITeamModel, MongoDBErrors} from '../models';
 import * as respond from './respond';
-import {JSONApi, TeamResource, TeamsResource} from '../resources';
+import {JSONApi, TeamResource, TeamsResource, UserResource} from '../resources';
 import * as slug from 'slug';
 
 declare interface RequestWithModels extends Request {
@@ -25,7 +25,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
   req.models.Team
     .find({}, 'teamid name members')
     .sort({ teamid: 1 })
-    .populate('members', 'userid')
+    .populate('members', 'userid name')
     .exec()
     .then((teams) => {
       
@@ -49,9 +49,17 @@ export function GetAll(req: RequestWithModels, res: Response) {
         .exec()
         .then((totalCount) => {
           
+          let includedUsers = teams.map((team) => team.members.map<UserResource.ResourceObject>((member) => ({
+            links: { self: `/users/${member.userid}` },
+            type: 'users',
+            id: member.userid,
+            attributes: { name: member.name }
+          })));
+          
           let teamsResponse: TeamsResource.TopLevelDocument = {
             links: { self: `/teams` },
-            data: teamResponses
+            data: teamResponses,
+            included: [].concat.apply([], includedUsers)
           };
           respond.Send200(res, teamsResponse);
           
@@ -63,10 +71,19 @@ export function GetByTeamId(req: RequestWithModels, res: Response) {
   let teamId = req.params.teamId;
   req.models.Team
     .findOne({ teamid: teamId }, 'teamid name members')
-    .populate('members', 'userid')
+    .populate('members', 'userid name')
     .exec()
     .then((team) => {
-      if (team === null) return respond.Send404(res);
+      if (team === null)
+        return respond.Send404(res);
+        
+      let includedUsers = team.members.map<UserResource.ResourceObject>((member) => ({
+        links: { self: `/users/${member.userid}` },
+        type: 'users',
+        id: member.userid,
+        attributes: { name: member.name }
+      }));
+        
       let teamResponse: TeamResource.TopLevelDocument = {
         links: { self: `/teams/${encodeURI(team.teamid)}` },
         data: {
@@ -81,7 +98,8 @@ export function GetByTeamId(req: RequestWithModels, res: Response) {
               data: team.members.map((member) => ({ type: 'users', id: member.userid }))
             }
           }
-        }
+        },
+        included: includedUsers
       };
       respond.Send200(res, teamResponse);
     }, respond.Send500.bind(res));
