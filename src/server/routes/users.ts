@@ -3,13 +3,68 @@
 import {Request, Response} from 'express'
 import {IUserModel, ITeamModel, IModels, MongoDBErrors} from '../models'
 import * as respond from './respond';
-import {UserResponse, TeamResponse} from '../responses'
+import {UserResponse, UsersResponse, TeamResponse} from '../responses'
 
 declare interface RequestWithModels extends Request {
   models: IModels
 }
 
-export var GetByUserId = function(req: RequestWithModels, res: Response) {
+export function GetAll(req: RequestWithModels, res: Response) {
+  req.models.User
+    .find({}, 'userid name')
+    .exec()
+    .then((users) => {
+      
+      let userObjectIds = users.map((user) => user._id);
+      
+      req.models.Team
+        .find({ members: { $in: userObjectIds }}, 'teamid name members')
+        .populate('members', 'userid')
+        .exec()
+        .then((teams) => {
+          
+          let userResponses = users.map((user) => {
+            let usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
+            let userResponse: UserResponse.ResourceObject = {
+              links: { self: `/users/${encodeURI(user.userid)}` },
+              type: 'users',
+              id: user.userid,
+              attributes: { name: user.name },
+              relationships: {
+                team: {
+                  links: { self: `/users/${encodeURI(user.userid)}/team` },
+                  data: usersTeam ? { type: 'teams', id: usersTeam.teamid } : null
+                }
+              }
+            };
+            return userResponse;
+          });
+          
+          let includedTeams = teams.map<TeamResponse.ResourceObject>((team) => ({
+            links: { self: `/teams/${encodeURI(team.teamid)}` },
+            type: 'teams',
+            id: team.teamid,
+            attributes: { name: team.name },
+            relationships: {
+              members: {
+                links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+                data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
+              }
+            }
+          }));
+          
+          let usersResponse: UsersResponse.TopLevelDocument = {
+            links: { self: `/users` },
+            data: userResponses,
+            included: includedTeams
+          };
+          
+          res.status(200).contentType('application/vnd.api+json').send(usersResponse);    
+        }, respond.Send500.bind(res))
+    }, respond.Send500.bind(res));
+};
+
+export function GetByUserId(req: RequestWithModels, res: Response) {
   if (req.params.userid === undefined || typeof req.params.userid !== 'string')
     return respond.Send400(res);
     
@@ -80,7 +135,7 @@ export var GetByUserId = function(req: RequestWithModels, res: Response) {
     }, respond.Send500.bind(res));
 };
 
-export var Create = (req: RequestWithModels, res: Response) => {
+export function Create(req: RequestWithModels, res: Response) {
   if (req.body.userid === undefined || typeof req.body.userid !== 'string')
     return respond.Send400(res);
     

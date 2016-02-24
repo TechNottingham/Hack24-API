@@ -7,7 +7,7 @@ import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
-import {UserResponse, TeamsResponse} from './models/responses'
+import {UserResponse, UsersResponse, TeamResponse} from './models/responses'
 
 describe('Users resource', () => {
 
@@ -83,6 +83,101 @@ describe('Users resource', () => {
     });
 
   });
+  
+  describe('GET users in teams', () => {
+
+    let user: IUser;
+    let otherUser: IUser;
+    let team: ITeam;
+    let otherTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: UsersResponse.TopLevelDocument;
+
+    before(async (done) => {
+      user = await MongoDB.Users.createRandomUser('A');
+      otherUser = await MongoDB.Users.createRandomUser('B');
+      
+      team = await MongoDB.Teams.createRandomTeam([user._id], 'A');
+      otherTeam = await MongoDB.Teams.createRandomTeam([otherUser._id], 'B');
+      
+      api.get(`/users`)
+        .set('Accept', 'application/json')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the user resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users`);
+    });
+
+    it('should return the first user', () => {
+      let thisUser = response.data[0];
+      assert.strictEqual(thisUser.type, 'users');
+      assert.strictEqual(thisUser.id, user.userid);
+      assert.strictEqual(thisUser.attributes.name, user.name);
+      assert.strictEqual(thisUser.relationships.team.links.self, `/users/${user.userid}/team`);
+      assert.strictEqual(thisUser.relationships.team.data.type, 'teams');
+      assert.strictEqual(thisUser.relationships.team.data.id, team.teamid);
+    });
+
+    it('should return the second user', () => {
+      let thisUser = response.data[1];
+      assert.strictEqual(thisUser.type, 'users');
+      assert.strictEqual(thisUser.id, otherUser.userid);
+      assert.strictEqual(thisUser.attributes.name, otherUser.name);
+      assert.strictEqual(thisUser.relationships.team.links.self, `/users/${otherUser.userid}/team`);
+      assert.strictEqual(thisUser.relationships.team.data.type, 'teams');
+      assert.strictEqual(thisUser.relationships.team.data.id, otherTeam.teamid);
+    });
+
+    it('should include the first team', () => {
+      let includedTeam = <TeamResponse.ResourceObject> response.included[0];
+      assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
+      assert.strictEqual(includedTeam.id, team.teamid);
+      assert.strictEqual(includedTeam.attributes.name, team.name);
+      assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
+      assert.strictEqual(includedTeam.relationships.members.data.length, 1);
+      assert.strictEqual(includedTeam.relationships.members.data[0].type, 'users');
+      assert.strictEqual(includedTeam.relationships.members.data[0].id, user.userid);
+    });
+
+    it('should include the second team', () => {
+      let includedTeam = <TeamResponse.ResourceObject> response.included[1];
+      assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
+      assert.strictEqual(includedTeam.id, otherTeam.teamid);
+      assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
+      assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${otherTeam.teamid}/members`);
+      assert.strictEqual(includedTeam.relationships.members.data.length, 1);
+      assert.strictEqual(includedTeam.relationships.members.data[0].type, 'users');
+      assert.strictEqual(includedTeam.relationships.members.data[0].id, otherUser.userid);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Teams.removeByTeamId(team.teamid),
+        MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+        MongoDB.Users.removeByUserId(user.userid),
+        MongoDB.Users.removeByUserId(otherUser.userid)
+      ]).then(() => done(), done);
+    });
+
+  });
 
   describe('GET user by ID in team', () => {
 
@@ -92,7 +187,7 @@ describe('Users resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: UserResponse.TopLevelDocument;
-    let includedTeam: TeamsResponse.ResourceObject;
+    let includedTeam: TeamResponse.ResourceObject;
     let includedUser: UserResponse.ResourceObject;
 
     before(async (done) => {
@@ -108,8 +203,8 @@ describe('Users resource', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          includedTeam = <TeamsResponse.ResourceObject> response.included.find((element) => element.type === 'teams');
-          includedUser = <UserResponse.ResourceObject> response.included.find((element) => element.type === 'users');
+          includedTeam = <TeamResponse.ResourceObject> response.included.find((include) => include.type === 'teams');
+          includedUser = <UserResponse.ResourceObject> response.included.find((include) => include.type === 'users');
           
           done();
         });

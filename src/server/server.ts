@@ -63,6 +63,7 @@ export class Server {
 
     this._app = express();
 
+    this._app.get('/users/', createModels, UsersRoute.GetAll);
     this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
     this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
 

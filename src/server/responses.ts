@@ -79,6 +79,15 @@ export declare module UserResponse {
   
 }
 
+export declare module UsersResponse {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links: JSONApi.LinksObject;
+    data: UserResponse.ResourceObject[];
+  }
+  
+}
+
 export declare module TeamResponse {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {

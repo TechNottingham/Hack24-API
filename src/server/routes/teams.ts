@@ -26,7 +26,7 @@ function slugify(name: string): string {
   return slug(name, { lower: true });
 }
 
-export var GetAll = function (req: RequestWithModels, res: Response) {
+export function GetAll(req: RequestWithModels, res: Response) {
   let startindex = req.query.startindex !== undefined ? parseInt(req.query.startindex, 10) : 0;
   let count = req.query.count !== undefined ? parseInt(req.query.count, 10) : 15;
   
@@ -65,7 +65,7 @@ export var GetAll = function (req: RequestWithModels, res: Response) {
     }, respond.Send500.bind(res));
 };
 
-export var GetByTeamId = function (req: RequestWithModels, res: Response) {
+export function GetByTeamId(req: RequestWithModels, res: Response) {
   let teamId = req.params.teamId;
   req.models.Team
     .findOne({ teamid: teamId }, 'teamid name members')
@@ -82,7 +82,7 @@ export var GetByTeamId = function (req: RequestWithModels, res: Response) {
     }, respond.Send500.bind(res));
 };
 
-export var Create = function (req: RequestWithModels, res: Response) {
+export function Create(req: RequestWithModels, res: Response) {
   if (req.body.name === undefined || typeof req.body.name !== 'string')
     return respond.Send400(res);
     

@@ -89,11 +89,11 @@ export class Teams {
     });
   }
   
-  public createRandomTeam(members?: ObjectID[]): Promise<ITeam> {
+  public createRandomTeam(members?: ObjectID[], prefix?: string): Promise<ITeam> {
     let randomPart = Random.str(5);
     let teamDoc: ITeam = { 
-      teamid: `random-team-${randomPart}`,
-      name: `Random Team ${randomPart}`,
+      teamid: `random-team-${prefix}-${randomPart}`,
+      name: `Random Team ${prefix}-${randomPart}`,
       members: members || []
     };
     return new Promise<ITeam>((resolve, reject) => {

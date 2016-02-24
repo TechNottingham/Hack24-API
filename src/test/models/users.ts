@@ -59,7 +59,7 @@ export class Users {
       
     let userDoc: IUser = { 
       userid: `U${prefix}-${randomPart}`,
-      name: `${prefix} - Random user ${randomPart}`,
+      name: `Random user ${prefix}-${randomPart}`,
       modified: new Date
     };
     return new Promise<IUser>((resolve, reject) => {
