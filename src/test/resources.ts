@@ -129,3 +129,12 @@ export declare module TeamsResource {
   }
   
 }
+
+export declare module TeamMembersRelationship {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links: JSONApi.LinksObject;
+    data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}

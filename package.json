@@ -13,7 +13,7 @@
     "test": "cd build && mocha --require source-map-support/register --timeout 10000",
     "prebuild:watch": "npm run prebuild",
     "build:watch": "node node_modules/typescript/bin/tsc -p src/ -w",
-    "test:watch": "cd build && mocha --require source-map-support/register --timeout 10000 -w"
+    "test:watch": "cd build && mocha --require source-map-support/register --timeout 10000 -w -R dot"
   },
   "dependencies": {
     "body-parser": "^1.15.0",

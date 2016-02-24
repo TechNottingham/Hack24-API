@@ -25,13 +25,13 @@ export declare module JSONApi {
   }
   
   export interface ToManyRelationshipsObject {
-    links: LinksObject;
+    links?: LinksObject;
     data: ResourceIdentifierObject[];
     meta?: MetaObject;
   }
   
   export interface ToOneRelationshipsObject {
-    links: LinksObject;
+    links?: LinksObject;
     data: ResourceIdentifierObject;
     meta?: MetaObject;
   }
@@ -43,7 +43,7 @@ export declare module JSONApi {
   export interface ResourceObject {
     links?: LinksObject;
     type: string;
-    id: string;
+    id?: string;
     attributes?: AttributesObject;
     relationships?: RelationshipsDictionary;
   }
@@ -110,8 +110,8 @@ export declare module TeamResource {
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes: AttributesObject;
-    relationships: RelationshipsDictionary;
+    attributes?: AttributesObject;
+    relationships?: RelationshipsDictionary;
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
@@ -126,6 +126,15 @@ export declare module TeamsResource {
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
     links: JSONApi.LinksObject;
     data: TeamResource.ResourceObject[];
+  }
+  
+}
+
+export declare module TeamMembersRelationship {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links: JSONApi.LinksObject;
+    data: JSONApi.ResourceIdentifierObject[];
   }
   
 }
