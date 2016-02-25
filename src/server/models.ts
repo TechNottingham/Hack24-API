@@ -20,6 +20,7 @@ export const UserModel = model<IUserModel>('User', UserSchema);
 export interface ITeam {
   teamid: string;
   name: string;
+  motto: string;
   members: IUserModel[];
 }
 

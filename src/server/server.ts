@@ -5,6 +5,7 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
+import * as TeamMembersRoute from './routes/team.members';
 import * as Root from './routes/root';
 import {UserModel, TeamModel} from './models';
 import {json as jsonParser} from 'body-parser';
@@ -53,16 +54,19 @@ export class Server {
     this._app = express();
 
     this._app.get('/users/', createModels, UsersRoute.GetAll);
+    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    
     this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
     
-    this._app.post('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamsRoute.AddTeamMembers);
-    this._app.delete('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamsRoute.DeleteTeamMembers);
+    this._app.post('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Add);
+    this._app.delete('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Delete);
+    this._app.get('/teams/:teamId/members', createModels, TeamMembersRoute.Get);
 
-    this._app.get('/teams/', createModels, TeamsRoute.GetAll);
-    this._app.get('/teams/:teamId/members', createModels, TeamsRoute.GetTeamMembers);
-    this._app.get('/teams/:teamId', createModels, TeamsRoute.GetByTeamId);
     
-    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    this._app.patch('/teams/:teamId', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Update);
+    this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
+    
+    this._app.get('/teams/', createModels, TeamsRoute.GetAll);
     this._app.post('/teams/', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Create);
 
     this._app.get('/api', (req, res) => {

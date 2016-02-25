@@ -23,16 +23,8 @@ export class MongoDB {
     return this._teams;
   }
   
-  static async start() {
-    let db: Db;
-    
-    try {
-      db = await this.connectMongo();
-    } catch (err) {
-      await this.spawnMongoDB();
-      db = await this.connectMongo();
-    }
-    
+  static async ensureRunning() {
+    const db = await this.connectMongo();
     await this.prepareDb(db);
   }
   
@@ -49,47 +41,7 @@ export class MongoDB {
     })
   }
   
-  private static async spawnMongoDB() {
-    this._spawn = this.spawn();
-  }
-  
   private static async connectMongo() {
     return await MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost/hack24db');
-  }
-  
-  private static spawn() {
-    console.log('Starting MongoDB server...');
-      
-    let mongod = spawn('mongod');
-    
-    if (process.env.DEBUG) {
-      mongod.stdout.setEncoding('utf8');
-      mongod.stderr.setEncoding('utf8');
-    
-      mongod.stdout.on('data', console.log);
-      mongod.stderr.on('data', console.error);
-    }
-  
-    mongod.on('close', function (code) {
-      if (code !== null && code !== 0) return console.error(new Error('MongoDB finished with non-zero exit code (' + code + ')'));
-      console.log('MongoDB closed.');
-    });
-  
-    mongod.on('error', (err) => {
-      throw new Error('Unable to start MongoDB: ' + err.message);
-    });
-    
-    return mongod;
-  } 
-  
-  static stop(): Promise<void> {
-    if (!this._db) return Promise.resolve();
-    
-    return this._db.close().then(() => {
-      if (this._spawn) {
-        console.log('Stopping MongoDB server...');
-        this._spawn.kill('SIGINT');
-      }
-    });
   }
 }

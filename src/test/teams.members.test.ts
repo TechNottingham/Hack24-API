@@ -427,9 +427,7 @@ describe('Team Members relationship', () => {
     });
 
     after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(team.teamid)
-      ]).then(() => done(), done);
+      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
     });
 
   });

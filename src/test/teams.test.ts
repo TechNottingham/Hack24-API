@@ -7,6 +7,7 @@ import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
+import {Random} from './utils/random'
 
 describe('Teams resource', () => {
 
@@ -27,11 +28,12 @@ describe('Teams resource', () => {
     before((done) => {
       team = MongoDB.Teams.createRandomTeam();
       
-      let teamRequest: TeamResource.TopLevelDocument = {
+      const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
           attributes: {
-            name: team.name
+            name: team.name,
+            motto: team.motto
           }
         }
       };
@@ -75,14 +77,80 @@ describe('Teams resource', () => {
       assert.strictEqual(response.data.attributes.name, team.name);
     });
 
-    it('should create the team with the expected id and name', () => {
+    it('should return the team motto', () => {
+      assert.strictEqual(response.data.attributes.motto, team.motto);
+    });
+
+    it('should create the team', () => {
       assert.ok(createdTeam, 'Team not found');
       assert.strictEqual(createdTeam.teamid, team.teamid);
       assert.strictEqual(createdTeam.name, team.name);
-      assert.strictEqual(createdTeam.members.length, 0);
+      assert.strictEqual(createdTeam.motto, team.motto);
     });
 
     it('should not add any members to the created team', () => {
+      assert.strictEqual(createdTeam.members.length, 0);
+    });
+
+    after((done) => {
+      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    });
+
+  });
+
+  describe('POST new team without motto', () => {
+
+    let team: ITeam;
+    let createdTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: TeamResource.TopLevelDocument;
+
+    before((done) => {
+      team = MongoDB.Teams.createRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name,
+            motto: null
+          }
+        }
+      };
+      
+      api.post('/teams')
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(teamRequest)
+        .end(async (err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+
+          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          done();
+        });
+    });
+
+    it('should respond with status code 201 Created', () => {
+      assert.strictEqual(statusCode, 201);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should not return the team motto', () => {
+      assert.strictEqual(response.data.attributes.motto, null);
+    });
+
+    it('should create the team', () => {
+      assert.ok(createdTeam, 'Team not found');
+      assert.strictEqual(createdTeam.teamid, team.teamid);
+      assert.strictEqual(createdTeam.name, team.name);
+      assert.strictEqual(createdTeam.motto, null);
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
@@ -105,11 +173,12 @@ describe('Teams resource', () => {
       user = await MongoDB.Users.insertRandomUser();
       team = await MongoDB.Teams.createRandomTeam();
       
-      let teamRequest: TeamResource.TopLevelDocument = {
+      const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
           attributes: {
-            name: team.name
+            name: team.name,
+            motto: team.motto
           },
           relationships: {
             members: {
@@ -158,10 +227,15 @@ describe('Teams resource', () => {
       assert.strictEqual(response.data.attributes.name, team.name);
     });
 
+    it('should return the team motto', () => {
+      assert.strictEqual(response.data.attributes.motto, team.motto);
+    });
+
     it('should create the team with the expected id and name', () => {
       assert.ok(createdTeam, 'Team not found');
       assert.strictEqual(createdTeam.teamid, team.teamid);
       assert.strictEqual(createdTeam.name, team.name);
+      assert.strictEqual(createdTeam.motto, team.motto);
     });
 
     it('should add the member to the created team', () => {
@@ -188,11 +262,12 @@ describe('Teams resource', () => {
     before(async (done) => {
       team = await MongoDB.Teams.insertRandomTeam();
       
-      let teamRequest: TeamResource.TopLevelDocument = {
+      const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
           attributes: {
-            name: team.name
+            name: team.name,
+            motto: team.motto
           }
         }
       };
@@ -277,22 +352,24 @@ describe('Teams resource', () => {
     });
 
     it('should return the first team', () => {
-      let teamResponse = response.data[0];
+      const teamResponse = response.data[0];
       
       assert.strictEqual(teamResponse.type, 'teams');
       assert.strictEqual(teamResponse.id, firstTeam.teamid);
       assert.strictEqual(teamResponse.attributes.name, firstTeam.name);
+      assert.strictEqual(teamResponse.attributes.motto, firstTeam.motto);
       
       assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
       assert.strictEqual(teamResponse.relationships.members.data[0].id, firstUser.userid);
     });
 
     it('should return the second team', () => {
-      let teamResponse = response.data[1];
+      const teamResponse = response.data[1];
       
       assert.strictEqual(teamResponse.type, 'teams');
       assert.strictEqual(teamResponse.id, secondTeam.teamid);
       assert.strictEqual(teamResponse.attributes.name, secondTeam.name);
+      assert.strictEqual(teamResponse.attributes.motto, secondTeam.motto);
       
       assert.strictEqual(teamResponse.relationships.members.data[0].type, 'users');
       assert.strictEqual(teamResponse.relationships.members.data[0].id, secondUser.userid);
@@ -307,7 +384,7 @@ describe('Teams resource', () => {
     });
 
     it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]> response.included;
+      const users = <UserResource.ResourceObject[]> response.included;
       
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -379,6 +456,7 @@ describe('Teams resource', () => {
       assert.strictEqual(response.data.type, 'teams');
       assert.strictEqual(response.data.id, team.teamid);
       assert.strictEqual(response.data.attributes.name, team.name);
+      assert.strictEqual(response.data.attributes.motto, team.motto);
     });
 
     it('should return the user relationships', () => {
@@ -394,7 +472,7 @@ describe('Teams resource', () => {
     });
 
     it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]> response.included;
+      const users = <UserResource.ResourceObject[]> response.included;
       
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -448,6 +526,70 @@ describe('Teams resource', () => {
       assert.strictEqual(response.errors[0].status, '404');
       assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
+  });
+
+  describe('PATCH existing team', () => {
+
+    let team: ITeam;
+    let newTeam: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async (done) => {
+      team = await MongoDB.Teams.insertRandomTeam();
+      newTeam = MongoDB.Teams.createRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          id: team.teamid,
+          attributes: {
+            name: newTeam.name,
+            motto: newTeam.motto
+          }
+        }
+      };
+      
+      api.patch(`/teams/${team.teamid}`)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(teamRequest)
+        .end(async (err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          done();
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should modify the team', () => {
+      assert.strictEqual(modifiedTeam.teamid, team.teamid);
+      assert.strictEqual(modifiedTeam.name, newTeam.name);
+      assert.strictEqual(modifiedTeam.motto, newTeam.motto);
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    after((done) => {
+      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    });
+
   });
 
 });

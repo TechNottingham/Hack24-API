@@ -16,17 +16,17 @@ export function GetAll(req: RequestWithModels, res: Response) {
     .exec()
     .then((users) => {
 
-      let userObjectIds = users.map((user) => user._id);
+      const userObjectIds = users.map((user) => user._id);
 
       req.models.Team
-        .find({ members: { $in: userObjectIds } }, 'teamid name members')
+        .find({ members: { $in: userObjectIds } }, 'teamid name motto members')
         .populate('members', 'userid')
         .exec()
         .then((teams) => {
 
-          let userResponses = users.map((user) => {
-            let usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
-            let userResponse: UserResource.ResourceObject = {
+          const userResponses = users.map((user) => {
+            const usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
+            const userResponse: UserResource.ResourceObject = {
               links: { self: `/users/${encodeURI(user.userid)}` },
               type: 'users',
               id: user.userid,
@@ -41,11 +41,14 @@ export function GetAll(req: RequestWithModels, res: Response) {
             return userResponse;
           });
 
-          let includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
+          const includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
             links: { self: `/teams/${encodeURI(team.teamid)}` },
             type: 'teams',
             id: team.teamid,
-            attributes: { name: team.name },
+            attributes: {
+              name: team.name,
+              motto: team.motto
+            },
             relationships: {
               members: {
                 links: { self: `/teams/${encodeURI(team.teamid)}/members` },
@@ -54,12 +57,12 @@ export function GetAll(req: RequestWithModels, res: Response) {
             }
           }));
 
-          let usersResponse: UsersResource.TopLevelDocument = {
-            links: { self: `/users` },
+          const usersResponse = <UsersResource.TopLevelDocument> {
+            links: { self: '/users' },
             data: userResponses,
             included: includedTeams
           };
-
+          
           respond.Send200(res, usersResponse);
         }, respond.Send500.bind(res))
     }, respond.Send500.bind(res));
@@ -81,7 +84,7 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
         .populate('members', 'userid name')
         .exec()
         .then((team) => {
-          let userResponse: UserResource.TopLevelDocument = {
+          const userResponse = <UserResource.TopLevelDocument> {
             links: { self: `/users/${encodeURI(user.userid)}` },
             data: {
               type: 'users',
@@ -100,11 +103,11 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
           if (team) {
             userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid };
 
-            let includedTeam: TeamResource.ResourceObject = {
+            const includedTeam = <TeamResource.ResourceObject> {
               links: { self: `/teams/${encodeURI(team.teamid)}` },
               type: 'teams',
               id: team.teamid,
-              attributes: { name: team.name },
+              attributes: { name: team.name, motto: team.motto },
               relationships: {
                 members: {
                   links: { self: `/teams/${encodeURI(team.teamid)}/members` },
@@ -113,7 +116,7 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
               }
             }
 
-            let includedUsers = team.members
+            const includedUsers = team.members
               .filter((member) => member.userid !== user.userid)
               .map<UserResource.ResourceObject>((member) => ({
                 links: { self: `/users/${encodeURI(member.userid)}` },
@@ -137,7 +140,7 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
 };
 
 export function Create(req: RequestWithModels, res: Response) {
-  let requestDoc: UserResource.TopLevelDocument = req.body;
+  const requestDoc: UserResource.TopLevelDocument = req.body;
 
   if (!requestDoc 
     || !requestDoc.data
@@ -163,7 +166,7 @@ export function Create(req: RequestWithModels, res: Response) {
       return respond.Send500(res);
     }
 
-    let userResponse: UserResource.TopLevelDocument = {
+    const userResponse = <UserResource.TopLevelDocument> {
       links: {
         self: `/users/${encodeURI(user.userid)}`
       },

@@ -7,6 +7,7 @@ export interface ITeam {
   _id?: ObjectID;
   teamid: string;
   name: string;
+  motto: string;
   members: ObjectID[];
 }
 
@@ -60,6 +61,7 @@ export class Teams {
     return { 
       teamid: `random-team-${prefix}${randomPart}`,
       name: `Random Team ${prefix}${randomPart}`,
+      motto: `Random motto ${randomPart}`,
       members: members || []
     };
   }

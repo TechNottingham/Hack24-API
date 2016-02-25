@@ -145,6 +145,7 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
+      assert.strictEqual(includedTeam.attributes.motto, team.motto);
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 1);
       assert.strictEqual(includedTeam.relationships.members.data[0].type, 'users');
@@ -156,6 +157,7 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
       assert.strictEqual(includedTeam.id, otherTeam.teamid);
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
+      assert.strictEqual(includedTeam.attributes.motto, otherTeam.motto);
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${otherTeam.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 1);
       assert.strictEqual(includedTeam.relationships.members.data[0].type, 'users');

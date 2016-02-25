@@ -22,8 +22,6 @@ export class ApiServer {
   
   static start() {
     
-    console.log('Starting API server...');
-    
     return new Promise<void>((resolve, reject) => {
       
       this._api = fork('../bin/server.js', [], {
@@ -65,7 +63,6 @@ export class ApiServer {
   
   static stop(): void {
     if (!this._api) return;
-    console.log('Stopping API server...');
     this._api.kill('SIGINT');
   }
 }
