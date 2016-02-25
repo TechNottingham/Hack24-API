@@ -3,7 +3,7 @@
 import * as assert from 'assert';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, Root} from './resources'
+import {Root} from './resources'
 
 describe('Teams resource', () => {
 

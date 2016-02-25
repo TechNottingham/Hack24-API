@@ -3,36 +3,11 @@
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
-export interface ITeamRequest {
-  name: string;
-  members: string[];
-}
-
 export interface ITeam {
   _id?: ObjectID;
   teamid: string;
   name: string;
   members: ObjectID[];
-}
-
-export interface ITeamResponse {
-  teamid: string;
-  name: string;
-  members: string[];
-}
-
-export interface ITeamsResponse {
-  count: number;
-  startindex: number;
-  totalcount: number;
-  teams: ITeamResponse[];
-}
-
-export interface ITeamMemberResponse {
-  userid: number;
-  name: number;
-  joined: Date;
-  teams: ITeamResponse[];
 }
 
 export class Teams {

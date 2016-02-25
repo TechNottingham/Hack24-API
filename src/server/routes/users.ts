@@ -1,7 +1,7 @@
 "use strict";
 
 import {Request, Response} from 'express'
-import {IUserModel, ITeamModel, IModels, MongoDBErrors} from '../models'
+import {IModels, MongoDBErrors} from '../models'
 import * as respond from './respond';
 import {UserResource, UsersResource, TeamResource} from '../resources';
 
