@@ -15,6 +15,10 @@ export function Send201(res: Response, model: any) {
      .send(model);
 }
 
+export function Send204(res: Response) {
+  res.status(204).end();
+}
+
 export function Send400(res: Response) {
   let errorResponse: JSONApi.TopLevelDocument = {
     errors: [{

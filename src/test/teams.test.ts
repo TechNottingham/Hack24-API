@@ -37,6 +37,7 @@ describe('Teams resource', () => {
       };
       
       api.post('/teams')
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -120,6 +121,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .send(teamRequest)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
         .end(async (err, res) => {
           if (err) return done(err);
 
@@ -197,6 +199,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .send(teamRequest)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
         .end((err, res) => {
           if (err) return done(err);
 

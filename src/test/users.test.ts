@@ -88,6 +88,8 @@ describe('Users resource', () => {
     let response: UsersResource.TopLevelDocument;
 
     before(async (done) => {
+      await MongoDB.Users.removeAll();
+      
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       

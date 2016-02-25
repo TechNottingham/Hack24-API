@@ -54,12 +54,14 @@ export class Server {
 
     this._app.get('/users/', createModels, UsersRoute.GetAll);
     this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
-    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
 
     this._app.get('/teams/', createModels, TeamsRoute.GetAll);
     this._app.get('/teams/:teamId/members', createModels, TeamsRoute.GetTeamMembers);
     this._app.get('/teams/:teamId', createModels, TeamsRoute.GetByTeamId);
-    this._app.post('/teams/', bodyParser, createModels, TeamsRoute.Create);
+    
+    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    this._app.post('/teams/', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Create);
+    this._app.delete('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamsRoute.DeleteTeamMembers);
 
     this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');
