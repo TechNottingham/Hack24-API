@@ -234,4 +234,72 @@ describe('Team Members relationship', () => {
 
   });
 
+  describe("POST team members", () => {
+
+    let user: IUser;
+    let newUser: IUser;
+    let team: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async (done) => {
+      user = await MongoDB.Users.insertRandomUser('A');
+      newUser = await MongoDB.Users.insertRandomUser('B');
+      
+      team = await MongoDB.Teams.insertRandomTeam([user._id]);
+      
+      let req: TeamMembersRelationship.TopLevelDocument = {
+        data: [{
+          type: 'users',
+          id: newUser.userid
+        }]
+      };
+
+      api.post(`/teams/${team.teamid}/members`)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(req)
+        .end(async (err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+          
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should have added the new user to the team', () => {
+      assert.strictEqual(modifiedTeam.members.length, 2);
+      assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
+      assert.strictEqual(modifiedTeam.members[1].equals(newUser._id), true);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Users.removeByUserId(user.userid),
+        MongoDB.Users.removeByUserId(newUser.userid),
+  
+        MongoDB.Teams.removeByTeamId(team.teamid),
+      ]).then(() => done(), done);
+    });
+
+  });
+
 });

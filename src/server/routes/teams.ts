@@ -278,3 +278,53 @@ export function DeleteTeamMembers(req: RequestWithModels, res: Response) {
       
     }, respond.Send500.bind(res));
 };
+
+export function AddTeamMembers(req: RequestWithModels, res: Response) {
+  let teamId = req.params.teamId;
+  let requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
+  
+  if (!requestDoc 
+    || !requestDoc.data
+    || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+    return respond.Send400(res);
+  
+  let errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
+  if (errorCases.length > 0)
+    return respond.Send400(res);
+  
+  req.models.Team
+    .findOne({ teamid: teamId }, 'teamid members')
+    .populate('members', 'userid')
+    .exec()
+    .then((team) => {
+      if (team === null)
+        return respond.Send404(res);
+        
+      let userIdsToAdd = requestDoc.data.map((user) => user.id);
+        
+      let existingUserIds = userIdsToAdd.filter((userIdToAdd) => {
+        return team.members.some((actualMember) => actualMember.userid === userIdToAdd);
+      });
+      
+      if (existingUserIds.length > 0)
+        return respond.Send400(res, 'One or more users are already members of this team.');
+      
+      req.models.User
+        .find({ userid: { $in: userIdsToAdd } }, 'userid')
+        .exec()
+        .then((users) => {
+          if (users.length !== userIdsToAdd.length)
+            return respond.Send400(res, 'One or more of the specified users could not be found.');
+          
+          team.members = team.members.concat(users.map((user) => user._id));
+          
+          team.save((err, result) => {
+            if (err)
+              return respond.Send500(res, err);
+
+            respond.Send204(res);
+          });
+      })
+      
+    }, respond.Send500.bind(res));
+};

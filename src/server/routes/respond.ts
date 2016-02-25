@@ -19,11 +19,11 @@ export function Send204(res: Response) {
   res.status(204).end();
 }
 
-export function Send400(res: Response) {
+export function Send400(res: Response, title?: string) {
   let errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '400',
-      title: 'Bad request.'
+      title: title || 'Bad request.'
     }]
   };
   res.status(400)
