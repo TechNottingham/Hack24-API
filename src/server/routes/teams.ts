@@ -300,9 +300,9 @@ export function AddTeamMembers(req: RequestWithModels, res: Response) {
       if (team === null)
         return respond.Send404(res);
         
-      let userIdsToAdd = requestDoc.data.map((user) => user.id);
+      const userIdsToAdd = requestDoc.data.map((user) => user.id);
         
-      let existingUserIds = userIdsToAdd.filter((userIdToAdd) => {
+      const existingUserIds = userIdsToAdd.filter((userIdToAdd) => {
         return team.members.some((actualMember) => actualMember.userid === userIdToAdd);
       });
       
@@ -315,16 +315,27 @@ export function AddTeamMembers(req: RequestWithModels, res: Response) {
         .then((users) => {
           if (users.length !== userIdsToAdd.length)
             return respond.Send400(res, 'One or more of the specified users could not be found.');
+            
+          const userObjectIds = users.map((user) => user._id);
+            
+          req.models.Team
+            .find({ members: { $in: userObjectIds }}, 'teamid')
+            .exec()
+            .then((teams) => {
+              if (teams.length > 0)
+                return respond.Send400(res, 'One or more of the specified users are already in a team.');
           
-          team.members = team.members.concat(users.map((user) => user._id));
-          
-          team.save((err, result) => {
-            if (err)
-              return respond.Send500(res, err);
+              team.members = team.members.concat(users.map((user) => user._id));
+              
+              team.save((err, result) => {
+                if (err)
+                  return respond.Send500(res, err);
 
-            respond.Send204(res);
-          });
-      })
+                respond.Send204(res);
+              });
+              
+            })
+        });
       
     }, respond.Send500.bind(res));
 };

@@ -6,7 +6,7 @@ import {IUser} from './models/users';
 import {ITeam} from './models/teams';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {TeamMembersRelationship, UserResource} from './resources'
+import {JSONApi, TeamMembersRelationship, UserResource} from './resources'
 
 describe('Team Members relationship', () => {
 
@@ -177,7 +177,7 @@ describe('Team Members relationship', () => {
     let modifiedTeam: ITeam;
     let statusCode: number;
     let contentType: string;
-    let response: TeamMembersRelationship.TopLevelDocument;
+    let response: JSONApi.TopLevelDocument;
 
     before(async (done) => {
       user = await MongoDB.Users.insertRandomUser();
@@ -234,7 +234,7 @@ describe('Team Members relationship', () => {
 
   });
 
-  describe("POST team members", () => {
+  describe('POST team members', () => {
 
     let user: IUser;
     let newUser: IUser;
@@ -297,6 +297,138 @@ describe('Team Members relationship', () => {
         MongoDB.Users.removeByUserId(newUser.userid),
   
         MongoDB.Teams.removeByTeamId(team.teamid),
+      ]).then(() => done(), done);
+    });
+
+  });
+
+  describe('POST team members already in a team', () => {
+
+    let user: IUser;
+    let otherUser: IUser;
+    let team: ITeam;
+    let otherTeam: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async (done) => {
+      user = await MongoDB.Users.insertRandomUser();
+      otherUser = await MongoDB.Users.insertRandomUser();
+      
+      team = await MongoDB.Teams.insertRandomTeam([user._id]);
+      otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id]);
+      
+      let req: TeamMembersRelationship.TopLevelDocument = {
+        data: [{
+          type: 'users',
+          id: otherUser.userid
+        }]
+      };
+
+      api.post(`/teams/${team.teamid}/members`)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(req)
+        .end(async (err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified users are already in a team.');
+    });
+
+    it('should not modify the team', () => {
+      assert.strictEqual(modifiedTeam.members.length, 1);
+      assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Users.removeByUserId(user.userid),
+        MongoDB.Users.removeByUserId(otherUser.userid),
+  
+        MongoDB.Teams.removeByTeamId(team.teamid),
+        MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+      ]).then(() => done(), done);
+    });
+
+  });
+
+  describe('POST team members which do not exist', () => {
+
+    let team: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async (done) => {
+      team = await MongoDB.Teams.insertRandomTeam();
+      
+      let req: TeamMembersRelationship.TopLevelDocument = {
+        data: [{
+          type: 'users',
+          id: 'does not exist'
+        }]
+      };
+
+      api.post(`/teams/${team.teamid}/members`)
+        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(req)
+        .end(async (err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified users could not be found.');
+    });
+
+    it('should not modify the team', () => {
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Teams.removeByTeamId(team.teamid)
       ]).then(() => done(), done);
     });
 
