@@ -302,8 +302,9 @@ describe('Users resource', () => {
       };
 
       api.post('/users')
-        .send(requestDoc)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .send(requestDoc)
+        .type('application/vnd.api+json')
         .end(async (err, res) => {
           if (err) return done(err);
           
@@ -373,8 +374,9 @@ describe('Users resource', () => {
       };
 
       api.post('/users')
-        .send(requestDoc)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(requestDoc)
         .end((err, res) => {
           if (err) return done(err);
 
@@ -453,6 +455,7 @@ describe('Users resource', () => {
     before((done) => {
       userId = 'U' + Random.int(10000, 99999);
       api.post('/users')
+        .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
         .end((err, res) => {
           if (err) return done(err);
@@ -508,8 +511,9 @@ describe('Users resource', () => {
     before((done) => {
       userId = 'U' + Random.int(10000, 99999);
       api.post('/users')
-        .send({ userid: userId, name: 'Name_' + Random.str(5) })
         .auth('hackbot', 'incorrect_password')
+        .type('application/vnd.api+json')
+        .send({ userid: userId, name: 'Name_' + Random.str(5) })
         .end((err, res) => {
           if (err) return done(err);
           

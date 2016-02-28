@@ -8,7 +8,7 @@ import * as TeamsRoute from './routes/teams';
 import * as TeamMembersRoute from './routes/team.members';
 import * as Root from './routes/root';
 import {UserModel, TeamModel} from './models';
-import {json as jsonParser} from 'body-parser';
+import {json as apiJsonParser} from 'body-parser';
 import {Request, Response} from 'express';
 import * as respond from './routes/respond'
 
@@ -49,7 +49,7 @@ export class Server {
   private _server: HttpServer;
 
   constructor() {
-    const bodyParser = jsonParser();
+    const bodyParser = apiJsonParser({ type: 'application/vnd.api+json'});
 
     this._app = express();
 

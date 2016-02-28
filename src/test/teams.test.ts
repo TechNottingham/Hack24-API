@@ -40,6 +40,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -121,6 +122,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -189,8 +191,9 @@ describe('Teams resource', () => {
       };
       
       api.post('/teams')
-        .send(teamRequest)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
 
@@ -273,8 +276,9 @@ describe('Teams resource', () => {
       };
       
       api.post('/teams')
-        .send(teamRequest)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
         .end((err, res) => {
           if (err) return done(err);
 
@@ -554,6 +558,7 @@ describe('Teams resource', () => {
       
       api.patch(`/teams/${team.teamid}`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
