@@ -14,10 +14,19 @@ function slugify(name: string): string {
   return slug(name, { lower: true });
 }
 
+function escapeForRegex(str: string): string {
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
+
 export function GetAll(req: RequestWithModels, res: Response) {
+  let query: any = {};
+  
+  if (req.query.filter && req.query.filter.name) {
+    query.name = new RegExp(escapeForRegex(req.query.filter.name), 'i');
+  }
   
   req.models.Team
-    .find({}, 'teamid name motto members')
+    .find(query, 'teamid name motto members')
     .sort({ teamid: 1 })
     .populate('members', 'userid name')
     .exec()
