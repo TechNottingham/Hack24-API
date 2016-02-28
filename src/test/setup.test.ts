@@ -3,7 +3,7 @@ import {MongoDB} from './utils/mongodb';
 
 before(async (done) => {
   try {
-    await MongoDB.start();
+    await MongoDB.ensureRunning();
     await ApiServer.start();
     done();
   } catch (err) {
@@ -11,8 +11,7 @@ before(async (done) => {
   }
 });
 
-after(async (done) => {
+after((done) => {
   ApiServer.stop();
-  await MongoDB.stop();
   done();
 });

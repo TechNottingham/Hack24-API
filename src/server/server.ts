@@ -5,9 +5,12 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
+import * as TeamMembersRoute from './routes/team.members';
+import * as Root from './routes/root';
 import {UserModel, TeamModel} from './models';
 import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
+import * as respond from './routes/respond'
 
 function createModels(req, res, next) {
   req.models = {
@@ -17,34 +20,21 @@ function createModels(req, res, next) {
   return next();
 }
 
-function send401(res) {
-  res.status(401)
-     .header('WWW-Authenticate', 'Basic realm="api.hack24.co.uk"')
-     .type('text/plain')
-     .send('Unauthorized');
-}
-
-function send403(res) {
-  res.status(403)
-     .type('text/plain')
-     .send('Forbidden');
-}
-
 function requiresHackbotUser(req: Request, res: Response, next: Function) {
   if (req.headers['authorization'] === undefined)
-    return send401(res);
+    return respond.Send401(res);
     
   const authParts = req.headers['authorization'].split(' ');
   if (authParts.length < 2 || authParts[0] !== 'Basic')
-    return send403(res);
+    return respond.Send403(res);
     
   const decoded = new Buffer(authParts[1], 'base64').toString("ascii");
   const decodedParts = decoded.split(':');
   if (decodedParts.length < 2)
-    return send403(res);
+    return respond.Send403(res);
   
   if (decodedParts[0] !== process.env.HACKBOT_USERNAME || decodedParts[1] !== process.env.HACKBOT_PASSWORD)
-    return send403(res);
+    return respond.Send403(res);
   
   next();
 }
@@ -63,16 +53,27 @@ export class Server {
 
     this._app = express();
 
-    this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
+    this._app.get('/users/', createModels, UsersRoute.GetAll);
     this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    
+    this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
+    
+    this._app.post('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Add);
+    this._app.delete('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Delete);
+    this._app.get('/teams/:teamId/members', createModels, TeamMembersRoute.Get);
 
+    
+    this._app.patch('/teams/:teamId', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Update);
+    this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
+    
     this._app.get('/teams/', createModels, TeamsRoute.GetAll);
-    this._app.get('/teams/:teamId', createModels, TeamsRoute.GetByTeamId);
-    this._app.post('/teams/', bodyParser, createModels, TeamsRoute.Create);
+    this._app.post('/teams/', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Create);
 
     this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');
     });
+    
+    this._app.get('/', Root.Get);
   }
 
   listen(): Promise<ServerInfo> {

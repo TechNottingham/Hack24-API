@@ -13,13 +13,14 @@ export interface IUserModel extends IUser, Document { }
 export const UserSchema = new Schema({
   userid: { type: String, unique: true, required: true },
   name: { type: String, required: true },
-  modified: { type: Date, default: Date.now }
+  modified: { type: Date, default: Date.now },
 });
 export const UserModel = model<IUserModel>('User', UserSchema);
 
 export interface ITeam {
   teamid: string;
   name: string;
+  motto: string;
   members: IUserModel[];
 }
 
@@ -37,4 +38,8 @@ export const TeamModel = model<ITeamModel>('Team', TeamSchema);
 export interface IModels {
   User: Model<IUserModel>;
   Team: Model<ITeamModel>;
+}
+
+export enum MongoDBErrors {
+  E11000_DUPLICATE_KEY = 11000
 }
