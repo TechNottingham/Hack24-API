@@ -4,12 +4,14 @@ import {spawn, ChildProcess} from 'child_process';
 import {MongoClient, Db} from 'mongodb';
 import {Users} from '../models/users'
 import {Teams} from '../models/teams'
+import {Attendees} from '../models/attendees'
 
 export class MongoDB {
   private static _spawn: ChildProcess;
   private static _db: Db;
   private static _users: Users;
   private static _teams: Teams;
+  private static _attendees: Attendees;
   
   static get Db(): Db {
     return this._db;
@@ -23,6 +25,10 @@ export class MongoDB {
     return this._teams;
   }
   
+  static get Attendees(): Attendees {
+    return this._attendees;
+  }
+  
   static async ensureRunning() {
     const db = await this.connectMongo();
     await this.prepareDb(db);
@@ -31,13 +37,14 @@ export class MongoDB {
   private static prepareDb(db: Db): Promise<void> {
     return new Promise<void>((resolve) => {    
       this._db = db;
-      Users.Create(db).then((users) => {
-        this._users = users;
-        Teams.Create(db).then((teams) => {
-          this._teams = teams;
+      const promises = [Users.Create(db), Teams.Create(db), Attendees.Create(db)]
+      Promise.all<Users | Teams | Attendees>(promises)
+        .then((results: [Users, Teams, Attendees]) => {
+          this._users = results[0];
+          this._teams = results[1];
+          this._attendees = results[2];
           resolve();
         });
-      });
     })
   }
   

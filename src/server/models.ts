@@ -17,6 +17,8 @@ export const UserSchema = new Schema({
 });
 export const UserModel = model<IUserModel>('User', UserSchema);
 
+
+
 export interface ITeam {
   teamid: string;
   name: string;
@@ -35,9 +37,25 @@ export const TeamSchema = new Schema({
 });
 export const TeamModel = model<ITeamModel>('Team', TeamSchema);
 
+
+
+export interface IAttendee {
+  attendeeid: string;
+}
+
+export interface IAttendeeModel extends IAttendee, Document { }
+
+export const AttendeeSchema = new Schema({
+  attendeeid: { type: String, unique: true, required: true },
+});
+export const AttendeeModel = model<IAttendeeModel>('Attendee', AttendeeSchema);
+
+
+
 export interface IModels {
   User: Model<IUserModel>;
   Team: Model<ITeamModel>;
+  Attendee: Model<IAttendeeModel>;
 }
 
 export enum MongoDBErrors {

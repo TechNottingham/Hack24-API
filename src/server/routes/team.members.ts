@@ -33,7 +33,7 @@ export function Get(req: RequestWithModels, res: Response) {
       }));
         
       let membersResponse: TeamMembersRelationship.TopLevelDocument = {
-        links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+        links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
         data: members,
         included: includedUsers
       };
