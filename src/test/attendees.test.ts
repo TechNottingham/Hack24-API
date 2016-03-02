@@ -321,12 +321,14 @@ describe('Attendees resource', () => {
       let thisAttendee = response.data[0];
       assert.strictEqual(thisAttendee.type, 'attendees');
       assert.strictEqual(thisAttendee.id, attendee.attendeeid);
+      assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(attendee.attendeeid)}`);
     });
 
     it('should return the second attendee', () => {
       let thisAttendee = response.data[1];
       assert.strictEqual(thisAttendee.type, 'attendees');
       assert.strictEqual(thisAttendee.id, otherAttendee.attendeeid);
+      assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(otherAttendee.attendeeid)}`);
     });
     
     after((done) => {

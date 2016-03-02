@@ -41,7 +41,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
     .then((attendees) => {
       
       const attendeesData = attendees.map<AttendeeResource.ResourceObject>((attendee) => ({
-        links: { self: `/teams/${encodeURIComponent(attendee.attendeeid)}` },
+        links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
         type: 'attendees',
         id: attendee.attendeeid
       }));
