@@ -40,6 +40,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -121,6 +122,7 @@ describe('Teams resource', () => {
       
       api.post('/teams')
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -189,8 +191,9 @@ describe('Teams resource', () => {
       };
       
       api.post('/teams')
-        .send(teamRequest)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
 
@@ -273,8 +276,9 @@ describe('Teams resource', () => {
       };
       
       api.post('/teams')
-        .send(teamRequest)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
         .end((err, res) => {
           if (err) return done(err);
 
@@ -554,6 +558,7 @@ describe('Teams resource', () => {
       
       api.patch(`/teams/${team.teamid}`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(teamRequest)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -588,6 +593,78 @@ describe('Teams resource', () => {
 
     after((done) => {
       MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    });
+
+  });
+  
+  describe('GET teams by filter', () => {
+
+    let firstTeam: ITeam;
+    let secondTeam: ITeam;
+    let thirdTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: TeamsResource.TopLevelDocument;
+
+    before(async (done) => {
+      await MongoDB.Teams.removeAll();
+      
+      firstTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCD');
+      secondTeam = await MongoDB.Teams.insertRandomTeam([], 'ABEF');
+      thirdTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCE');
+            
+      api.get('/teams?filter[name]=ABC')
+        .end((err, res) => {
+          if (err) return done(err);
+
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          done();
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the teams resource object self link', () => {
+      assert.strictEqual(response.links.self, '/teams');
+    });
+
+    it('should return two teams', () => {
+      assert.strictEqual(response.data.length, 2);
+    });
+    
+    it('should return the first team', () => {
+      const teamResponse = response.data[0];
+      
+      assert.strictEqual(teamResponse.type, 'teams');
+      assert.strictEqual(teamResponse.id, firstTeam.teamid);
+      assert.strictEqual(teamResponse.attributes.name, firstTeam.name);
+      assert.strictEqual(teamResponse.attributes.motto, firstTeam.motto);
+    });
+
+    it('should return the third team', () => {
+      const teamResponse = response.data[1];
+      
+      assert.strictEqual(teamResponse.type, 'teams');
+      assert.strictEqual(teamResponse.id, thirdTeam.teamid);
+      assert.strictEqual(teamResponse.attributes.name, thirdTeam.name);
+      assert.strictEqual(teamResponse.attributes.motto, thirdTeam.motto);
+    });
+
+    after((done) => {
+      Promise.all([
+        MongoDB.Teams.removeByTeamId(firstTeam.teamid),
+        MongoDB.Teams.removeByTeamId(secondTeam.teamid),
+        MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
+      ]).then(() => done(), done);
     });
 
   });

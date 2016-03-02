@@ -141,7 +141,7 @@ export function GetByUserId(req: RequestWithModels, res: Response) {
 
 export function Create(req: RequestWithModels, res: Response) {
   const requestDoc: UserResource.TopLevelDocument = req.body;
-
+  
   if (!requestDoc 
     || !requestDoc.data
     || !requestDoc.data.id

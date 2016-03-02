@@ -126,6 +126,7 @@ describe('Team Members relationship', () => {
 
       api.delete(`/teams/${team.teamid}/members`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(req)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -192,6 +193,7 @@ describe('Team Members relationship', () => {
 
       api.delete(`/teams/${team.teamid}/members`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(req)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -259,6 +261,7 @@ describe('Team Members relationship', () => {
 
       api.post(`/teams/${team.teamid}/members`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(req)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -329,6 +332,7 @@ describe('Team Members relationship', () => {
 
       api.post(`/teams/${team.teamid}/members`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(req)
         .end(async (err, res) => {
           if (err) return done(err);
@@ -394,6 +398,7 @@ describe('Team Members relationship', () => {
 
       api.post(`/teams/${team.teamid}/members`)
         .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
         .send(req)
         .end(async (err, res) => {
           if (err) return done(err);

@@ -49,25 +49,25 @@ export class Server {
   private _server: HttpServer;
 
   constructor() {
-    const bodyParser = jsonParser();
+    const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
 
     this._app = express();
 
     this._app.get('/users/', createModels, UsersRoute.GetAll);
-    this._app.post('/users/', requiresHackbotUser, bodyParser, createModels, UsersRoute.Create);
+    this._app.post('/users/', requiresHackbotUser, apiJsonParser, createModels, UsersRoute.Create);
     
-    this._app.get('/users/:userid', bodyParser, createModels, UsersRoute.GetByUserId);
+    this._app.get('/users/:userid', apiJsonParser, createModels, UsersRoute.GetByUserId);
     
-    this._app.post('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Add);
-    this._app.delete('/teams/:teamId/members', requiresHackbotUser, bodyParser, createModels, TeamMembersRoute.Delete);
+    this._app.post('/teams/:teamId/members', requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Add);
+    this._app.delete('/teams/:teamId/members', requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Delete);
     this._app.get('/teams/:teamId/members', createModels, TeamMembersRoute.Get);
 
     
-    this._app.patch('/teams/:teamId', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Update);
+    this._app.patch('/teams/:teamId', requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Update);
     this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
     
     this._app.get('/teams/', createModels, TeamsRoute.GetAll);
-    this._app.post('/teams/', requiresHackbotUser, bodyParser, createModels, TeamsRoute.Create);
+    this._app.post('/teams/', requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Create);
 
     this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');
