@@ -311,6 +311,61 @@ describe('Teams resource', () => {
     });
 
   });
+
+  describe('POST team with incorrect authentication', () => {
+
+    let createdTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      const team = MongoDB.Teams.createRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name,
+            motto: team.motto
+          }
+        }
+      };
+      
+      await api.post('/teams')
+        .auth('not a user', ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+        });
+    });
+
+    it('should respond with status code 403 Forbidden', () => {
+      assert.strictEqual(statusCode, 403);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Forbidden" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '403');
+      assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
+    });
+
+    it('should not create the team document', () => {
+      assert.strictEqual(createdTeam, null);
+    });
+
+  });
   
   describe('GET teams', () => {
 

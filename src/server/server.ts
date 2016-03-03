@@ -73,14 +73,15 @@ function requiresAttendeeUser(req: IUnauthorisedRequest, res: Response, next: Fu
     return respond.Send403(res);
     
   AttendeeModel
-    .find({ attendeeid: AuthorisedUsers.Hackbot.Username })
+    .find({ attendeeid: req.AuthParts.Username }, '_id')
+    .limit(1)
     .exec()
-    .then((attendee) => {
-      if (attendee === null)
+    .then((attendees) => {
+      if (attendees.length === 0)
         return respond.Send403(res);
         
       next();
-    });
+    }, respond.Send500.bind(res))
 }
 
 export interface ServerInfo {
