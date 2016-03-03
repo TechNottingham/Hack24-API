@@ -30,7 +30,12 @@ export class MongoDB {
   }
   
   static async ensureRunning() {
-    const db = await this.connectMongo();
+    let db: Db;
+    try {
+      db = await this.connectMongo();
+    } catch (err) {
+      throw new Error(`Unable to connect to MongoDB - ${err.message}`)
+    }
     await this.prepareDb(db);
   }
   

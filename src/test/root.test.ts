@@ -53,6 +53,10 @@ describe('Teams resource', () => {
     it('should return the users link', () => {
       assert.strictEqual(response.links.users.href, '/users');
     });
+
+    it('should return the attendees link', () => {
+      assert.strictEqual(response.links.attendees.href, '/attendees');
+    });
     
   });
 

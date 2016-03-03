@@ -175,6 +175,7 @@ export declare module Root {
       self: string;
       teams: JSONApi.LinkObject;
       users: JSONApi.LinkObject;
+      attendees: JSONApi.LinkObject;
     }
   }
   
