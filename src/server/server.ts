@@ -80,7 +80,7 @@ function requiresAttendeeUser(req: IUnauthorisedRequest, res: Response, next: Fu
         return respond.Send403(res);
         
       next();
-    }, respond.Send500.bind(res))
+    }, respond.Send500.bind(null, res))
 }
 
 export interface ServerInfo {

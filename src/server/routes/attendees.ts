@@ -29,7 +29,7 @@ export function Get(req: RequestWithModels, res: Response) {
         };
 
         res.status(200).contentType('application/vnd.api+json').send(attendeeResponse);
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function GetAll(req: RequestWithModels, res: Response) {
@@ -54,7 +54,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
       }
       
       respond.Send200(res, attendeesResponse);
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Create(req: RequestWithModels, res: Response) {
@@ -99,14 +99,11 @@ export function Delete(req: RequestWithModels, res: Response) {
   
   if (attendeeid === undefined || typeof attendeeid !== 'string' || attendeeid.length === 0)
     return respond.Send400(res);
-
-  const attendee = new req.models.Attendee({
-    attendeeid: attendeeid
-  });
-
-  attendee.remove((err) => {
-    if (err) return respond.Send500(res);
-
-    respond.Send204(res);
-  });
+    
+  req.models.Attendee
+    .findOneAndRemove({ attendeeid: attendeeid })
+    .exec()
+    .then((removedAttendee) => {
+      respond.Send204(res);
+    }, respond.Send500.bind(null, res));
 };

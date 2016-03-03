@@ -67,8 +67,8 @@ export function GetAll(req: RequestWithModels, res: Response) {
           };
           respond.Send200(res, teamsResponse);
           
-        }, respond.Send500.bind(res));
-    }, respond.Send500.bind(res));
+        }, respond.Send500.bind(null, res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Get(req: RequestWithModels, res: Response) {
@@ -108,7 +108,7 @@ export function Get(req: RequestWithModels, res: Response) {
         included: includedUsers
       };
       respond.Send200(res, teamResponse);
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Create(req: RequestWithModels, res: Response) {
@@ -217,10 +217,10 @@ export function Create(req: RequestWithModels, res: Response) {
               }
             };
             respond.Send201(res, teamResponse);
-          }, respond.Send500.bind(res));
+          }, respond.Send500.bind(null, res));
       });
       
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Update(req: RequestWithModels, res: Response) {
@@ -246,5 +246,5 @@ export function Update(req: RequestWithModels, res: Response) {
   req.models.Team
     .findOneAndUpdate({ teamid: requestDoc.data.id }, updateDoc)
     .exec()
-    .then((team) => respond.Send204(res), respond.Send500.bind(res));
+    .then((team) => respond.Send204(res), respond.Send500.bind(null, res));
 };

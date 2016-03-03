@@ -359,6 +359,7 @@ describe('Attendees resource', () => {
   describe('DELETE attendee', () => {
 
     let attendee: IAttendee;
+    let deletedAttendee: IAttendee;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -369,10 +370,12 @@ describe('Attendees resource', () => {
       await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .end()
-        .then((res) => {
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
+
+          deletedAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
         });
     });
 
@@ -386,6 +389,10 @@ describe('Attendees resource', () => {
 
     it('should return no body', () => {
       assert.strictEqual(body, '');
+    });
+    
+    it('should have deleted the attendee', () => {
+      assert.strictEqual(deletedAttendee, null);
     });
 
     after(async () => {

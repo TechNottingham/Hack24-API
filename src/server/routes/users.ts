@@ -64,8 +64,8 @@ export function GetAll(req: RequestWithModels, res: Response) {
           };
           
           respond.Send200(res, usersResponse);
-        }, respond.Send500.bind(res))
-    }, respond.Send500.bind(res));
+        }, respond.Send500.bind(null, res))
+    }, respond.Send500.bind(null, res));
 };
 
 export function Get(req: RequestWithModels, res: Response) {
@@ -135,8 +135,8 @@ export function Get(req: RequestWithModels, res: Response) {
           }
 
           res.status(200).contentType('application/vnd.api+json').send(userResponse);
-        }, respond.Send500.bind(res))
-    }, respond.Send500.bind(res));
+        }, respond.Send500.bind(null, res))
+    }, respond.Send500.bind(null, res));
 };
 
 export function Create(req: RequestWithModels, res: Response) {
