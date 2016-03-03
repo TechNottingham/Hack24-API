@@ -19,17 +19,14 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: Root.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       
-      api.get('/')
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get('/')
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 

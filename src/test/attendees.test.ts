@@ -22,19 +22,16 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       
-      api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+      await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -58,8 +55,8 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -71,19 +68,16 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
       
-      api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+      await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('joe', 'blogs')
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -99,11 +93,11 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '403');
       assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
-      assert.strictEqual(response.errors[0].detail, 'Only admin has access to do that.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -116,7 +110,7 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
       
       let requestDoc: AttendeeResource.TopLevelDocument = {
@@ -126,19 +120,17 @@ describe('Attendees resource', () => {
         }
       };
 
-      api.post('/attendees')
+      await api.post('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .send(requestDoc)
         .type('application/vnd.api+json')
-        .end(async (err, res) => {
-          if (err) return done(err);
-          
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
           createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
-          done();
         });
     });
 
@@ -162,8 +154,8 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done).catch(done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -171,12 +163,13 @@ describe('Attendees resource', () => {
   describe('POST new attendee with incorrect auth', () => {
 
     let attendee: IAttendee;
+    let createdAttendee: IAttendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
 
-    before((done) => {
-       attendee = MongoDB.Attendees.createRandomAttendee();
+    before(async () => {
+      attendee = MongoDB.Attendees.createRandomAttendee();
       
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
@@ -185,17 +178,16 @@ describe('Attendees resource', () => {
         }
       };
 
-      api.post('/attendees')
+      await api.post('/attendees')
         .auth('gary', 'adam')
         .send(requestDoc)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
           
-          done();
+          createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
         });
     });
 
@@ -211,17 +203,15 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '403');
       assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
-      assert.strictEqual(response.errors[0].detail, 'Only admin has access to do that.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
-    it('should not create the attendee document', (done) => {
-      MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid).then((attendee) => {
-        done(attendee ? new Error('Attendee was created') : null);
-      }).catch(done);
+    it('should not create the attendee document', () => {
+      assert.strictEqual(createdAttendee, null);
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -233,7 +223,7 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       
       let requestDoc: AttendeeResource.TopLevelDocument = {
@@ -243,18 +233,15 @@ describe('Attendees resource', () => {
         }
       };
 
-      api.post('/attendees')
+      await api.post('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(requestDoc)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-
-          done();
         });
     });
 
@@ -272,8 +259,8 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -286,22 +273,19 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: AttendeesResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       await MongoDB.Attendees.removeAll();
       
       attendee = await MongoDB.Attendees.insertRandomAttendee('A');
       otherAttendee = await MongoDB.Attendees.insertRandomAttendee('B');
       
-      api.get('/attendees')
+      await api.get('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -331,11 +315,9 @@ describe('Attendees resource', () => {
       assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(otherAttendee.attendeeid)}`);
     });
     
-    after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(attendee.attendeeid),
-        MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(attendee.attendeeid),
+      await MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
     });
 
   });
@@ -346,17 +328,14 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: AttendeesResource.TopLevelDocument;
 
-    before(async (done) => {
-      api.get('/attendees')
+    before(async () => {
+      await api.get('/attendees')
         .auth('zippy', 'bungle')
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -372,7 +351,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '403');
       assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
-      assert.strictEqual(response.errors[0].detail, 'Only admin has access to do that.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
   });
@@ -384,19 +363,16 @@ describe('Attendees resource', () => {
     let contentType: string;
     let body: string;
 
-    before(async (done) => {
+    before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       
-      api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-
-          done();
         });
     });
 
@@ -412,8 +388,8 @@ describe('Attendees resource', () => {
       assert.strictEqual(body, '');
     });
 
-    after((done) => {
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
@@ -425,19 +401,16 @@ describe('Attendees resource', () => {
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
       
-      api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('sack', 'boy')
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-
-          done();
         });
     });
 
@@ -453,7 +426,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '403');
       assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
-      assert.strictEqual(response.errors[0].detail, 'Only admin has access to do that.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
   });

@@ -1,17 +1,12 @@
+import 'promisify-supertest';
 import {ApiServer} from './utils/apiserver';
 import {MongoDB} from './utils/mongodb';
 
-before(async (done) => {
-  try {
-    await MongoDB.ensureRunning();
-    await ApiServer.start();
-    done();
-  } catch (err) {
-    done(err);
-  }
+before(async () => {
+  await MongoDB.ensureRunning();
+  await ApiServer.start();
 });
 
-after((done) => {
+after(() => {
   ApiServer.stop();
-  done();
 });

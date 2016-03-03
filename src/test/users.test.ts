@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
 import {ITeam} from './models/teams';
+import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {Random} from './utils/random';
@@ -24,18 +25,15 @@ describe('Users resource', () => {
     let contentType: string;
     let response: UserResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       user = await MongoDB.Users.insertRandomUser();
       
-      api.get('/users/' + user.userid)
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get('/users/' + user.userid)
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -71,8 +69,8 @@ describe('Users resource', () => {
       assert.strictEqual(response.data.relationships.team.data, null);
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done, done);
+    after(async () => {
+      await MongoDB.Users.removeByUserId(user.userid);
     });
 
   });
@@ -87,7 +85,7 @@ describe('Users resource', () => {
     let contentType: string;
     let response: UsersResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       await MongoDB.Users.removeAll();
       
       user = await MongoDB.Users.insertRandomUser('A');
@@ -96,15 +94,12 @@ describe('Users resource', () => {
       team = await MongoDB.Teams.insertRandomTeam([user._id], 'A');
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
       
-      api.get(`/users`)
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get(`/users`)
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -164,13 +159,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.relationships.members.data[0].id, otherUser.userid);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(team.teamid),
-        MongoDB.Teams.removeByTeamId(otherTeam.teamid),
-        MongoDB.Users.removeByUserId(user.userid),
-        MongoDB.Users.removeByUserId(otherUser.userid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Teams.removeByTeamId(otherTeam.teamid);
+      await MongoDB.Users.removeByUserId(user.userid);
+      await MongoDB.Users.removeByUserId(otherUser.userid);
     });
 
   });
@@ -186,22 +179,19 @@ describe('Users resource', () => {
     let includedTeam: TeamResource.ResourceObject;
     let includedUser: UserResource.ResourceObject;
 
-    before(async (done) => {
+    before(async () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id]);
       
-      api.get(`/users/${user.userid}`)
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get(`/users/${user.userid}`)
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
           includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
           includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
-          
-          done();
         });
     });
 
@@ -270,25 +260,25 @@ describe('Users resource', () => {
       assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(team.teamid),
-        MongoDB.Users.removeByUserId(user.userid),
-        MongoDB.Users.removeByUserId(otherUser.userid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Users.removeByUserId(user.userid);
+      await MongoDB.Users.removeByUserId(otherUser.userid);
     });
 
   });
 
   describe('POST new user', () => {
 
+    let attendee: IAttendee;
     let user: IUser;
     let createdUser: IUser;
     let statusCode: number;
     let contentType: string;
     let response: UserResource.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = MongoDB.Users.createRandomUser();
       
       let requestDoc: UserResource.TopLevelDocument = {
@@ -301,19 +291,17 @@ describe('Users resource', () => {
         }
       };
 
-      api.post('/users')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/users')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .send(requestDoc)
         .type('application/vnd.api+json')
-        .end(async (err, res) => {
-          if (err) return done(err);
-          
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
           createdUser = await MongoDB.Users.findbyUserId(user.userid);
-          done();
         });
     });
 
@@ -347,20 +335,23 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser.name, user.name);
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done).catch(done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Users.removeByUserId(user.userid);
     });
 
   });
 
   describe('POST user with existing ID', () => {
 
+    let attendee: IAttendee;
     let user: IUser;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
       
       let requestDoc: UserResource.TopLevelDocument = {
@@ -373,18 +364,15 @@ describe('Users resource', () => {
         }
       };
 
-      api.post('/users')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/users')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(requestDoc)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-
-          done();
         });
     });
 
@@ -402,8 +390,9 @@ describe('Users resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(user.userid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Users.removeByUserId(user.userid);
     });
 
   });
@@ -414,16 +403,13 @@ describe('Users resource', () => {
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before((done) => {
-      api.get('/users/U' + Random.int(10000, 99999))
-        .end((err, res) => {
-          if (err) return done(err);
-          
+    before(async () => {
+      await api.get('/users/U' + Random.int(10000, 99999))
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -452,20 +438,20 @@ describe('Users resource', () => {
     let authenticateHeader: string;
     let response: JSONApi.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      api.post('/users')
+      
+      await api.post('/users')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end((err, res) => {
-          if (err) return done(err);
-          
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           authenticateHeader = res.header['www-authenticate'];
           response = res.body;
-
-          done();
+          
+          createdUser = await MongoDB.Users.findbyUserId(userId);
         });
     });
 
@@ -488,14 +474,12 @@ describe('Users resource', () => {
       assert.strictEqual(response.errors[0].detail, 'An authentication header is required.');
     });
 
-    it('should not create the user document', (done) => {
-      MongoDB.Users.findbyUserId(userId).then((user) => {
-        done(user ? new Error('User was created') : null);
-      }).catch(done);
+    it('should not create the user document', () => {
+      assert.strictEqual(createdUser, null);
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(userId).then(done).catch(done);
+    after(async () => {
+      await MongoDB.Users.removeByUserId(userId);
     });
 
   });
@@ -508,20 +492,20 @@ describe('Users resource', () => {
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      api.post('/users')
+      
+      await api.post('/users')
         .auth('hackbot', 'incorrect_password')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end((err, res) => {
-          if (err) return done(err);
-          
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-
-          done();
+          
+          createdUser = await MongoDB.Users.findbyUserId(userId);
         });
     });
 
@@ -537,17 +521,15 @@ describe('Users resource', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '403');
       assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
-      assert.strictEqual(response.errors[0].detail, 'Only hackbot has access to do that.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
-    it('should not create the user document', (done) => {
-      MongoDB.Users.findbyUserId(userId).then((user) => {
-        done(user ? new Error('User was created') : null);
-      }).catch(done);
+    it('should not create the user document', () => {
+      assert.strictEqual(createdUser, null);
     });
 
-    after((done) => {
-      MongoDB.Users.removeByUserId(userId).then(done, done);
+    after(async () => {
+      await MongoDB.Users.removeByUserId(userId);
     });
 
   });

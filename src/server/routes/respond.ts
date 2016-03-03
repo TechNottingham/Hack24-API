@@ -45,12 +45,12 @@ export function Send401(res: Response) {
      .send(errorResponse);
 }
 
-export function Send403(res: Response, who?: string) {
+export function Send403(res: Response) {
   let errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '403',
       title: 'Access is forbidden.',
-      detail: `Only ${who || 'hackbot'} has access to do that.`
+      detail: 'You are not permitted to perform that action.'
     }]
   };
   res.status(403)

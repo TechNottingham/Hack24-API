@@ -61,18 +61,26 @@ function requiresUser(req: IUnauthorisedRequest, res: Response, next: Function) 
   next();
 }
 
-function requiresHackbotUser(req: IUnauthorisedRequest, res: Response, next: Function) {
-  if (req.AuthParts.Username !== AuthorisedUsers.Hackbot.Username || req.AuthParts.Password !== AuthorisedUsers.Hackbot.Password)
+function requiresAdminUser(req: IUnauthorisedRequest, res: Response, next: Function) {
+  if (req.AuthParts.Username !== AuthorisedUsers.Admin.Username || req.AuthParts.Password !== AuthorisedUsers.Admin.Password)
     return respond.Send403(res);
   
   next();
 }
 
-function requiresAdminUser(req: IUnauthorisedRequest, res: Response, next: Function) {
-  if (req.AuthParts.Username !== AuthorisedUsers.Admin.Username || req.AuthParts.Password !== AuthorisedUsers.Admin.Password)
-    return respond.Send403(res, 'admin');
-  
-  next();
+function requiresAttendeeUser(req: IUnauthorisedRequest, res: Response, next: Function) {
+  if (req.AuthParts.Password !== AuthorisedUsers.Hackbot.Password)
+    return respond.Send403(res);
+    
+  AttendeeModel
+    .find({ attendeeid: AuthorisedUsers.Hackbot.Username })
+    .exec()
+    .then((attendee) => {
+      if (attendee === null)
+        return respond.Send403(res);
+        
+      next();
+    });
 }
 
 export interface ServerInfo {
@@ -90,22 +98,22 @@ export class Server {
     this._app = express();
 
     this._app.get('/users', createModels, UsersRoute.GetAll);
-    this._app.post('/users', requiresUser, requiresHackbotUser, apiJsonParser, createModels, UsersRoute.Create);
+    this._app.post('/users', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, UsersRoute.Create);
     
     this._app.get('/users/:userid', createModels, UsersRoute.Get);
     
     
-    this._app.post('/teams/:teamId/members', requiresUser, requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Add);
-    this._app.delete('/teams/:teamId/members', requiresUser, requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Delete);
+    this._app.post('/teams/:teamId/members', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamMembersRoute.Add);
+    this._app.delete('/teams/:teamId/members', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamMembersRoute.Delete);
     this._app.get('/teams/:teamId/members', createModels, TeamMembersRoute.Get);
 
     
-    this._app.patch('/teams/:teamId', requiresUser, requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Update);
+    this._app.patch('/teams/:teamId', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsRoute.Update);
     this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
     
     
     this._app.get('/teams', createModels, TeamsRoute.GetAll);
-    this._app.post('/teams', requiresUser, requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Create);
+    this._app.post('/teams', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsRoute.Create);
     
     
     this._app.get('/attendees/:attendeeid', requiresUser, requiresAdminUser, createModels, AttendeesRoute.Get);

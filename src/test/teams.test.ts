@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
 import {ITeam} from './models/teams';
+import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
@@ -19,13 +20,15 @@ describe('Teams resource', () => {
 
   describe('POST new team', () => {
 
+    let attendee: IAttendee;
     let team: ITeam;
     let createdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = MongoDB.Teams.createRandomTeam();
       
       const teamRequest: TeamResource.TopLevelDocument = {
@@ -38,19 +41,17 @@ describe('Teams resource', () => {
         }
       };
       
-      api.post('/teams')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/teams')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end(async (err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          done();
         });
     });
 
@@ -93,21 +94,24 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
-    after((done) => {
-      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
   });
 
   describe('POST new team without motto', () => {
 
+    let attendee: IAttendee;
     let team: ITeam;
     let createdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = MongoDB.Teams.createRandomTeam();
       
       const teamRequest: TeamResource.TopLevelDocument = {
@@ -120,19 +124,17 @@ describe('Teams resource', () => {
         }
       };
       
-      api.post('/teams')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/teams')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end(async (err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          done();
         });
     });
 
@@ -156,14 +158,16 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
-    after((done) => {
-      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
 
   describe('POST new team with members', () => {
 
+    let attendee: IAttendee;
     let user: IUser;
     let team: ITeam;
     let createdTeam: ITeam;
@@ -171,7 +175,8 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
       team = await MongoDB.Teams.createRandomTeam();
       
@@ -190,19 +195,17 @@ describe('Teams resource', () => {
         }
       };
       
-      api.post('/teams')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/teams')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end(async (err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          done();
         });
     });
 
@@ -246,23 +249,24 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members[0].equals(user._id), true);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Users.removeByUserId(user.userid),
-        MongoDB.Teams.removeByTeamId(team.teamid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Users.removeByUserId(user.userid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
   });
 
   describe('POST team which already exists', () => {
 
+    let attendee: IAttendee;
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = await MongoDB.Teams.insertRandomTeam();
       
       const teamRequest: TeamResource.TopLevelDocument = {
@@ -275,18 +279,15 @@ describe('Teams resource', () => {
         }
       };
       
-      api.post('/teams')
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.post('/teams')
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -304,8 +305,9 @@ describe('Teams resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after((done) => {
-      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
   });
@@ -321,7 +323,7 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: TeamsResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       await MongoDB.Teams.removeAll();
       
       firstUser = await MongoDB.Users.insertRandomUser('A');
@@ -331,15 +333,12 @@ describe('Teams resource', () => {
       firstTeam = await MongoDB.Teams.insertRandomTeam([firstUser._id], 'A');
       secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id, thirdUser._id], 'B');
             
-      api.get('/teams')
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get('/teams')
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -403,15 +402,13 @@ describe('Teams resource', () => {
       assert.strictEqual(users[2].attributes.name, thirdUser.name);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Users.removeByUserId(firstUser.userid),
-        MongoDB.Users.removeByUserId(secondUser.userid),
-        MongoDB.Users.removeByUserId(thirdUser.userid),
+    after(async () => {
+      await MongoDB.Users.removeByUserId(firstUser.userid);
+      await MongoDB.Users.removeByUserId(secondUser.userid);
+      await MongoDB.Users.removeByUserId(thirdUser.userid);
   
-        MongoDB.Teams.removeByTeamId(firstTeam.teamid),
-        MongoDB.Teams.removeByTeamId(secondTeam.teamid)
-      ]).then(() => done(), done);
+      await MongoDB.Teams.removeByTeamId(firstTeam.teamid);
+      await MongoDB.Teams.removeByTeamId(secondTeam.teamid);
     });
 
   });
@@ -425,22 +422,19 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
       
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id]);
       
-      api.get(`/teams/${team.teamid}`)
+      await api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -487,12 +481,10 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].attributes.name, secondUser.name);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Users.removeByUserId(firstUser.userid),
-        MongoDB.Users.removeByUserId(secondUser.userid),
-        MongoDB.Teams.removeByTeamId(team.teamid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Users.removeByUserId(firstUser.userid);
+      await MongoDB.Users.removeByUserId(secondUser.userid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
   });
@@ -503,17 +495,14 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
 
-    before((done) => {
-      api.get(`/teams/does not exist`)
+    before(async () => {
+      await api.get(`/teams/does not exist`)
         .set('Accept', 'application/json')
-        .end((err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -534,6 +523,7 @@ describe('Teams resource', () => {
 
   describe('PATCH existing team', () => {
 
+    let attendee: IAttendee;
     let team: ITeam;
     let newTeam: ITeam;
     let modifiedTeam: ITeam;
@@ -541,7 +531,8 @@ describe('Teams resource', () => {
     let contentType: string;
     let body: string;
 
-    before(async (done) => {
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = await MongoDB.Teams.insertRandomTeam();
       newTeam = MongoDB.Teams.createRandomTeam();
       
@@ -556,19 +547,17 @@ describe('Teams resource', () => {
         }
       };
       
-      api.patch(`/teams/${team.teamid}`)
-        .auth(ApiServer.HackbotUsername, ApiServer.HackbotPassword)
+      await api.patch(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end(async (err, res) => {
-          if (err) return done(err);
-
+        .end()
+        .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          done();
         });
     });
 
@@ -591,8 +580,9 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
-    after((done) => {
-      MongoDB.Teams.removeByTeamId(team.teamid).then(done, done);
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
   });
@@ -606,22 +596,19 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: TeamsResource.TopLevelDocument;
 
-    before(async (done) => {
+    before(async () => {
       await MongoDB.Teams.removeAll();
       
       firstTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCD');
       secondTeam = await MongoDB.Teams.insertRandomTeam([], 'ABEF');
       thirdTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCE');
             
-      api.get('/teams?filter[name]=ABC')
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get('/teams?filter[name]=ABC')
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -659,12 +646,10 @@ describe('Teams resource', () => {
       assert.strictEqual(teamResponse.attributes.motto, thirdTeam.motto);
     });
 
-    after((done) => {
-      Promise.all([
-        MongoDB.Teams.removeByTeamId(firstTeam.teamid),
-        MongoDB.Teams.removeByTeamId(secondTeam.teamid),
-        MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
-      ]).then(() => done(), done);
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(firstTeam.teamid),
+      await MongoDB.Teams.removeByTeamId(secondTeam.teamid),
+      await MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
     });
 
   });
