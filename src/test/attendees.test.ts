@@ -401,6 +401,38 @@ describe('Attendees resource', () => {
 
   });
 
+  describe('DELETE attendee which does not exist', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      await api.delete(`/attendees/asdasdasdadasd`)
+        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+        });
+    });
+
+    it('should respond with status code 404 Not Found', () => {
+      assert.strictEqual(statusCode, 404);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Resource not found" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '404');
+      assert.strictEqual(response.errors[0].title, 'Resource not found.');
+    });
+  });
+
   describe('DELETE attendee with incorrect auth', () => {
 
     let attendee: IAttendee;

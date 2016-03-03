@@ -101,9 +101,12 @@ export function Delete(req: RequestWithModels, res: Response) {
     return respond.Send400(res);
     
   req.models.Attendee
-    .findOneAndRemove({ attendeeid: attendeeid })
+    .findOneAndRemove({ attendeeid: attendeeid }, { select: '_id' })
     .exec()
-    .then((removedAttendee) => {
+    .then((result) => {
+      if (result === null)
+        return respond.Send404(res);
+        
       respond.Send204(res);
     }, respond.Send500.bind(null, res));
 };
