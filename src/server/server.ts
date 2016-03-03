@@ -15,7 +15,6 @@ import * as respond from './routes/respond'
 
 const AuthorisedUsers = {
   Hackbot: {
-    Username: process.env.HACKBOT_USERNAME || 'hackbot',
     Password: process.env.HACKBOT_PASSWORD || 'h4c6b07'
   },
   Admin: {
