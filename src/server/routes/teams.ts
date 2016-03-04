@@ -33,7 +33,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
     .then((teams) => {
       
       const teamResponses = teams.map<TeamResource.ResourceObject>((team) => ({
-        links: { self: `/teams/${encodeURI(team.teamid)}` },
+        links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
         type: 'teams',
         id: team.teamid,
         attributes: {
@@ -42,7 +42,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
         },
         relationships: {
           members: {
-            links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+            links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
             data: team.members.map((member) => ({ type: 'users', id: member.userid }))
           }
         }
@@ -67,8 +67,8 @@ export function GetAll(req: RequestWithModels, res: Response) {
           };
           respond.Send200(res, teamsResponse);
           
-        }, respond.Send500.bind(res));
-    }, respond.Send500.bind(res));
+        }, respond.Send500.bind(null, res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Get(req: RequestWithModels, res: Response) {
@@ -90,7 +90,7 @@ export function Get(req: RequestWithModels, res: Response) {
       }));
         
       const teamResponse: TeamResource.TopLevelDocument = {
-        links: { self: `/teams/${encodeURI(team.teamid)}` },
+        links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
         data: {
           type: 'teams',
           id: team.teamid,
@@ -100,7 +100,7 @@ export function Get(req: RequestWithModels, res: Response) {
           },
           relationships: {
             members: {
-              links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+              links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
               data: team.members.map((member) => ({ type: 'users', id: member.userid }))
             }
           }
@@ -108,7 +108,7 @@ export function Get(req: RequestWithModels, res: Response) {
         included: includedUsers
       };
       respond.Send200(res, teamResponse);
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Create(req: RequestWithModels, res: Response) {
@@ -153,7 +153,7 @@ export function Create(req: RequestWithModels, res: Response) {
       
       const teamResponse: TeamResource.TopLevelDocument = {
         links: {
-          self: `/teams/${encodeURI(team.teamid)}`
+          self: `/teams/${encodeURIComponent(team.teamid)}`
         },
         data: {
           type: 'teams',
@@ -164,7 +164,7 @@ export function Create(req: RequestWithModels, res: Response) {
           },
           relationships: {
             members: {
-              links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+              links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
               data: null
             }
           }
@@ -200,7 +200,7 @@ export function Create(req: RequestWithModels, res: Response) {
           .exec()
           .then((team) => {
             const teamResponse: TeamResource.TopLevelDocument = {
-              links: { self: `/teams/${encodeURI(team.teamid)}` },
+              links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
               data: {
                 type: 'teams',
                 id: team.teamid,
@@ -210,17 +210,17 @@ export function Create(req: RequestWithModels, res: Response) {
                 },
                 relationships: {
                   members: {
-                    links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+                    links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
                     data: team.members.map((member) => ({ type: 'users', id: member.userid}))
                   }
                 }
               }
             };
             respond.Send201(res, teamResponse);
-          }, respond.Send500.bind(res));
+          }, respond.Send500.bind(null, res));
       });
       
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Update(req: RequestWithModels, res: Response) {
@@ -246,5 +246,5 @@ export function Update(req: RequestWithModels, res: Response) {
   req.models.Team
     .findOneAndUpdate({ teamid: requestDoc.data.id }, updateDoc)
     .exec()
-    .then((team) => respond.Send204(res), respond.Send500.bind(res));
+    .then((team) => respond.Send204(res), respond.Send500.bind(null, res));
 };

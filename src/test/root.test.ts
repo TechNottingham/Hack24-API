@@ -19,17 +19,14 @@ describe('Teams resource', () => {
     let contentType: string;
     let response: Root.TopLevelDocument;
 
-    before((done) => {
+    before(async () => {
       
-      api.get('/')
-        .end((err, res) => {
-          if (err) return done(err);
-
+      await api.get('/')
+        .end()
+        .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
-          done();
         });
     });
 
@@ -55,6 +52,10 @@ describe('Teams resource', () => {
 
     it('should return the users link', () => {
       assert.strictEqual(response.links.users.href, '/users');
+    });
+
+    it('should return the attendees link', () => {
+      assert.strictEqual(response.links.attendees.href, '/attendees');
     });
     
   });

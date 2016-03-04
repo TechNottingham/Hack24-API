@@ -139,6 +139,32 @@ export declare module TeamMembersRelationship {
   
 }
 
+export declare module AttendeeResource {
+
+  export interface AttributesObject extends JSONApi.AttributesObject {
+    emailaddress: string
+  }
+
+  export interface ResourceObject extends JSONApi.ResourceObject {
+    attributes?: AttributesObject;
+  }
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: ResourceObject;
+  }
+  
+}
+
+export declare module AttendeesResource {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: AttendeeResource.ResourceObject[];
+  }
+  
+}
+
 export declare module Root {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
@@ -149,6 +175,7 @@ export declare module Root {
       self: string;
       teams: JSONApi.LinkObject;
       users: JSONApi.LinkObject;
+      attendees: JSONApi.LinkObject;
     }
   }
   

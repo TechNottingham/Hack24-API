@@ -16,6 +16,9 @@ export function Get(req: Request, res: Response) {
       },
       users: {
         href: '/users'
+      },
+      attendees: {
+        href: '/attendees'
       }
     }
   }

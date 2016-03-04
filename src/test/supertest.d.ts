@@ -33,7 +33,10 @@ declare module "supertest" {
       expect(field: string, val: string, callback?: CallbackHandler): Test;
       expect(field: string, val: RegExp, callback?: CallbackHandler): Test;
       expect(checker: (res: Response) => any): Test;
-      end(callback?: CallbackHandler): Test;
+      end(callback: CallbackHandler): Test;
+      
+      // to support promisify-supertest
+      end(): Promise<supertest.Response>;
     }
 
     interface Response extends superagent.Response {

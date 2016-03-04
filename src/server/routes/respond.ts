@@ -50,7 +50,7 @@ export function Send403(res: Response) {
     errors: [{
       status: '403',
       title: 'Access is forbidden.',
-      detail: 'Only hackbot has access to do that.'
+      detail: 'You are not permitted to perform that action.'
     }]
   };
   res.status(403)

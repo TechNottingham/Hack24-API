@@ -5,22 +5,41 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
+import * as AttendeesRoute from './routes/attendees';
 import * as TeamMembersRoute from './routes/team.members';
 import * as Root from './routes/root';
-import {UserModel, TeamModel} from './models';
+import {UserModel, TeamModel, AttendeeModel} from './models';
 import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
 import * as respond from './routes/respond'
 
+const AuthorisedUsers = {
+  Hackbot: {
+    Password: process.env.HACKBOT_PASSWORD || 'h4c6b07'
+  },
+  Admin: {
+    Username: process.env.ADMIN_USERNAME || 'admin',
+    Password: process.env.ADMIN_PASSWORD || '4d3in'
+  }
+};
+
+declare interface IUnauthorisedRequest extends Request {
+  AuthParts: {
+    Username: string;
+    Password: string;
+  }
+}
+
 function createModels(req, res, next) {
   req.models = {
     User: UserModel,
-    Team: TeamModel
+    Team: TeamModel,
+    Attendee: AttendeeModel
   };
   return next();
 }
 
-function requiresHackbotUser(req: Request, res: Response, next: Function) {
+function requiresUser(req: IUnauthorisedRequest, res: Response, next: Function) {
   if (req.headers['authorization'] === undefined)
     return respond.Send401(res);
     
@@ -33,10 +52,35 @@ function requiresHackbotUser(req: Request, res: Response, next: Function) {
   if (decodedParts.length < 2)
     return respond.Send403(res);
   
-  if (decodedParts[0] !== process.env.HACKBOT_USERNAME || decodedParts[1] !== process.env.HACKBOT_PASSWORD)
+  req.AuthParts = {
+    Username: decodedParts[0],
+    Password: decodedParts[1]
+  };
+  
+  next();
+}
+
+function requiresAdminUser(req: IUnauthorisedRequest, res: Response, next: Function) {
+  if (req.AuthParts.Username !== AuthorisedUsers.Admin.Username || req.AuthParts.Password !== AuthorisedUsers.Admin.Password)
     return respond.Send403(res);
   
   next();
+}
+
+function requiresAttendeeUser(req: IUnauthorisedRequest, res: Response, next: Function) {
+  if (req.AuthParts.Password !== AuthorisedUsers.Hackbot.Password)
+    return respond.Send403(res);
+    
+  AttendeeModel
+    .find({ attendeeid: req.AuthParts.Username }, '_id')
+    .limit(1)
+    .exec()
+    .then((attendees) => {
+      if (attendees.length === 0)
+        return respond.Send403(res);
+        
+      next();
+    }, respond.Send500.bind(null, res))
 }
 
 export interface ServerInfo {
@@ -53,21 +97,29 @@ export class Server {
 
     this._app = express();
 
-    this._app.get('/users/', createModels, UsersRoute.GetAll);
-    this._app.post('/users/', requiresHackbotUser, apiJsonParser, createModels, UsersRoute.Create);
+    this._app.get('/users', createModels, UsersRoute.GetAll);
+    this._app.post('/users', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, UsersRoute.Create);
     
-    this._app.get('/users/:userid', apiJsonParser, createModels, UsersRoute.GetByUserId);
+    this._app.get('/users/:userid', createModels, UsersRoute.Get);
     
-    this._app.post('/teams/:teamId/members', requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Add);
-    this._app.delete('/teams/:teamId/members', requiresHackbotUser, apiJsonParser, createModels, TeamMembersRoute.Delete);
+    
+    this._app.post('/teams/:teamId/members', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamMembersRoute.Add);
+    this._app.delete('/teams/:teamId/members', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamMembersRoute.Delete);
     this._app.get('/teams/:teamId/members', createModels, TeamMembersRoute.Get);
 
     
-    this._app.patch('/teams/:teamId', requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Update);
+    this._app.patch('/teams/:teamId', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsRoute.Update);
     this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
     
-    this._app.get('/teams/', createModels, TeamsRoute.GetAll);
-    this._app.post('/teams/', requiresHackbotUser, apiJsonParser, createModels, TeamsRoute.Create);
+    
+    this._app.get('/teams', createModels, TeamsRoute.GetAll);
+    this._app.post('/teams', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsRoute.Create);
+    
+    
+    this._app.get('/attendees/:attendeeid', requiresUser, requiresAdminUser, createModels, AttendeesRoute.Get);
+    this._app.delete('/attendees/:attendeeid', requiresUser, requiresAdminUser, createModels, AttendeesRoute.Delete);
+    this._app.get('/attendees', requiresUser, requiresAdminUser, createModels, AttendeesRoute.GetAll);
+    this._app.post('/attendees', requiresUser, requiresAdminUser, apiJsonParser, createModels, AttendeesRoute.Create);
 
     this._app.get('/api', (req, res) => {
       res.send('Hack24 API is running');

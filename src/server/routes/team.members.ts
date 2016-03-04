@@ -33,12 +33,12 @@ export function Get(req: RequestWithModels, res: Response) {
       }));
         
       let membersResponse: TeamMembersRelationship.TopLevelDocument = {
-        links: { self: `/teams/${encodeURI(team.teamid)}/members` },
+        links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
         data: members,
         included: includedUsers
       };
       respond.Send200(res, membersResponse);
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Delete(req: RequestWithModels, res: Response) {
@@ -78,7 +78,7 @@ export function Delete(req: RequestWithModels, res: Response) {
         respond.Send204(res);
       });
       
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
 
 export function Add(req: RequestWithModels, res: Response) {
@@ -139,5 +139,5 @@ export function Add(req: RequestWithModels, res: Response) {
             })
         });
       
-    }, respond.Send500.bind(res));
+    }, respond.Send500.bind(null, res));
 };
