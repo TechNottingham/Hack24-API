@@ -8,8 +8,10 @@
     "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#d6dd320291705694ba8e1a79497a908e9f5e6617",
     "mongodb": "github:DefinitelyTyped/DefinitelyTyped/mongodb/mongodb.d.ts#a80a024f79575373c781e5867debcbbad041a3a2",
     "mongoose": "github:DefinitelyTyped/DefinitelyTyped/mongoose/mongoose.d.ts#97ec10cb6c917dce7668f3833679506162c0f5c4",
+    "morgan": "registry:dt/morgan#1.2.2+20160104041339",
     "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#1c56e368e17bb28ca57577250624ca5bd561aa81",
     "serve-static": "github:DefinitelyTyped/DefinitelyTyped/serve-static/serve-static.d.ts#0fa4e9e61385646ea6a4cba2aef357353d2ce77f",
-    "superagent": "github:DefinitelyTyped/DefinitelyTyped/superagent/superagent.d.ts#b30dbc4dd32b3237cd78e9139c3fc270caaacacb"
+    "superagent": "github:DefinitelyTyped/DefinitelyTyped/superagent/superagent.d.ts#b30dbc4dd32b3237cd78e9139c3fc270caaacacb",
+    "winston": "registry:dt/winston#0.0.0+20160304133439"
   }
 }
