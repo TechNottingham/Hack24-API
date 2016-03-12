@@ -105,8 +105,8 @@ export declare module TeamResource {
   }
 
   export interface AttributesObject extends JSONApi.AttributesObject {
-    name: string;
-    motto: string;
+    name?: string;
+    motto?: string;
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {

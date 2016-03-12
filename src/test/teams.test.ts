@@ -118,8 +118,7 @@ describe('Teams resource', () => {
         data: {
           type: 'teams',
           attributes: {
-            name: team.name,
-            motto: null
+            name: team.name
           }
         }
       };
@@ -576,11 +575,10 @@ describe('Teams resource', () => {
     });
   });
 
-  describe('PATCH existing team', () => {
+  describe('PATCH existing team with name', () => {
 
     let attendee: IAttendee;
     let team: ITeam;
-    let newTeam: ITeam;
     let modifiedTeam: ITeam;
     let statusCode: number;
     let contentType: string;
@@ -589,15 +587,14 @@ describe('Teams resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = await MongoDB.Teams.insertRandomTeam();
-      newTeam = MongoDB.Teams.createRandomTeam();
+      const newTeam = MongoDB.Teams.createRandomTeam();
       
       const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
           id: team.teamid,
           attributes: {
-            name: newTeam.name,
-            motto: newTeam.motto
+            name: newTeam.name
           }
         }
       };
@@ -628,9 +625,134 @@ describe('Teams resource', () => {
       assert.strictEqual(body, '');
     });
 
-    it('should modify the team', () => {
+    it('should not modify the team', () => {
       assert.strictEqual(modifiedTeam.teamid, team.teamid);
-      assert.strictEqual(modifiedTeam.name, newTeam.name);
+      assert.strictEqual(modifiedTeam.name, team.name);
+      assert.strictEqual(modifiedTeam.motto, team.motto);
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+    });
+
+  });
+
+  describe('PATCH existing team without any attributes', () => {
+
+    let attendee: IAttendee;
+    let team: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      team = await MongoDB.Teams.insertRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          id: team.teamid
+        }
+      };
+      
+      await api.patch(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should not modify the team', () => {
+      assert.strictEqual(modifiedTeam.teamid, team.teamid);
+      assert.strictEqual(modifiedTeam.name, team.name);
+      assert.strictEqual(modifiedTeam.motto, team.motto);
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+    });
+
+  });
+
+  describe('PATCH existing team with motto', () => {
+
+    let attendee: IAttendee;
+    let team: ITeam;
+    let newTeam: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      team = await MongoDB.Teams.insertRandomTeam();
+      newTeam = MongoDB.Teams.createRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          id: team.teamid,
+          attributes: {
+            motto: newTeam.motto 
+          }
+        }
+      };
+      
+      await api.patch(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should modify the team motto', () => {
+      assert.strictEqual(modifiedTeam.teamid, team.teamid);
+      assert.strictEqual(modifiedTeam.name, team.name);
       assert.strictEqual(modifiedTeam.motto, newTeam.motto);
       assert.strictEqual(modifiedTeam.members.length, 0);
     });

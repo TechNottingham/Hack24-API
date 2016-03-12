@@ -5,6 +5,7 @@ import {IModels, ITeamModel, MongoDBErrors} from '../models';
 import * as respond from './respond';
 import {JSONApi, TeamResource, TeamsResource, UserResource, TeamMembersRelationship} from '../resources';
 import * as slug from 'slug';
+import {Log} from '../logger'
 
 declare interface RequestWithModels extends Request {
   models: IModels
@@ -139,7 +140,7 @@ export function Create(req: RequestWithModels, res: Response) {
   const team = new req.models.Team({
     teamid: slugify(requestDoc.data.attributes.name),
     name: requestDoc.data.attributes.name,
-    motto: requestDoc.data.attributes.motto,
+    motto: requestDoc.data.attributes.motto || null,
     members: []
   });
   
@@ -231,20 +232,22 @@ export function Update(req: RequestWithModels, res: Response) {
     || !requestDoc.data
     || !requestDoc.data.id
     || !requestDoc.data.type
-    || requestDoc.data.type !== 'teams'
-    || !requestDoc.data.attributes)
+    || requestDoc.data.type !== 'teams')
     return respond.Send400(res);
   
   if (teamId !== requestDoc.data.id)
     return respond.Send400(res, `The id '${teamId}' does not match the document id '${requestDoc.data.id}'.`);
-    
-  const updateDoc = {
-    name: requestDoc.data.attributes.name ? requestDoc.data.attributes.name.toString() : undefined,
-    motto: requestDoc.data.attributes.motto ? requestDoc.data.attributes.motto.toString() : undefined
-  };
   
+  if (requestDoc.data.attributes === undefined)
+    return respond.Send204(res);
+  
+  if (requestDoc.data.attributes.motto === undefined)
+    return respond.Send204(res);
+    
+  Log.info(`Modifying team "${teamId}" motto to "${requestDoc.data.attributes.motto}"`);
+    
   req.models.Team
-    .findOneAndUpdate({ teamid: requestDoc.data.id }, updateDoc)
+    .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: requestDoc.data.attributes.motto.toString() })
     .exec()
     .then((team) => respond.Send204(res), respond.Send500.bind(null, res));
 };
