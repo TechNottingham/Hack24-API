@@ -47,7 +47,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
             id: team.teamid,
             attributes: {
               name: team.name,
-              motto: team.motto
+              motto: team.motto || null
             },
             relationships: {
               members: {
@@ -80,7 +80,7 @@ export function Get(req: RequestWithModels, res: Response) {
         return respond.Send404(res);
 
       req.models.Team
-        .findOne({ members: { $in: [user._id] } }, 'teamid name members')
+        .findOne({ members: { $in: [user._id] } }, 'teamid name members motto')
         .populate('members', 'userid name')
         .exec()
         .then((team) => {
@@ -107,7 +107,10 @@ export function Get(req: RequestWithModels, res: Response) {
               links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
               type: 'teams',
               id: team.teamid,
-              attributes: { name: team.name, motto: team.motto },
+              attributes: {
+                name: team.name,
+                motto: team.motto || null
+              },
               relationships: {
                 members: {
                   links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },

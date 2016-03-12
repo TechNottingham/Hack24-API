@@ -98,7 +98,8 @@ export class Server {
 
     this._app = express();
     
-    this._app.use(ExpressLogger);
+    if (process.env.NODE_ENV !== 'production')
+      this._app.use(ExpressLogger);
 
     this._app.get('/users', createModels, UsersRoute.GetAll);
     this._app.post('/users', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, UsersRoute.Create);

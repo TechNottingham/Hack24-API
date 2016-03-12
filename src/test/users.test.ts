@@ -91,7 +91,9 @@ describe('Users resource', () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       
-      team = await MongoDB.Teams.insertRandomTeam([user._id], 'A');
+      team = await MongoDB.Teams.createRandomTeam([user._id], 'A');
+      delete team.motto;
+      await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
       
       await api.get(`/users`)
@@ -140,7 +142,7 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
-      assert.strictEqual(includedTeam.attributes.motto, team.motto);
+      assert.strictEqual(includedTeam.attributes.motto, null);
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 1);
       assert.strictEqual(includedTeam.relationships.members.data[0].type, 'users');
@@ -233,6 +235,110 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
+      assert.strictEqual(includedTeam.attributes.motto, team.motto);
+    });
+
+    it('should include the related team members', () => {
+      assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
+      assert.strictEqual(includedTeam.relationships.members.data.length, 2);
+      
+      let relatedUser = includedTeam.relationships.members.data[0];
+      assert.strictEqual(relatedUser.type, 'users');
+      assert.strictEqual(relatedUser.id, user.userid);
+
+      let relatedOtherUser = includedTeam.relationships.members.data[1];
+      assert.strictEqual(relatedOtherUser.type, 'users');
+      assert.strictEqual(relatedOtherUser.id, otherUser.userid);
+    });
+
+    it('should include the related team', () => {
+      assert.ok(includedUser, 'Included user missing');
+      assert.strictEqual(includedUser.id, otherUser.userid);
+      assert.strictEqual(includedUser.attributes.name, otherUser.name);
+    });
+
+    it('should include the related other user team relationship', () => {
+      assert.strictEqual(includedUser.relationships.team.links.self, `/teams/${team.teamid}`);
+      assert.strictEqual(includedUser.relationships.team.data.type, 'teams');
+      assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
+    });
+
+    after(async () => {
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Users.removeByUserId(user.userid);
+      await MongoDB.Users.removeByUserId(otherUser.userid);
+    });
+
+  });
+
+  describe('GET user by ID in team without a motto', () => {
+
+    let user: IUser;
+    let otherUser: IUser;
+    let team: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let response: UserResource.TopLevelDocument;
+    let includedTeam: TeamResource.ResourceObject;
+    let includedUser: UserResource.ResourceObject;
+
+    before(async () => {
+      user = await MongoDB.Users.insertRandomUser('A');
+      otherUser = await MongoDB.Users.insertRandomUser('B');
+      team = await MongoDB.Teams.createRandomTeam([user._id, otherUser._id]);
+      delete team.motto;
+      await MongoDB.Teams.insertTeam(team);
+      
+      await api.get(`/users/${user.userid}`)
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
+          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return the user resource object self link', () => {
+      assert.strictEqual(response.links.self, `/users/${user.userid}`);
+    });
+
+    it('should return the users type', () => {
+      assert.strictEqual(response.data.type, 'users');
+    });
+
+    it('should return the user id', () => {
+      assert.strictEqual(response.data.id, user.userid);
+    });
+
+    it('should return the user name', () => {
+      assert.strictEqual(response.data.attributes.name, user.name);
+    });
+
+    it('should return the team relationship self link', () => {
+      assert.strictEqual(response.data.relationships.team.links.self, `/users/${user.userid}/team`);
+    });
+
+    it('should return the team relationship', () => {
+      assert.strictEqual(response.data.relationships.team.data.type, 'teams');
+      assert.strictEqual(response.data.relationships.team.data.id, team.teamid);
+    });
+
+    it('should include the related team', () => {
+      assert.ok(includedTeam, 'Included team missing');
+      assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
+      assert.strictEqual(includedTeam.id, team.teamid);
+      assert.strictEqual(includedTeam.attributes.name, team.name);
+      assert.strictEqual(includedTeam.attributes.motto, null);
     });
 
     it('should include the related team members', () => {

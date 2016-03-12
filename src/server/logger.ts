@@ -5,7 +5,7 @@ const consoleLogger = new transports.Console({
   level: 'debug',
   timestamp: true,
   handleExceptions: false,
-  colorize: true
+  colorize: process.env.NODE_ENV !== 'production'
 });
 
 
@@ -25,6 +25,6 @@ const stream: morgan.StreamOptions = {
 const options = <morgan.Options> {
   stream: stream
 }
-  
-export const ExpressLogger = morgan("dev", options);
+
+export const ExpressLogger = morgan('dev', options);
 export const Log = logger;
