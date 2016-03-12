@@ -39,7 +39,7 @@ export function GetAll(req: RequestWithModels, res: Response) {
         id: team.teamid,
         attributes: {
           name: team.name,
-          motto: team.motto
+          motto: team.motto || null
         },
         relationships: {
           members: {
@@ -97,7 +97,7 @@ export function Get(req: RequestWithModels, res: Response) {
           id: team.teamid,
           attributes: {
             name: team.name,
-            motto: team.motto
+            motto: team.motto || null
           },
           relationships: {
             members: {
