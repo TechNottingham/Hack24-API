@@ -12,7 +12,7 @@ import {UserModel, TeamModel, AttendeeModel} from './models';
 import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
 import * as respond from './routes/respond'
-import {logger} from './expresslogger'
+import {ExpressLogger, Log} from './logger'
 
 const AuthorisedUsers = {
   Hackbot: {
@@ -98,7 +98,7 @@ export class Server {
 
     this._app = express();
     
-    this._app.use(logger());
+    this._app.use(ExpressLogger);
 
     this._app.get('/users', createModels, UsersRoute.GetAll);
     this._app.post('/users', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, UsersRoute.Create);
