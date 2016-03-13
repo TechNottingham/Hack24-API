@@ -5,6 +5,7 @@ import {Server as HttpServer} from 'http';
 import * as mongoose from 'mongoose';
 import * as UsersRoute from './routes/users';
 import * as TeamsRoute from './routes/teams';
+import {TeamsEndpoint} from './routes/teams';
 import * as AttendeesRoute from './routes/attendees';
 import * as TeamMembersRoute from './routes/team.members';
 import * as Root from './routes/root';
@@ -13,6 +14,7 @@ import {json as jsonParser} from 'body-parser';
 import {Request, Response} from 'express';
 import * as respond from './routes/respond'
 import {ExpressLogger, Log} from './logger'
+import {forURL as Pusher} from 'pusher'
 
 const AuthorisedUsers = {
   Hackbot: {
@@ -94,6 +96,9 @@ export class Server {
   private _server: HttpServer;
 
   constructor() {
+    const pusher = Pusher(process.env.PUSHER_URL);
+    TeamsEndpoint.Pusher = pusher;
+    
     const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
 
     this._app = express();
@@ -116,8 +121,8 @@ export class Server {
     this._app.get('/teams/:teamId', createModels, TeamsRoute.Get);
     
     
-    this._app.get('/teams', createModels, TeamsRoute.GetAll);
-    this._app.post('/teams', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsRoute.Create);
+    this._app.get('/teams', createModels, TeamsEndpoint.GetAll);
+    this._app.post('/teams', requiresUser, requiresAttendeeUser, apiJsonParser, createModels, TeamsEndpoint.Create);
     
     
     this._app.get('/attendees/:attendeeid', requiresUser, requiresAdminUser, createModels, AttendeesRoute.Get);
