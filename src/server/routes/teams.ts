@@ -30,6 +30,7 @@ export class TeamsEndpoint {
   
   private static trigger(event: string, data: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+      Log.info(`Sending Pusher event "${event}" to channel "api_events"`);
       this._pusher.trigger('api_events', event, data, null, (err) => {
         if (err) return reject(err);
         resolve();
