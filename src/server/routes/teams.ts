@@ -28,15 +28,12 @@ export class TeamsEndpoint {
     this._pusher = pusher;
   }
   
-  private static trigger(event: string, data: any): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      Log.info(`Sending Pusher event "${event}" to channel "api_events"`);
-      this._pusher.trigger('api_events', event, data, null, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
-  } 
+  private static trigger(event: string, data: any) {
+    Log.info(`Sending Pusher event "${event}" to channel "api_events"`);
+    this._pusher.trigger('api_events', event, data, null, (err) => {
+      if (err) Log.error(err);
+    });  
+  }
 
   static GetAll(req: RequestWithModels, res: Response) {
     let query: any = {};
@@ -155,10 +152,9 @@ export class TeamsEndpoint {
           teamid: team.teamid,
           name: team.name,
           motto: team.motto
-        }).then(() => {
-          respond.Send201(res, teamResponse);
-        }).catch(respond.Send500.bind(null));
+        });
         
+        respond.Send201(res, teamResponse);
       });
     }
     
@@ -204,16 +200,14 @@ export class TeamsEndpoint {
                 }
               };
               
-        
               TeamsEndpoint.trigger('team_add', {
                 teamid: team.teamid,
                 name: team.name,
                 motto: team.motto,
                 members: team.members.map((member) => ({ userid: member.userid, name: member.name }))
-              }).then(() => {
-                respond.Send201(res, teamResponse);
-              }).catch(respond.Send500.bind(null));
+              });
               
+              respond.Send201(res, teamResponse);
             }, respond.Send500.bind(null, res));
         });
         

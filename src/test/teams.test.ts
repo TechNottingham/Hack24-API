@@ -56,6 +56,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -158,6 +159,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -185,7 +187,6 @@ describe('Teams resource', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
       const event = pusherListener.events[0];
-      
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -249,6 +250,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
