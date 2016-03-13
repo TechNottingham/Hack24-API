@@ -18,11 +18,11 @@ import {forURL as Pusher} from 'pusher'
 
 const AuthorisedUsers = {
   Hackbot: {
-    Password: process.env.HACKBOT_PASSWORD || 'h4c6b07'
+    Password: process.env.HACKBOT_PASSWORD
   },
   Admin: {
-    Username: process.env.ADMIN_USERNAME || 'admin',
-    Password: process.env.ADMIN_PASSWORD || '4d3in'
+    Username: process.env.ADMIN_USERNAME,
+    Password: process.env.ADMIN_PASSWORD
   }
 };
 
