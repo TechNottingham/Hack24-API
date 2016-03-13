@@ -9,9 +9,6 @@ import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
 import {Random} from './utils/random'
-import * as express from 'express'
-import {json as jsonBodyParser} from 'body-parser'
-import {Server} from 'http'
 import {PusherListener} from './utils/pusherlistener'
 
 describe('Teams resource', () => {
