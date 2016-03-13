@@ -30,8 +30,8 @@ export class TeamsEndpoint {
   
   private static trigger(event: string, data: any) {
     Log.info(`Sending Pusher event "${event}" to channel "api_events"`);
-    this._pusher.trigger('api_events', event, data, null, (err) => {
-      if (err) Log.error(err);
+    this._pusher.trigger('api_events', event, data, null, (err: Error) => {
+      if (err) Log.error(`Unable to send event to pusher: ${err.message}`);
     });  
   }
 
