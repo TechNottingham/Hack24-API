@@ -186,6 +186,9 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
+          id: user.userid
+        },{
+          type: 'users',
           id: 'does not exist'
         }]
       }
