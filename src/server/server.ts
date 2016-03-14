@@ -41,9 +41,9 @@ export class Server {
     this._app.use('/teams', teamMembersRouter);
     this._app.use('/teams', teamsRouter);
 
-    this._app.get('/api', middleware.allowAllOriginsWithGetAndHeaders, (req, res) => res.send('Hack24 API is running'));
+    this._app.get('/api', (_, res) => res.send('Hack24 API is running'));
     
-    this._app.get('/', Root.Get);
+    this._app.get('/', middleware.allowAllOriginsWithGetAndHeaders, Root.Get);
     this._app.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
   }
 
