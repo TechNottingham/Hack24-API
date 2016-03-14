@@ -1,8 +1,10 @@
 "use strict";
 
+import * as respond from './routes/respond';
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 import * as Root from './routes/root';
+import * as middleware from './middleware';
 
 import {Server as HttpServer} from 'http';
 import {UsersRoute} from './routes/users';
@@ -39,11 +41,13 @@ export class Server {
     this._app.use('/teams', teamMembersRouter);
     this._app.use('/teams', teamsRouter);
 
-    this._app.get('/api', (req, res) => {
+    this._app.get('/api', middleware.allowAllOriginsWithGetAndHeaders, (req, res) => {
       res.send('Hack24 API is running');
     });
+    this._app.options('/api', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     
     this._app.get('/', Root.Get);
+    this._app.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
   }
 
   listen(): Promise<ServerInfo> {
