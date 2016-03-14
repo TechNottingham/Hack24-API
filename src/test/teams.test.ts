@@ -7,9 +7,9 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
-import {Random} from './utils/random'
-import {PusherListener} from './utils/pusherlistener'
+import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources';
+import {Random} from './utils/random';
+import {PusherListener} from './utils/pusherlistener';
 
 describe('Teams resource', () => {
 
@@ -112,6 +112,7 @@ describe('Teams resource', () => {
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
       assert.strictEqual(data.motto, team.motto);
+      assert.strictEqual(data.members.length, 0);
     });
 
     after(async () => {
@@ -195,6 +196,7 @@ describe('Teams resource', () => {
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
       assert.strictEqual(data.motto, null);
+      assert.strictEqual(data.members.length, 0);
     });
 
     after(async () => {
@@ -1071,6 +1073,7 @@ describe('Teams resource', () => {
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
       assert.strictEqual(data.motto, newTeam.motto);
+      assert.strictEqual(data.members.length, 0);
     });
 
     after(async () => {

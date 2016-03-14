@@ -155,7 +155,8 @@ export class TeamsRoute {
         this._eventBroadcaster.trigger('teams_add', {
           teamid: team.teamid,
           name: team.name,
-          motto: team.motto
+          motto: team.motto,
+          members: []
         });
         
         respond.Send201(res, teamResponse);

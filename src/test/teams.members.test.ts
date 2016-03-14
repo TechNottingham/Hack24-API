@@ -7,7 +7,8 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamMembersRelationship, UserResource} from './resources'
+import {JSONApi, TeamMembersRelationship, UserResource} from './resources';
+import {PusherListener} from './utils/pusherlistener';
 
 describe('Team Members relationship', () => {
 
@@ -294,27 +295,35 @@ describe('Team Members relationship', () => {
 
     let attendee: IAttendee;
     let user: IUser;
-    let newUser: IUser;
+    let firstNewUser: IUser;
+    let secondNewUser: IUser;
     let team: ITeam;
     let modifiedTeam: ITeam;
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       
       user = await MongoDB.Users.insertRandomUser('A');
-      newUser = await MongoDB.Users.insertRandomUser('B');
+      firstNewUser = await MongoDB.Users.insertRandomUser('B');
+      secondNewUser = await MongoDB.Users.insertRandomUser('C');
       
       team = await MongoDB.Teams.insertRandomTeam([user._id]);
       
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: newUser.userid
+          id: firstNewUser.userid
+        },{
+          type: 'users',
+          id: secondNewUser.userid
         }]
       };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
@@ -327,6 +336,7 @@ describe('Team Members relationship', () => {
           body = res.text;
           
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -343,18 +353,54 @@ describe('Team Members relationship', () => {
     });
 
     it('should have added the new user to the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 2);
+      assert.strictEqual(modifiedTeam.members.length, 3);
       assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
-      assert.strictEqual(modifiedTeam.members[1].equals(newUser._id), true);
+      assert.strictEqual(modifiedTeam.members[1].equals(firstNewUser._id), true);
+      assert.strictEqual(modifiedTeam.members[2].equals(secondNewUser._id), true);
+    });
+
+    it('should send two teams_update_members_add events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 2);
+    });
+
+    it('should send a teams_update_members_add event for the first new team member', () => {
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_update_members_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.member.userid, firstNewUser.userid);
+      assert.strictEqual(data.member.name, firstNewUser.name);
+    });
+
+    it('should send a teams_update_members_add event for the second new team member', () => {
+      const event = pusherListener.events[1];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_update_members_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.member.userid, secondNewUser.userid);
+      assert.strictEqual(data.member.name, secondNewUser.name);
     });
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       
       await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(newUser.userid);
+      await MongoDB.Users.removeByUserId(firstNewUser.userid);
+      await MongoDB.Users.removeByUserId(secondNewUser.userid);
 
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      
+      await pusherListener.close();
     });
 
   });

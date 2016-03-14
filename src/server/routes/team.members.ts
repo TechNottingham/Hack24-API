@@ -111,7 +111,7 @@ export class TeamMembersRoute {
       return respond.Send400(res);
     
     TeamModel
-      .findOne({ teamid: teamId }, 'teamid members')
+      .findOne({ teamid: teamId }, 'teamid name members')
       .populate('members', 'userid')
       .exec()
       .then((team) => {
@@ -128,7 +128,7 @@ export class TeamMembersRoute {
           return respond.Send400(res, 'One or more users are already members of this team.');
         
         UserModel
-          .find({ userid: { $in: userIdsToAdd } }, 'userid')
+          .find({ userid: { $in: userIdsToAdd } }, 'userid name')
           .exec()
           .then((users) => {
             if (users.length !== userIdsToAdd.length)
@@ -148,6 +148,17 @@ export class TeamMembersRoute {
                 team.save((err, result) => {
                   if (err)
                     return respond.Send500(res, err);
+                  
+                  users.forEach(user => {
+                    this._eventBroadcaster.trigger('teams_update_members_add', {
+                      teamid: team.teamid,
+                      name: team.name,
+                      member: {
+                        userid: user.userid,
+                        name: user.name
+                      }
+                    });
+                  });
 
                   respond.Send204(res);
                 });
