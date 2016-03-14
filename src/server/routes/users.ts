@@ -19,9 +19,11 @@ export class UsersRoute {
   
   createRouter() {
     const router = Router();
-    router.get('/', this.getAll.bind(this));
+    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, this.getAll.bind(this));
+    router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
-    router.get('/:userId', this.get.bind(this));
+    router.get('/:userId', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    router.options('/:userId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     
     return router;
   }

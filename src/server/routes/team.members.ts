@@ -20,7 +20,8 @@ export class TeamMembersRoute {
     const router = Router();
     router.post('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.add.bind(this));
     router.delete('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.delete.bind(this));
-    router.get('/:teamId/members', this.get.bind(this));
+    router.get('/:teamId/members', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    router.options('/:teamId/members', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     
     return router;
   }

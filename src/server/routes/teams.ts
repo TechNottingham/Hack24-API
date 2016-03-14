@@ -30,11 +30,17 @@ export class TeamsRoute {
   createRouter() {
     const router = Router();
     router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.update.bind(this));
-    router.get('/:teamId', this.get.bind(this));
-    router.get('/', this.getAll.bind(this));
+    router.get('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    router.options('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
+    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, this.getAll.bind(this));
+    router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
     
     return router;
+  }
+
+  options(req: Request, res: Response) {
+    res.status(204).send('');
   }
 
   getAll(req: Request, res: Response) {
