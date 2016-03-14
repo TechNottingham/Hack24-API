@@ -150,7 +150,7 @@ export class TeamsRoute {
           }
         };
         
-        this._eventBroadcaster.trigger('team_add', {
+        this._eventBroadcaster.trigger('teams_add', {
           teamid: team.teamid,
           name: team.name,
           motto: team.motto
@@ -202,7 +202,7 @@ export class TeamsRoute {
                 }
               };
               
-              this._eventBroadcaster.trigger('team_add', {
+              this._eventBroadcaster.trigger('teams_add', {
                 teamid: team.teamid,
                 name: team.name,
                 motto: team.motto,

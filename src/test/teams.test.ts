@@ -99,7 +99,7 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
-    it('should send a team_add event to Pusher', () => {
+    it('should send a teams_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
       const event = pusherListener.events[0];
@@ -107,7 +107,7 @@ describe('Teams resource', () => {
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'team_add');
+      assert.strictEqual(event.payload.name, 'teams_add');
       
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
@@ -183,14 +183,14 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
-    it('should send a team_add event to Pusher', () => {
+    it('should send a teams_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'team_add');
+      assert.strictEqual(event.payload.name, 'teams_add');
       
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
@@ -294,14 +294,14 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members[0].equals(user._id), true);
     });
 
-    it('should send a team_add event to Pusher', () => {
+    it('should send a teams_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'team_add');
+      assert.strictEqual(event.payload.name, 'teams_add');
       
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
