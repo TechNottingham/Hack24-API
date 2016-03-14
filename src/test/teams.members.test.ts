@@ -14,7 +14,7 @@ describe('Team Members relationship', () => {
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
   });
   
   describe('OPTIONS team members', () => {

@@ -283,7 +283,19 @@ export class TeamsRoute {
     TeamModel
       .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: requestDoc.data.attributes.motto.toString() })
       .exec()
-      .then((team) => respond.Send204(res), respond.Send500.bind(null, res));
+      .then((team) => {
+        respond.Send204(res);
+        
+        if (team.motto === requestDoc.data.attributes.motto.toString()) return;
+        
+        this._eventBroadcaster.trigger('teams_update_motto', {
+          teamid: team.teamid,
+          name: team.name,
+          motto: team.motto,
+          members: team.members.map((member) => ({ userid: member.userid, name: member.name }))
+        });
+        
+      }, respond.Send500.bind(null, res));
   }
   
 }

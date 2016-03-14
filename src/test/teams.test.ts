@@ -16,7 +16,7 @@ describe('Teams resource', () => {
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
   });
 
   describe('POST new team', () => {
@@ -103,7 +103,6 @@ describe('Teams resource', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
       const event = pusherListener.events[0];
-      
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -863,6 +862,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -879,6 +879,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -890,6 +892,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -912,9 +915,14 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -927,6 +935,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -939,6 +948,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -950,6 +961,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -972,9 +984,14 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -988,6 +1005,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -1004,6 +1022,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -1015,6 +1035,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -1037,9 +1058,97 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should send a teams_update_motto event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_update_motto');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.motto, team.motto);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
+    });
+
+  });
+
+  describe('PATCH existing team with same motto', () => {
+
+    let attendee: IAttendee;
+    let team: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      team = await MongoDB.Teams.insertRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          id: team.teamid,
+          attributes: {
+            motto: team.motto 
+          }
+        }
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
+      await api.patch(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should not modify the team motto', () => {
+      assert.strictEqual(modifiedTeam.teamid, team.teamid);
+      assert.strictEqual(modifiedTeam.name, team.name);
+      assert.strictEqual(modifiedTeam.motto, team.motto);
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });

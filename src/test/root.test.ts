@@ -10,7 +10,7 @@ describe('API Root', () => {
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
   });
 
   describe('GET root document', () => {

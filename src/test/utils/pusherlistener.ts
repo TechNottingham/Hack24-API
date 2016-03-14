@@ -56,14 +56,16 @@ export class PusherListener {
     });
   }
   
-  async waitForEvent() {
+  async waitForEvent(timeout?: number) {
     if (this._events.length > 0)
       return Promise.resolve();
       
     return new Promise<void>((resolve) => {
-      this._monitor.once('event', () => {
-        resolve();
-      })
+      let resolved = false;
+      const tryResolve = () => resolved = resolved || resolve() == void 0;
+      
+      setTimeout(tryResolve, timeout || 1000);
+      this._monitor.once('event', tryResolve)
     });
   }
   
