@@ -39,10 +39,6 @@ export class TeamsRoute {
     return router;
   }
 
-  options(req: Request, res: Response) {
-    res.status(204).send('');
-  }
-
   getAll(req: Request, res: Response) {
     let query: any = {};
     
