@@ -7,8 +7,9 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {Random} from './utils/random';
 import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
+import {Random} from './utils/random';
+import {PusherListener} from './utils/pusherlistener';
 
 describe('Users resource', () => {
 
@@ -516,12 +517,13 @@ describe('Users resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: UserResource.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = MongoDB.Users.createRandomUser();
       
-      let requestDoc: UserResource.TopLevelDocument = {
+      const requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
           id: user.userid,
@@ -530,6 +532,8 @@ describe('Users resource', () => {
           }
         }
       };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
@@ -542,6 +546,7 @@ describe('Users resource', () => {
           response = res.body;
 
           createdUser = await MongoDB.Users.findbyUserId(user.userid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -575,9 +580,24 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser.name, user.name);
     });
 
+    it('should send a users_add event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'users_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.userid, user.userid);
+      assert.strictEqual(data.name, user.name);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Users.removeByUserId(user.userid);
+      await pusherListener.close();
     });
 
   });

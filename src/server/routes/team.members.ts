@@ -71,25 +71,35 @@ export class TeamMembersRoute {
       return respond.Send400(res);
     
     TeamModel
-      .findOne({ teamid: teamId }, 'teamid members')
-      .populate('members', 'userid')
+      .findOne({ teamid: teamId }, 'teamid name members')
+      .populate('members', 'userid name')
       .exec()
       .then((team) => {
         if (team === null)
           return respond.Send404(res);
           
-        let userIdsToDelete = requestDoc.data.filter((memberToDelete) => {
-          return team.members.some((actualMember) => actualMember.userid === memberToDelete.id);
-        }).map((m) => m.id);
-        
-        if (userIdsToDelete.length < requestDoc.data.length)
+        const usersToDelete = team.members.filter((member) => requestDoc.data.some((memberToDelete) => member.userid === memberToDelete.id));
+          
+        if (usersToDelete.length < requestDoc.data.length)
           return respond.Send400(res);
           
+        const userIdsToDelete = usersToDelete.map((u) => u.userid);
         team.members = team.members.filter((member) => userIdsToDelete.indexOf(member.userid) === -1);
         
         team.save((err, result) => {
           if (err)
             return respond.Send500(res, err);
+            
+          usersToDelete.forEach((user) => {
+            this._eventBroadcaster.trigger('teams_update_members_delete', {
+              teamid: team.teamid,
+              name: team.name,
+              member: {
+                userid: user.userid,
+                name: user.name
+              }
+            });
+          });
 
           respond.Send204(res);
         });

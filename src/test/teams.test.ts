@@ -33,8 +33,6 @@ describe('Teams resource', () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = MongoDB.Teams.createRandomTeam();
       
-      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
-      
       const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
@@ -44,6 +42,8 @@ describe('Teams resource', () => {
           }
         }
       };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
       
       await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)

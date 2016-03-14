@@ -210,6 +210,12 @@ export class UsersRoute {
       };
 
       respond.Send201(res, userResponse);
+        
+      this._eventBroadcaster.trigger('users_add', {
+        userid: user.userid,
+        name: user.name
+      });
+      
     });
   }
 

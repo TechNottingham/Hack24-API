@@ -64,7 +64,7 @@ export class PusherListener {
       let resolved = false;
       const tryResolve = () => resolved = resolved || resolve() == void 0;
       
-      setTimeout(tryResolve, timeout || 1000);
+      setTimeout(tryResolve, timeout || 500);
       this._monitor.once('event', tryResolve)
     });
   }
