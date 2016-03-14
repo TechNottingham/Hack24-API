@@ -10,7 +10,7 @@ import {Request, Response, Router} from 'express';
 import {ITeamModel, MongoDBErrors} from '../models';
 import {JSONApi, TeamResource, TeamsResource, UserResource} from '../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
-import {json as jsonParser} from 'body-parser';
+import {JsonApiParser} from '../parsers';
 
 function slugify(name: string): string {
   return slug(name, { lower: true });
@@ -28,13 +28,11 @@ export class TeamsRoute {
   }
   
   createRouter() {
-    const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
-    
     const router = Router();
-    router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, apiJsonParser, this.update.bind(this));
+    router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.update.bind(this));
     router.get('/:teamId', this.get.bind(this));
     router.get('/', this.getAll.bind(this));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, apiJsonParser, this.create.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
     
     return router;
   }
@@ -94,7 +92,6 @@ export class TeamsRoute {
   
   create(req: Request, res: Response) {
     const requestDoc: TeamResource.TopLevelDocument = req.body;
-    const eventBroadcaster = this._eventBroadcaster;
     
     if (!requestDoc 
       || !requestDoc.data
@@ -153,7 +150,7 @@ export class TeamsRoute {
           }
         };
         
-        eventBroadcaster.trigger('team_add', {
+        this._eventBroadcaster.trigger('team_add', {
           teamid: team.teamid,
           name: team.name,
           motto: team.motto
@@ -205,7 +202,7 @@ export class TeamsRoute {
                 }
               };
               
-              eventBroadcaster.trigger('team_add', {
+              this._eventBroadcaster.trigger('team_add', {
                 teamid: team.teamid,
                 name: team.name,
                 motto: team.motto,

@@ -7,7 +7,7 @@ import {UserModel, TeamModel} from '../models';
 import {Request, Response, Router} from 'express';
 import {JSONApi, UserResource, TeamMembersRelationship} from '../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
-import {json as jsonParser} from 'body-parser';
+import {JsonApiParser} from '../parsers';
 
 export class TeamMembersRoute {
   private _eventBroadcaster: EventBroadcaster;
@@ -17,11 +17,9 @@ export class TeamMembersRoute {
   }
   
   createRouter() {
-    const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
-    
     const router = Router();
-    router.post('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, apiJsonParser, this.add.bind(this));
-    router.delete('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, apiJsonParser, this.delete.bind(this));
+    router.post('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.add.bind(this));
+    router.delete('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.delete.bind(this));
     router.get('/:teamId/members', this.get.bind(this));
     
     return router;

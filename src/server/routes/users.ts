@@ -4,11 +4,11 @@ import * as respond from './respond';
 import * as middleware from '../middleware';
 
 import {UserModel, TeamModel} from '../models';
-import {Request, Response, Router} from 'express'
-import {MongoDBErrors} from '../models'
+import {Request, Response, Router} from 'express';
+import {MongoDBErrors} from '../models';
 import {UserResource, UsersResource, TeamResource} from '../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
-import {json as jsonParser} from 'body-parser';
+import {JsonApiParser} from '../parsers';
 
 export class UsersRoute {
   private _eventBroadcaster: EventBroadcaster;
@@ -18,11 +18,9 @@ export class UsersRoute {
   }
   
   createRouter() {
-    const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
-    
     const router = Router();
     router.get('/', this.getAll.bind(this));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, apiJsonParser, this.create.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
     router.get('/:userId', this.get.bind(this));
     
     return router;

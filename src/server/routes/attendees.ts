@@ -5,10 +5,10 @@ import * as middleware from '../middleware';
 
 import {AttendeeModel} from '../models';
 import {Request, Response, Router} from 'express';
-import {MongoDBErrors} from '../models'
+import {MongoDBErrors} from '../models';
 import {AttendeeResource, AttendeesResource} from '../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
-import {json as jsonParser} from 'body-parser';
+import {JsonApiParser} from '../parsers';
 
 export class AttendeesRoute {
   private _eventBroadcaster: EventBroadcaster;
@@ -18,13 +18,11 @@ export class AttendeesRoute {
   }
   
   createRouter() {
-    const apiJsonParser = jsonParser({ type: 'application/vnd.api+json'});
-    
     const router = Router();
     router.get('/:attendeeId', middleware.requiresUser, middleware.requiresAdminUser, this.get.bind(this));
     router.delete('/:attendeeId', middleware.requiresUser, middleware.requiresAdminUser, this.delete.bind(this));
     router.get('/', middleware.requiresUser, middleware.requiresAdminUser, this.getAll.bind(this));
-    router.post('/', middleware.requiresUser, middleware.requiresAdminUser, apiJsonParser, this.create.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAdminUser, JsonApiParser, this.create.bind(this));
     
     return router;
   }
