@@ -279,19 +279,28 @@ export class TeamsRoute {
       return respond.Send204(res);
       
     Log.info(`Modifying team "${teamId}" motto to "${requestDoc.data.attributes.motto}"`);
+    
+    const newMotto = requestDoc.data.attributes.motto.toString();
+    const projection = {
+      teamid: true,
+      name: true,
+      motto: true,
+      'members.userid': true,
+      'members.name': true
+    };
       
     TeamModel
-      .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: requestDoc.data.attributes.motto.toString() })
+      .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: newMotto }, { select: projection })
       .exec()
       .then((team) => {
         respond.Send204(res);
         
-        if (team.motto === requestDoc.data.attributes.motto.toString()) return;
+        if (team.motto === newMotto) return;
         
         this._eventBroadcaster.trigger('teams_update_motto', {
           teamid: team.teamid,
           name: team.name,
-          motto: team.motto,
+          motto: newMotto,
           members: team.members.map((member) => ({ userid: member.userid, name: member.name }))
         });
         

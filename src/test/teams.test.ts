@@ -1070,7 +1070,7 @@ describe('Teams resource', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.motto, team.motto);
+      assert.strictEqual(data.motto, newTeam.motto);
     });
 
     after(async () => {
