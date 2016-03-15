@@ -24,7 +24,7 @@ var Server = require('../build/server/server.js').Server;
 var server = new Server();
 server.listen().then((info) => {
   Log.info(`Server started on port ${info.Port}`);
-  process.send('started');
+  if (process.send !== undefined) process.send('started');
 }).catch((err) => {
   Log.error('Server could not be started');
   Log.error(err);
