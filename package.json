@@ -3,17 +3,15 @@
   "description": "Hack24 Application",
   "version": "0.0.1",
   "private": true,
-  "main": "src/server/index.js",
+  "main": "bin/server.js",
   "scripts": {
-    "prebuild": "rm -rf build/",
+    "clean": "rm -rf build/",
     "build": "node node_modules/typescript/bin/tsc -p src/",
-    "postinstall": "npm run build",
-    "prestart": "npm run build",
+    "build:watch": "node node_modules/typescript/bin/tsc -p src/ -w",
     "start": "node bin/server.js",
     "test": "cd build && mocha --require source-map-support/register --timeout 5000 -R dot",
-    "prebuild:watch": "npm run prebuild",
-    "build:watch": "node node_modules/typescript/bin/tsc -p src/ -w",
-    "test:watch": "cd build && mocha --require source-map-support/register --timeout 5000 -w -R dot"
+    "test:watch": "cd build && mocha --require source-map-support/register --timeout 5000 -w -R dot",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "body-parser": "^1.15.0",
