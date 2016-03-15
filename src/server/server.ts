@@ -11,8 +11,8 @@ import {UsersRoute} from './routes/users';
 import {TeamsRoute} from './routes/teams';
 import {AttendeesRoute} from './routes/attendees';
 import {TeamMembersRoute} from './routes/team.members';
-import {ExpressLogger} from './logger'
-import {EventBroadcaster} from './eventbroadcaster'
+import {ExpressLogger} from './logger';
+import {EventBroadcaster} from './eventbroadcaster';
 
 export interface ServerInfo {
   IP: string
@@ -33,8 +33,7 @@ export class Server {
 
     this._app = express();
     
-    if (process.env.NODE_ENV !== 'production')
-      this._app.use(ExpressLogger);
+    this._app.use(ExpressLogger);
 
     this._app.use('/attendees', attendeesRouter);
     this._app.use('/users', usersRouter);
