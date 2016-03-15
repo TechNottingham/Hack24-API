@@ -7,15 +7,16 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources'
-import {Random} from './utils/random'
+import {JSONApi, TeamsResource, TeamResource, UserResource} from './resources';
+import {Random} from './utils/random';
+import {PusherListener} from './utils/pusherlistener';
 
 describe('Teams resource', () => {
 
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
   });
 
   describe('POST new team', () => {
@@ -26,6 +27,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -41,6 +43,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -52,6 +56,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -94,9 +99,26 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
+    it('should send a teams_add event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.motto, team.motto);
+      assert.strictEqual(data.members.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Teams.removeByTeamId(team.teamid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -109,10 +131,13 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = MongoDB.Teams.createRandomTeam();
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
       
       const teamRequest: TeamResource.TopLevelDocument = {
         data: {
@@ -134,6 +159,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -157,9 +183,26 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members.length, 0);
     });
 
+    it('should send a teams_add event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.motto, null);
+      assert.strictEqual(data.members.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Teams.removeByTeamId(team.teamid);
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await pusherListener.close();
     });
 
   });
@@ -173,11 +216,14 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
       team = await MongoDB.Teams.createRandomTeam();
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
       
       const teamRequest: TeamResource.TopLevelDocument = {
         data: {
@@ -205,6 +251,7 @@ describe('Teams resource', () => {
           response = res.body;
 
           createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -248,10 +295,29 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members[0].equals(user._id), true);
     });
 
+    it('should send a teams_add event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.motto, team.motto);
+      assert.strictEqual(data.members.length, 1);
+      assert.strictEqual(data.members[0].userid, user.userid);
+      assert.strictEqual(data.members[0].name, user.name);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Users.removeByUserId(user.userid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -366,6 +432,48 @@ describe('Teams resource', () => {
 
   });
   
+  describe('OPTIONS teams', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: string;
+
+    before(async () => {
+      await api.options('/teams')
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.text;
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(response, '');
+    });
+    
+  });
+  
   describe('GET teams', () => {
 
     let firstUser: IUser;
@@ -375,6 +483,9 @@ describe('Teams resource', () => {
     let secondTeam: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: TeamsResource.TopLevelDocument;
 
     before(async () => {
@@ -394,6 +505,9 @@ describe('Teams resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -404,6 +518,12 @@ describe('Teams resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the teams resource object self link', () => {
@@ -469,6 +589,50 @@ describe('Teams resource', () => {
 
   });
   
+  describe('OPTIONS teams by slug (teamid)', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: string;
+
+    before(async () => {
+      let team = MongoDB.Teams.createRandomTeam();
+      
+      await api.options(`/teams/${team.teamid}`)
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.text;
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(response, '');
+    });
+    
+  });
+  
   describe('GET team by slug (teamid)', () => {
 
     let firstUser: IUser;
@@ -476,6 +640,9 @@ describe('Teams resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
@@ -490,6 +657,9 @@ describe('Teams resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -500,6 +670,12 @@ describe('Teams resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the team resource object self link', () => {
@@ -552,6 +728,9 @@ describe('Teams resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
@@ -569,6 +748,9 @@ describe('Teams resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -579,6 +761,12 @@ describe('Teams resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the team resource object self link', () => {
@@ -628,6 +816,9 @@ describe('Teams resource', () => {
 
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
@@ -637,12 +828,21 @@ describe('Teams resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
 
     it('should respond with status code 404 Not Found', () => {
       assert.strictEqual(statusCode, 404);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -664,6 +864,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -680,6 +881,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -691,6 +894,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -713,9 +917,14 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -728,6 +937,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -740,6 +950,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -751,6 +963,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -773,9 +986,14 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -789,6 +1007,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let body: string;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -805,6 +1024,8 @@ describe('Teams resource', () => {
         }
       };
       
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
       await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -816,6 +1037,7 @@ describe('Teams resource', () => {
           body = res.text;
 
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -838,9 +1060,98 @@ describe('Teams resource', () => {
       assert.strictEqual(modifiedTeam.members.length, 0);
     });
 
+    it('should send a teams_update_motto event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'teams_update_motto');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.teamid, team.teamid);
+      assert.strictEqual(data.name, team.name);
+      assert.strictEqual(data.motto, newTeam.motto);
+      assert.strictEqual(data.members.length, 0);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
+    });
+
+  });
+
+  describe('PATCH existing team with same motto', () => {
+
+    let attendee: IAttendee;
+    let team: ITeam;
+    let modifiedTeam: ITeam;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      team = await MongoDB.Teams.insertRandomTeam();
+      
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          id: team.teamid,
+          attributes: {
+            motto: team.motto 
+          }
+        }
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+      
+      await api.patch(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+          await pusherListener.waitForEvent();
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should not modify the team motto', () => {
+      assert.strictEqual(modifiedTeam.teamid, team.teamid);
+      assert.strictEqual(modifiedTeam.name, team.name);
+      assert.strictEqual(modifiedTeam.motto, team.motto);
+      assert.strictEqual(modifiedTeam.members.length, 0);
+    });
+
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await pusherListener.close();
     });
 
   });
@@ -852,6 +1163,9 @@ describe('Teams resource', () => {
     let thirdTeam: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: TeamsResource.TopLevelDocument;
 
     before(async () => {
@@ -866,6 +1180,9 @@ describe('Teams resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -876,6 +1193,12 @@ describe('Teams resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the teams resource object self link', () => {

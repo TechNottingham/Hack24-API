@@ -7,15 +7,60 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {Random} from './utils/random';
 import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
+import {Random} from './utils/random';
+import {PusherListener} from './utils/pusherlistener';
 
 describe('Users resource', () => {
 
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
+  });
+  
+  describe('OPTIONS user by ID', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: string;
+
+    before(async () => {
+      let user = MongoDB.Users.createRandomUser();
+      
+      await api.options(`/users/${user.userid}`)
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.text;
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(response, '');
+    });
+    
   });
 
   describe('GET user by ID', () => {
@@ -23,16 +68,22 @@ describe('Users resource', () => {
     let user: IUser;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: UserResource.TopLevelDocument;
 
     before(async () => {
       user = await MongoDB.Users.insertRandomUser();
       
-      await api.get('/users/' + user.userid)
+      await api.get(`/users/${user.userid}`)
         .end()
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -43,6 +94,12 @@ describe('Users resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the user resource object self link', () => {
@@ -75,6 +132,48 @@ describe('Users resource', () => {
 
   });
   
+  describe('OPTIONS users', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: string;
+
+    before(async () => {
+      await api.options('/users')
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.text;
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(response, '');
+    });
+    
+  });
+  
   describe('GET users in teams', () => {
 
     let user: IUser;
@@ -83,6 +182,9 @@ describe('Users resource', () => {
     let otherTeam: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: UsersResource.TopLevelDocument;
 
     before(async () => {
@@ -101,6 +203,9 @@ describe('Users resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -111,6 +216,12 @@ describe('Users resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the user resource object self link', () => {
@@ -177,6 +288,9 @@ describe('Users resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: UserResource.TopLevelDocument;
     let includedTeam: TeamResource.ResourceObject;
     let includedUser: UserResource.ResourceObject;
@@ -191,6 +305,9 @@ describe('Users resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
           includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
           includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
@@ -203,6 +320,12 @@ describe('Users resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the user resource object self link', () => {
@@ -278,6 +401,9 @@ describe('Users resource', () => {
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: UserResource.TopLevelDocument;
     let includedTeam: TeamResource.ResourceObject;
     let includedUser: UserResource.ResourceObject;
@@ -294,6 +420,9 @@ describe('Users resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
           includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
           includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
@@ -306,6 +435,12 @@ describe('Users resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should return the user resource object self link', () => {
@@ -382,12 +517,13 @@ describe('Users resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: UserResource.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = MongoDB.Users.createRandomUser();
       
-      let requestDoc: UserResource.TopLevelDocument = {
+      const requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
           id: user.userid,
@@ -396,6 +532,8 @@ describe('Users resource', () => {
           }
         }
       };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
@@ -408,6 +546,7 @@ describe('Users resource', () => {
           response = res.body;
 
           createdUser = await MongoDB.Users.findbyUserId(user.userid);
+          await pusherListener.waitForEvent();
         });
     });
 
@@ -441,9 +580,24 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser.name, user.name);
     });
 
+    it('should send a users_add event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 1);
+      
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'users_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.userid, user.userid);
+      assert.strictEqual(data.name, user.name);
+    });
+
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
       await MongoDB.Users.removeByUserId(user.userid);
+      await pusherListener.close();
     });
 
   });
@@ -507,6 +661,9 @@ describe('Users resource', () => {
 
     let statusCode: number;
     let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
@@ -515,6 +672,9 @@ describe('Users resource', () => {
         .then((res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
           response = res.body;
         });
     });
@@ -525,6 +685,12 @@ describe('Users resource', () => {
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
     it('should respond with the expected "Resource not found" error', () => {

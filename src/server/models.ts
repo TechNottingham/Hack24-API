@@ -52,12 +52,6 @@ export const AttendeeModel = model<IAttendeeModel>('Attendee', AttendeeSchema);
 
 
 
-export interface IModels {
-  User: Model<IUserModel>;
-  Team: Model<ITeamModel>;
-  Attendee: Model<IAttendeeModel>;
-}
-
 export enum MongoDBErrors {
   E11000_DUPLICATE_KEY = 11000
 }

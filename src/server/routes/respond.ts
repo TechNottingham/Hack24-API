@@ -20,7 +20,7 @@ export function Send204(res: Response) {
 }
 
 export function Send400(res: Response, title?: string) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '400',
       title: title || 'Bad request.'
@@ -32,7 +32,7 @@ export function Send400(res: Response, title?: string) {
 }
 
 export function Send401(res: Response) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '401',
       title: 'Unauthorized.',
@@ -46,7 +46,7 @@ export function Send401(res: Response) {
 }
 
 export function Send403(res: Response) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '403',
       title: 'Access is forbidden.',
@@ -59,7 +59,7 @@ export function Send403(res: Response) {
 }
 
 export function Send404(res: Response) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '404',
       title: 'Resource not found.'
@@ -71,7 +71,7 @@ export function Send404(res: Response) {
 }
 
 export function Send409(res: Response) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '409',
       title: 'Resource ID already exists.'
@@ -83,7 +83,7 @@ export function Send409(res: Response) {
 }
 
 export function Send500(res: Response, err?: Error) {
-  let errorResponse: JSONApi.TopLevelDocument = {
+  const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
       status: '500',
       title: 'Internal server error.',

@@ -12,7 +12,7 @@ describe('Attendees resource', () => {
   let api: request.SuperTest;
 
   before(() => {
-    api = request('http://localhost:' + ApiServer.Port);
+    api = request(`http://localhost:${ApiServer.Port}`);
   });
 
   describe('GET attendee by ID', () => {

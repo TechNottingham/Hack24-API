@@ -1,143 +1,182 @@
 "use strict";
 
-import {Request, Response} from 'express';
-import {IModels, ITeamModel, MongoDBErrors} from '../models';
 import * as respond from './respond';
-import {JSONApi, TeamResource, TeamsResource, UserResource, TeamMembersRelationship} from '../resources';
-import * as slug from 'slug';
+import * as middleware from '../middleware';
 
-declare interface RequestWithModels extends Request {
-  models: IModels
-}
+import {UserModel, TeamModel} from '../models';
+import {Request, Response, Router} from 'express';
+import {JSONApi, UserResource, TeamMembersRelationship} from '../resources';
+import {EventBroadcaster} from '../eventbroadcaster';
+import {JsonApiParser} from '../parsers';
 
-export function Get(req: RequestWithModels, res: Response) {
-  let teamId = req.params.teamId;
-  req.models.Team
-    .findOne({ teamid: teamId }, 'teamid members')
-    .populate('members', 'userid name')
-    .exec()
-    .then((team) => {
-      if (team === null)
-        return respond.Send404(res);
-        
-      let members = team.members.map<JSONApi.ResourceIdentifierObject>((member) => ({
-        type: 'users',
-        id: member.userid
-      }));
-        
-      let includedUsers = team.members.map<UserResource.ResourceObject>((member) => ({
-        links: { self: `/users/${member.userid}` },
-        type: 'users',
-        id: member.userid,
-        attributes: { name: member.name }
-      }));
-        
-      let membersResponse: TeamMembersRelationship.TopLevelDocument = {
-        links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
-        data: members,
-        included: includedUsers
-      };
-      respond.Send200(res, membersResponse);
-    }, respond.Send500.bind(null, res));
-};
+export class TeamMembersRoute {
+  private _eventBroadcaster: EventBroadcaster;
+  
+  constructor(eventBroadcaster: EventBroadcaster) {
+    this._eventBroadcaster = eventBroadcaster;
+  }
+  
+  createRouter() {
+    const router = Router();
+    router.post('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.add.bind(this));
+    router.delete('/:teamId/members', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.delete.bind(this));
+    router.get('/:teamId/members', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    router.options('/:teamId/members', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
+    
+    return router;
+  }
 
-export function Delete(req: RequestWithModels, res: Response) {
-  let teamId = req.params.teamId;
-  let requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
-  
-  if (!requestDoc 
-    || !requestDoc.data
-    || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
-    return respond.Send400(res);
-  
-  let errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
-  if (errorCases.length > 0)
-    return respond.Send400(res);
-  
-  req.models.Team
-    .findOne({ teamid: teamId }, 'teamid members')
-    .populate('members', 'userid')
-    .exec()
-    .then((team) => {
-      if (team === null)
-        return respond.Send404(res);
-        
-      let userIdsToDelete = requestDoc.data.filter((memberToDelete) => {
-        return team.members.some((actualMember) => actualMember.userid === memberToDelete.id);
-      }).map((m) => m.id);
-      
-      if (userIdsToDelete.length < requestDoc.data.length)
-        return respond.Send400(res);
-        
-      team.members = team.members.filter((member) => userIdsToDelete.indexOf(member.userid) === -1);
-      
-      team.save((err, result) => {
-        if (err)
-          return respond.Send500(res, err);
-
-        respond.Send204(res);
-      });
-      
-    }, respond.Send500.bind(null, res));
-};
-
-export function Add(req: RequestWithModels, res: Response) {
-  let teamId = req.params.teamId;
-  let requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
-  
-  if (!requestDoc 
-    || !requestDoc.data
-    || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
-    return respond.Send400(res);
-  
-  let errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
-  if (errorCases.length > 0)
-    return respond.Send400(res);
-  
-  req.models.Team
-    .findOne({ teamid: teamId }, 'teamid members')
-    .populate('members', 'userid')
-    .exec()
-    .then((team) => {
-      if (team === null)
-        return respond.Send404(res);
-        
-      const userIdsToAdd = requestDoc.data.map((user) => user.id);
-        
-      const existingUserIds = userIdsToAdd.filter((userIdToAdd) => {
-        return team.members.some((actualMember) => actualMember.userid === userIdToAdd);
-      });
-      
-      if (existingUserIds.length > 0)
-        return respond.Send400(res, 'One or more users are already members of this team.');
-      
-      req.models.User
-        .find({ userid: { $in: userIdsToAdd } }, 'userid')
-        .exec()
-        .then((users) => {
-          if (users.length !== userIdsToAdd.length)
-            return respond.Send400(res, 'One or more of the specified users could not be found.');
-            
-          const userObjectIds = users.map((user) => user._id);
-            
-          req.models.Team
-            .find({ members: { $in: userObjectIds }}, 'teamid')
-            .exec()
-            .then((teams) => {
-              if (teams.length > 0)
-                return respond.Send400(res, 'One or more of the specified users are already in a team.');
+  get(req: Request, res: Response) {
+    let teamId = req.params.teamId;
+    TeamModel
+      .findOne({ teamid: teamId }, 'teamid members')
+      .populate('members', 'userid name')
+      .exec()
+      .then((team) => {
+        if (team === null)
+          return respond.Send404(res);
           
-              team.members = team.members.concat(users.map((user) => user._id));
-              
-              team.save((err, result) => {
-                if (err)
-                  return respond.Send500(res, err);
+        let members = team.members.map<JSONApi.ResourceIdentifierObject>((member) => ({
+          type: 'users',
+          id: member.userid
+        }));
+          
+        let includedUsers = team.members.map<UserResource.ResourceObject>((member) => ({
+          links: { self: `/users/${member.userid}` },
+          type: 'users',
+          id: member.userid,
+          attributes: { name: member.name }
+        }));
+          
+        let membersResponse: TeamMembersRelationship.TopLevelDocument = {
+          links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
+          data: members,
+          included: includedUsers
+        };
+        respond.Send200(res, membersResponse);
+      }, respond.Send500.bind(null, res));
+  };
 
-                respond.Send204(res);
-              });
-              
-            })
+  delete(req: Request, res: Response) {
+    let teamId = req.params.teamId;
+    let requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
+    
+    if (!requestDoc 
+      || !requestDoc.data
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      return respond.Send400(res);
+    
+    let errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
+    if (errorCases.length > 0)
+      return respond.Send400(res);
+    
+    TeamModel
+      .findOne({ teamid: teamId }, 'teamid name members')
+      .populate('members', 'userid name')
+      .exec()
+      .then((team) => {
+        if (team === null)
+          return respond.Send404(res);
+          
+        const usersToDelete = team.members.filter((member) => requestDoc.data.some((memberToDelete) => member.userid === memberToDelete.id));
+          
+        if (usersToDelete.length < requestDoc.data.length)
+          return respond.Send400(res);
+          
+        const userIdsToDelete = usersToDelete.map((u) => u.userid);
+        team.members = team.members.filter((member) => userIdsToDelete.indexOf(member.userid) === -1);
+        
+        team.save((err, result) => {
+          if (err)
+            return respond.Send500(res, err);
+            
+          usersToDelete.forEach((user) => {
+            this._eventBroadcaster.trigger('teams_update_members_delete', {
+              teamid: team.teamid,
+              name: team.name,
+              member: {
+                userid: user.userid,
+                name: user.name
+              }
+            });
+          });
+
+          respond.Send204(res);
         });
-      
-    }, respond.Send500.bind(null, res));
-};
+        
+      }, respond.Send500.bind(null, res));
+  };
+
+  add(req: Request, res: Response) {
+    let teamId = req.params.teamId;
+    let requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
+    
+    if (!requestDoc 
+      || !requestDoc.data
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      return respond.Send400(res);
+    
+    let errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
+    if (errorCases.length > 0)
+      return respond.Send400(res);
+    
+    TeamModel
+      .findOne({ teamid: teamId }, 'teamid name members')
+      .populate('members', 'userid')
+      .exec()
+      .then((team) => {
+        if (team === null)
+          return respond.Send404(res);
+          
+        const userIdsToAdd = requestDoc.data.map((user) => user.id);
+          
+        const existingUserIds = userIdsToAdd.filter((userIdToAdd) => {
+          return team.members.some((actualMember) => actualMember.userid === userIdToAdd);
+        });
+        
+        if (existingUserIds.length > 0)
+          return respond.Send400(res, 'One or more users are already members of this team.');
+        
+        UserModel
+          .find({ userid: { $in: userIdsToAdd } }, 'userid name')
+          .exec()
+          .then((users) => {
+            if (users.length !== userIdsToAdd.length)
+              return respond.Send400(res, 'One or more of the specified users could not be found.');
+              
+            const userObjectIds = users.map((user) => user._id);
+              
+            TeamModel
+              .find({ members: { $in: userObjectIds }}, 'teamid')
+              .exec()
+              .then((teams) => {
+                if (teams.length > 0)
+                  return respond.Send400(res, 'One or more of the specified users are already in a team.');
+            
+                team.members = team.members.concat(users.map((user) => user._id));
+                
+                team.save((err, result) => {
+                  if (err)
+                    return respond.Send500(res, err);
+                  
+                  users.forEach(user => {
+                    this._eventBroadcaster.trigger('teams_update_members_add', {
+                      teamid: team.teamid,
+                      name: team.name,
+                      member: {
+                        userid: user.userid,
+                        name: user.name
+                      }
+                    });
+                  });
+
+                  respond.Send204(res);
+                });
+                
+              })
+          });
+        
+      }, respond.Send500.bind(null, res));
+  }
+
+}

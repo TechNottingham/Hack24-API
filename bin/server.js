@@ -1,5 +1,20 @@
 require('source-map-support').install();
 
+function ensureEnvironment(vars) {
+  var missing = vars.filter((val) => process.env[val] === undefined);
+  if (missing.length > 0) {
+    missing.forEach((name) => console.error('Environment variable %s is not set', name));
+    process.exit(1);
+  }
+}
+
+ensureEnvironment([
+  'HACKBOT_PASSWORD',
+  'ADMIN_USERNAME',
+  'ADMIN_PASSWORD',
+  'PUSHER_URL'
+]);
+
 var Server = require('../build/server/server.js').Server;
 
 var server = new Server();
