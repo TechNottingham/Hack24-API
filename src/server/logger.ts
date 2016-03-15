@@ -2,7 +2,7 @@ import * as morgan from 'morgan'
 import {transports, Logger} from 'winston'
 
 const consoleLogger = new transports.Console({
-  level: 'debug',
+  level: process.env.NODE_ENV === 'production' ? 'error' : process.env.LOG_LEVEL || 'debug',
   timestamp: true,
   handleExceptions: false,
   colorize: process.env.NODE_ENV !== 'production'

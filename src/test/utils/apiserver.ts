@@ -66,22 +66,19 @@ export class ApiServer {
         silent: true
       });
       
+      this._api.once('message', () => {
+        resolve();
+      })
+      
       this._api.stderr.on('data', (data: Buffer) => {
         console.log(`!> ${data.toString('utf8')}`);
       });
       
-      let waitingForResolve = true;
-      
       this._api.stdout.on('data', (data: Buffer) => {
-        const dataStr = data.toString('utf8');
-        console.log(`>> ${dataStr}`);
-        if (waitingForResolve && dataStr.startsWith('Server started on port')) {
-          waitingForResolve = false;
-          resolve();
-        }
+        console.log(`#> ${data.toString('utf8')}`);
       });
     
-      this._api.on('close', function (code) {
+      this._api.once('close', function (code) {
         if (code !== null && code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
       });
     
