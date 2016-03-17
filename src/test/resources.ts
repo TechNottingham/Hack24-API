@@ -139,6 +139,32 @@ export declare module TeamMembersRelationship {
   
 }
 
+export declare module HackResource {
+
+  export interface AttributesObject extends JSONApi.AttributesObject {
+    name?: string;
+  }
+
+  export interface ResourceObject extends JSONApi.ResourceObject {
+    attributes?: AttributesObject;
+  }
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: ResourceObject;
+  }
+
+}
+
+export declare module HacksResource {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: HackResource.ResourceObject[];
+  }
+  
+}
+
 export declare module AttendeeResource {
 
   export interface AttributesObject extends JSONApi.AttributesObject {

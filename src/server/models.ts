@@ -39,6 +39,22 @@ export const TeamModel = model<ITeamModel>('Team', TeamSchema);
 
 
 
+export interface IHack {
+  hackid: string;
+  name: string;
+}
+
+export interface IHackModel extends IHack, Document { }
+
+export const HackSchema = new Schema({
+  hackid: { type: String, unique: true, required: true },
+  name: { type: String, unique : true, required : true },
+  modified: { type: Date, default: Date.now }
+});
+export const HackModel = model<IHackModel>('Hack', HackSchema);
+
+
+
 export interface IAttendee {
   attendeeid: string;
 }
