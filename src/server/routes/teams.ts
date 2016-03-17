@@ -5,7 +5,7 @@ import * as slug from 'slug';
 import * as middleware from '../middleware';
 
 import {Log} from '../logger';
-import {UserModel, TeamModel} from '../models';
+import {UserModel, IUserModel, TeamModel, HackModel, IHackModel} from '../models';
 import {Request, Response, Router} from 'express';
 import {ITeamModel, MongoDBErrors} from '../models';
 import {JSONApi, TeamResource, TeamsResource, UserResource} from '../resources';
@@ -19,6 +19,10 @@ function slugify(name: string): string {
 function escapeForRegex(str: string): string {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
+  
+function AsyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
+  return (req: Request, res: Response) => fn.call(this, req, res).catch((err) => respond.Send500.bind(res));
+}
 
 export class TeamsRoute {
   private _eventBroadcaster: EventBroadcaster;
@@ -28,13 +32,15 @@ export class TeamsRoute {
   }
   
   createRouter() {
+    const asyncHandler = AsyncHandler.bind(this);
     const router = Router();
+    
     router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.update.bind(this));
     router.get('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
     router.options('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.get('/', middleware.allowAllOriginsWithGetAndHeaders, this.getAll.bind(this));
     router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create));
     
     return router;
   }
@@ -65,6 +71,10 @@ export class TeamsRoute {
             members: {
               links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
               data: team.members.map((member) => ({ type: 'users', id: member.userid }))
+            },
+            entries: {
+              links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+              data: null
             }
           }
         }));
@@ -92,7 +102,7 @@ export class TeamsRoute {
       }, respond.Send500.bind(null, res));
   }
   
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const requestDoc: TeamResource.TopLevelDocument = req.body;
     
     if (!requestDoc 
@@ -107,116 +117,92 @@ export class TeamsRoute {
       
     const relationships = requestDoc.data.relationships;
     let members: JSONApi.ResourceIdentifierObject[] = [];
+    let entries: JSONApi.ResourceIdentifierObject[] = [];
 
     if (relationships) {
-      if (!relationships.members
-        || !relationships.members.data
-        || (relationships.members.data !== null && !Array.isArray(relationships.members.data)))
-        return respond.Send400(res);
+      if (relationships.members && relationships.members.data) {
+        if (!Array.isArray(relationships.members.data))
+          return respond.Send400(res);
+        members = relationships.members.data;
+      }
       
-      members = relationships.members.data;
+      if (relationships.entries && relationships.entries.data) {
+        if (!Array.isArray(relationships.entries.data))
+          return respond.Send400(res);
+        entries = relationships.entries.data;
+      }
     }
     
     const team = new TeamModel({
       teamid: slugify(requestDoc.data.attributes.name),
       name: requestDoc.data.attributes.name,
       motto: requestDoc.data.attributes.motto || null,
-      members: []
+      members: [],
+      entries: []
     });
     
-    if (members.length === 0) {
-      return team.save((err, result) => {
-        if (err) {
-          if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
-            return respond.Send409(res);
-          return respond.Send500(res, err);
+    let users: IUserModel[] = [];
+    let hacks: IHackModel[] = [];
+    
+    if (members.length > 0) {
+      users = await UserModel.find({
+        userid: {
+          $in: members.map((member) => member.id.toString())
         }
-        
-        const teamResponse: TeamResource.TopLevelDocument = {
-          links: {
-            self: `/teams/${encodeURIComponent(team.teamid)}`
-          },
-          data: {
-            type: 'teams',
-            id: team.teamid,
-            attributes: {
-              name: team.name,
-              motto: team.motto
-            },
-            relationships: {
-              members: {
-                links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
-                data: null
-              }
-            }
-          }
-        };
-        
-        this._eventBroadcaster.trigger('teams_add', {
-          teamid: team.teamid,
-          name: team.name,
-          motto: team.motto,
-          members: []
-        });
-        
-        respond.Send201(res, teamResponse);
-      });
+      }, '_id userid name').exec();
+      team.members = users.map((user) => user._id);
     }
     
-    const membersQuery = {
-      userid: {
-        $in: members.map((member) => member.id.toString())
+    if (entries.length > 0) {
+      hacks = await HackModel.find({
+        hackid: {
+          $in: entries.map((entry) => entry.id.toString())
+        }
+      }, '_id hackid name').exec();
+      team.entries = hacks.map((hack) => hack._id);
+    }
+    
+    try {
+      await team.save();
+    } catch (err) {
+      if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
+        return respond.Send409(res);
+      throw err;
+    }
+    
+    const teamResponse: TeamResource.TopLevelDocument = {
+      links: {
+        self: `/teams/${encodeURIComponent(team.teamid)}`
+      },
+      data: {
+        type: 'teams',
+        id: team.teamid,
+        attributes: {
+          name: team.name,
+          motto: team.motto
+        },
+        relationships: {
+          members: {
+            links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
+            data: users.map((user) => ({ type: 'users', id: user.userid}))
+          },
+          entries: {
+            links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+            data: hacks.map((hack) => ({ type: 'hacks', id: hack.hackid}))
+          }
+        }
       }
     };
-      
-    UserModel
-      .find(membersQuery, '_id')
-      .exec()
-      .then((users) => {
-        team.members = users.map((user) => user._id)
-        
-        team.save((err, result: ITeamModel) => {
-          if (err) {
-            if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
-              return respond.Send409(res);
-            return respond.Send500(res, err);
-          }
-          
-          TeamModel
-            .findById(result._id)
-            .populate('members', 'userid name')
-            .exec()
-            .then((team) => {
-              const teamResponse: TeamResource.TopLevelDocument = {
-                links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
-                data: {
-                  type: 'teams',
-                  id: team.teamid,
-                  attributes: {
-                    name: team.name,
-                    motto: team.motto
-                  },
-                  relationships: {
-                    members: {
-                      links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
-                      data: team.members.map((member) => ({ type: 'users', id: member.userid}))
-                    }
-                  }
-                }
-              };
-              
-              this._eventBroadcaster.trigger('teams_add', {
-                teamid: team.teamid,
-                name: team.name,
-                motto: team.motto,
-                members: team.members.map((member) => ({ userid: member.userid, name: member.name }))
-              });
-              
-              respond.Send201(res, teamResponse);
-            }, respond.Send500.bind(null, res));
-        });
-        
-      }, respond.Send500.bind(null, res));
+    
+    this._eventBroadcaster.trigger('teams_add', {
+      teamid: team.teamid,
+      name: team.name,
+      motto: team.motto,
+      members: users.map((user) => ({ userid: user.userid, name: user.name })),
+      entries: hacks.map((hack) => ({ hackid: hack.hackid, name: hack.name }))
+    });
+    
+    respond.Send201(res, teamResponse);
   }
 
   get(req: Request, res: Response) {
@@ -250,6 +236,10 @@ export class TeamsRoute {
               members: {
                 links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
                 data: team.members.map((member) => ({ type: 'users', id: member.userid }))
+              },
+              entries: {
+                links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+                data: null
               }
             }
           },

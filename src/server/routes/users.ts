@@ -72,6 +72,10 @@ export class UsersRoute {
                 members: {
                   links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
                   data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
+                },
+                entries: {
+                  links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+                  data: null
                 }
               }
             }));
@@ -134,6 +138,10 @@ export class UsersRoute {
                   members: {
                     links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
                     data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
+                  },
+                  entries: {
+                    links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+                    data: null
                   }
                 }
               }

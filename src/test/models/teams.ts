@@ -9,6 +9,7 @@ export interface ITeam {
   name: string;
   motto: string;
   members: ObjectID[];
+  entries: ObjectID[];
 }
 
 export class Teams {
@@ -55,14 +56,15 @@ export class Teams {
     });
   }
   
-  public createRandomTeam(members?: ObjectID[], prefix?: string): ITeam {
+  public createRandomTeam(prefix?: string): ITeam {
     prefix = prefix || '';
     let randomPart = Random.str(5);
     return { 
       teamid: `random-team-${prefix}${randomPart}`,
       name: `Random Team ${prefix}${randomPart}`,
       motto: `Random motto ${randomPart}`,
-      members: members || []
+      members: [],
+      entries: []
     };
   }
   
@@ -77,7 +79,8 @@ export class Teams {
   }
   
   public insertRandomTeam(members?: ObjectID[], prefix?: string): Promise<ITeam> {
-    let randomTeam = this.createRandomTeam(members, prefix);
+    const randomTeam = this.createRandomTeam(prefix);
+    randomTeam.members = members || [];
     return new Promise<ITeam>((resolve, reject) => {
       this._collection.insertOne(randomTeam).then((result) => {
         randomTeam._id = result.insertedId;

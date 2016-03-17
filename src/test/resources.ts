@@ -101,7 +101,8 @@ export declare module UsersResource {
 export declare module TeamResource {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {
-    members: JSONApi.ToManyRelationshipsObject
+    members: JSONApi.ToManyRelationshipsObject;
+    entries: JSONApi.ToManyRelationshipsObject;
   }
 
   export interface AttributesObject extends JSONApi.AttributesObject {

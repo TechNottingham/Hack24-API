@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
 import {ITeam} from './models/teams';
+import {IHack} from './models/hacks';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
@@ -207,10 +208,11 @@ describe('Teams resource', () => {
 
   });
 
-  describe('POST new team with members', () => {
+  describe('POST new team with members and hacks', () => {
 
     let attendee: IAttendee;
     let user: IUser;
+    let hack: IHack;
     let team: ITeam;
     let createdTeam: ITeam;
     let statusCode: number;
@@ -221,6 +223,7 @@ describe('Teams resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
+      hack = await MongoDB.Hacks.insertRandomHack();
       team = await MongoDB.Teams.createRandomTeam();
       
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -235,6 +238,9 @@ describe('Teams resource', () => {
           relationships: {
             members: {
               data: [{ type: 'users', id: user.userid}]
+            },
+            entries: {
+              data: [{ type: 'hacks', id: hack.hackid}]
             }
           }
         }
@@ -295,6 +301,11 @@ describe('Teams resource', () => {
       assert.strictEqual(createdTeam.members[0].equals(user._id), true);
     });
 
+    it('should add the hack to the created team', () => {
+      assert.strictEqual(createdTeam.entries.length, 1);
+      assert.strictEqual(createdTeam.entries[0].equals(hack._id), true);
+    });
+
     it('should send a teams_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
       
@@ -308,9 +319,14 @@ describe('Teams resource', () => {
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
       assert.strictEqual(data.motto, team.motto);
+      
       assert.strictEqual(data.members.length, 1);
       assert.strictEqual(data.members[0].userid, user.userid);
       assert.strictEqual(data.members[0].name, user.name);
+
+      assert.strictEqual(data.entries.length, 1);
+      assert.strictEqual(data.entries[0].hackid, hack.hackid);
+      assert.strictEqual(data.entries[0].name, hack.name);
     });
 
     after(async () => {
@@ -495,7 +511,8 @@ describe('Teams resource', () => {
       secondUser = await MongoDB.Users.insertRandomUser('B');
       thirdUser = await MongoDB.Users.insertRandomUser('C');
       
-      firstTeam = MongoDB.Teams.createRandomTeam([firstUser._id], 'A');
+      firstTeam = MongoDB.Teams.createRandomTeam('A');
+      firstTeam.members = [firstUser._id];
       delete firstTeam.motto;
       await MongoDB.Teams.insertTeam(firstTeam);
       secondTeam = await MongoDB.Teams.insertRandomTeam([secondUser._id, thirdUser._id], 'B');
@@ -737,7 +754,8 @@ describe('Teams resource', () => {
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
       
-      team = MongoDB.Teams.createRandomTeam([firstUser._id, secondUser._id])
+      team = MongoDB.Teams.createRandomTeam();
+      team.members = [firstUser._id, secondUser._id];
       delete team.motto;
       
       await MongoDB.Teams.insertTeam(team);
