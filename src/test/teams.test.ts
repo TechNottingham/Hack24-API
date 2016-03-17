@@ -762,15 +762,19 @@ describe('Teams resource', () => {
       
       const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
       assert.strictEqual(users.length, 2);
+      assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
       assert.strictEqual(users[0].attributes.name, firstUser.name);
+      assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
       
       const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
       assert.strictEqual(hacks.length, 2);
+      assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
       assert.strictEqual(hacks[0].attributes.name, firstHack.name);
+      assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
       assert.strictEqual(hacks[1].id, secondHack.hackid);
       assert.strictEqual(hacks[1].attributes.name, secondHack.name);
     });
@@ -789,6 +793,8 @@ describe('Teams resource', () => {
 
     let firstUser: IUser;
     let secondUser: IUser;
+    let firstHack: IHack;
+    let secondHack: IHack;
     let team: ITeam;
     let statusCode: number;
     let contentType: string;
@@ -800,9 +806,12 @@ describe('Teams resource', () => {
     before(async () => {
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
+      firstHack = await MongoDB.Hacks.insertRandomHack('A');
+      secondHack = await MongoDB.Hacks.insertRandomHack('B');
       
       team = MongoDB.Teams.createRandomTeam();
       team.members = [firstUser._id, secondUser._id];
+      team.entries = [firstHack._id, secondHack._id];
       delete team.motto;
       
       await MongoDB.Teams.insertTeam(team);
@@ -852,26 +861,40 @@ describe('Teams resource', () => {
       assert.strictEqual(response.data.relationships.members.data[1].id, secondUser.userid);
     });
 
-    it('should include the related members', () => {
-      assert.strictEqual(response.included.length, 2);
-      assert.strictEqual(response.included.filter((obj) => obj.type === 'users').length, 2);
+    it('should return the hack relationships', () => {
+      assert.strictEqual(response.data.relationships.entries.data[0].type, 'hacks');
+      assert.strictEqual(response.data.relationships.entries.data[0].id, firstHack.hackid);
+      assert.strictEqual(response.data.relationships.entries.data[1].type, 'hacks');
+      assert.strictEqual(response.data.relationships.entries.data[1].id, secondHack.hackid);
     });
 
-    it('should include each expected user', () => {
-      const users = <UserResource.ResourceObject[]> response.included;
+    it('should include the related members and entries', () => {
+      assert.strictEqual(response.included.length, 4);
       
+      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
+      assert.strictEqual(users.length, 2);
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
       assert.strictEqual(users[0].attributes.name, firstUser.name);
-      
       assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
+      
+      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
+      assert.strictEqual(hacks.length, 2);
+      assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
+      assert.strictEqual(hacks[0].id, firstHack.hackid);
+      assert.strictEqual(hacks[0].attributes.name, firstHack.name);
+      assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
+      assert.strictEqual(hacks[1].id, secondHack.hackid);
+      assert.strictEqual(hacks[1].attributes.name, secondHack.name);
     });
 
     after(async () => {
       await MongoDB.Users.removeByUserId(firstUser.userid);
       await MongoDB.Users.removeByUserId(secondUser.userid);
+      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
+      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
       await MongoDB.Teams.removeByTeamId(team.teamid);
     });
 
