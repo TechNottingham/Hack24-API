@@ -194,7 +194,7 @@ describe('Team Members relationship', () => {
           body = res.text;
           
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
+          await pusherListener.waitForEvents(2);
         });
     });
 
