@@ -7,6 +7,7 @@ export interface IHack {
   _id?: ObjectID;
   hackid: string;
   name: string;
+  challenges: ObjectID[];
 }
 
 export class Hacks {
@@ -58,7 +59,8 @@ export class Hacks {
     let randomPart = Random.str(5);
     return { 
       hackid: `random-hack-${prefix}${randomPart}`,
-      name: `Random Hack ${prefix}${randomPart}`
+      name: `Random Hack ${prefix}${randomPart}`,
+      challenges: []
     };
   }
   

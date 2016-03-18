@@ -166,6 +166,15 @@ export declare module HackResource {
 
 }
 
+export declare module HackChallengesRelationship {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}
+
 export declare module HacksResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {

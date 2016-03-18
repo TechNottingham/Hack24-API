@@ -5,10 +5,9 @@ import * as slug from 'slug';
 import * as middleware from '../middleware';
 
 import {Log} from '../logger';
-import {UserModel, IUserModel, TeamModel, HackModel, IHackModel} from '../models';
+import {UserModel, IUserModel, TeamModel, HackModel, IHackModel, ITeamModel, MongoDBErrors, ChallengeModel} from '../models';
 import {Request, Response, Router} from 'express';
-import {ITeamModel, MongoDBErrors} from '../models';
-import {JSONApi, TeamResource, TeamsResource, UserResource, HackResource} from '../../resources';
+import {JSONApi, TeamResource, TeamsResource, UserResource, HackResource, ChallengeResource} from '../../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
 import {JsonApiParser} from '../parsers';
 
@@ -52,8 +51,18 @@ export class TeamsRoute {
     const teams = await TeamModel
       .find(query, 'teamid name motto members entries')
       .sort({ teamid: 1 })
-      .populate('members', 'userid name')
-      .populate('entries', 'hackid name')
+      .populate({
+        path: 'members',
+        select: 'userid name'
+      })
+      .populate({
+        path: 'entries',
+        select: 'hackid name challenges',
+        populate: {
+          path: 'challenges',
+          select: 'challengeid name'
+        }
+      })
       .exec();
 
     const teamResponses = teams.map<TeamResource.ResourceObject>((team) => ({
@@ -90,10 +99,26 @@ export class TeamsRoute {
         links: { self: `/hacks/${hack.hackid}` },
         type: 'hacks',
         id: hack.hackid,
-        attributes: { name: hack.name }
+        attributes: { name: hack.name },
+        relationships: {
+          challenges: {
+            links: { self: `/hacks/${encodeURIComponent(hack.hackid)}/challenges` },
+            data: hack.challenges.map((challenge) => ({ type: 'challenges', id: challenge.challengeid }))
+          }
+        }
       }));
 
-      return [...docs, ...members, ...entries];
+      const challenges = team.entries.reduce<ChallengeResource.ResourceObject[]>((previous, hack) => {
+        const these = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+          links: { self: `/challenges/${challenge.challengeid}` },
+          type: 'challenges',
+          id: challenge.challengeid,
+          attributes: { name: challenge.name }
+        }));
+        return [...previous, ...these];
+      }, []);
+
+      return [...docs, ...members, ...entries, ...challenges];
     }, []);
 
     const teamsResponse: TeamsResource.TopLevelDocument = {
@@ -213,7 +238,18 @@ export class TeamsRoute {
 
     const team = await TeamModel
       .findOne({ teamid: teamId }, 'teamid name motto members entries')
-      .populate('members entries')
+      .populate({
+        path: 'members',
+        select: 'userid name'
+      })
+      .populate({
+        path: 'entries',
+        select: 'hackid name challenges',
+        populate: {
+          path: 'challenges',
+          select: 'challengeid name'
+        }
+      })
       .exec();
 
     if (team === null)
@@ -230,8 +266,24 @@ export class TeamsRoute {
       links: { self: `/hacks/${hack.hackid}` },
       type: 'hacks',
       id: hack.hackid,
-      attributes: { name: hack.name }
+      attributes: { name: hack.name },
+      relationships: {
+        challenges: {
+          links: { self: `/hacks/${encodeURIComponent(hack.hackid)}/challenges` },
+          data: hack.challenges.map((challenge) => ({ type: 'challenges', id: challenge.challengeid }))
+        }
+      }
     }));
+
+    const includedChallenges = team.entries.reduce<ChallengeResource.ResourceObject[]>((previous, hack) => {
+      const these = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+        links: { self: `/challenges/${challenge.challengeid}` },
+        type: 'challenges',
+        id: challenge.challengeid,
+        attributes: { name: challenge.name }
+      }));
+      return [...previous, ...these];
+    }, []);
 
     const result: TeamResource.TopLevelDocument = {
       links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
@@ -253,7 +305,7 @@ export class TeamsRoute {
           }
         }
       },
-      included: [...includedUsers, ...includedHacks]
+      included: [...includedUsers, ...includedHacks, ...includedChallenges]
     };
 
     respond.Send200(res, result);
@@ -321,4 +373,5 @@ export class TeamsRoute {
 
     respond.Send204(res);
   }
+
 }

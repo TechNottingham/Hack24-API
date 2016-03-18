@@ -1,0 +1,617 @@
+"use strict";
+
+import * as assert from 'assert';
+import {MongoDB} from './utils/mongodb';
+import {IHack} from './models/hacks';
+import {IChallenge} from './models/challenges';
+import {IAttendee} from './models/attendees';
+import {ApiServer} from './utils/apiserver';
+import * as request from 'supertest';
+import {JSONApi, HackChallengesRelationship, ChallengeResource} from '../resources';
+import {PusherListener} from './utils/pusherlistener';
+
+describe('Hack Entries relationship', () => {
+
+  let api: request.SuperTest;
+
+  before(() => {
+    api = request(`http://localhost:${ApiServer.Port}`);
+  });
+  
+  describe('OPTIONS hack challenges', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: string;
+
+    before(async () => {
+      let hack = MongoDB.Hacks.createRandomHack();
+      
+      await api.options(`/hacks/${hack.hackid}/challenges`)
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.text;
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(response, '');
+    });
+    
+  });
+
+  describe('GET hack challenges', () => {
+
+    let firstChallenge: IChallenge;
+    let secondChallenge: IChallenge;
+    let thirdChallenge: IChallenge;
+    let hack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let accessControlAllowOrigin: string;
+    let accessControlRequestMethod: string;
+    let accessControlRequestHeaders: string;
+    let response: HackChallengesRelationship.TopLevelDocument;
+
+    before(async () => {
+      firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
+      
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+            
+      await api.get(`/hacks/${hack.hackid}/challenges`)
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          accessControlAllowOrigin = res.header['access-control-allow-origin'];
+          accessControlRequestMethod = res.header['access-control-request-method'];
+          accessControlRequestHeaders = res.header['access-control-request-headers'];
+          response = res.body;
+        });
+    });
+
+    it('should respond with status code 200 OK', () => {
+      assert.strictEqual(statusCode, 200);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should allow all origins access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, '*');
+      assert.strictEqual(accessControlRequestMethod, 'GET');
+      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
+    });
+
+    it('should return the hack challenges self link', () => {
+      assert.strictEqual(response.links.self, `/hacks/${hack.hackid}/challenges`);
+    });
+
+    it('should return each entry', () => {
+      assert.strictEqual(response.data[0].type, 'challenges');
+      assert.strictEqual(response.data[0].id, firstChallenge.challengeid);
+      
+      assert.strictEqual(response.data[1].type, 'challenges');
+      assert.strictEqual(response.data[1].id, secondChallenge.challengeid);
+      
+      assert.strictEqual(response.data[2].type, 'challenges');
+      assert.strictEqual(response.data[2].id, thirdChallenge.challengeid);
+    });
+
+    it('should include each expected challenge', () => {
+      const challenges = <ChallengeResource.ResourceObject[]> response.included;
+      
+      assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
+      assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
+      assert.strictEqual(challenges[0].attributes.name, firstChallenge.name);
+      
+      assert.strictEqual(challenges[1].links.self, `/challenges/${secondChallenge.challengeid}`);
+      assert.strictEqual(challenges[1].id, secondChallenge.challengeid);
+      assert.strictEqual(challenges[1].attributes.name, secondChallenge.name);
+      
+      assert.strictEqual(challenges[2].links.self, `/challenges/${thirdChallenge.challengeid}`);
+      assert.strictEqual(challenges[2].id, thirdChallenge.challengeid);
+      assert.strictEqual(challenges[2].attributes.name, thirdChallenge.name);
+    });
+
+    after(async () => {
+      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid);
+
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+    });
+
+  });
+
+  describe('DELETE multiple hack challenges', () => {
+
+    let attendee: IAttendee;
+    let firstChallenge: IChallenge;
+    let secondChallenge: IChallenge;
+    let thirdChallenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      
+      firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
+      
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+      
+      let req: HackChallengesRelationship.TopLevelDocument = {
+        data: [{
+          type: 'challenges',
+          id: firstChallenge.challengeid
+        },{
+          type: 'challenges',
+          id: thirdChallenge.challengeid
+        }]
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      await api.delete(`/hacks/${hack.hackid}/challenges`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(req)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+          
+          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+          await pusherListener.waitForEvents(2);
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should have removed the two challenges from the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(secondChallenge._id), true);
+    });
+
+    it('should send two hacks_update_challenges_delete events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 2);
+    });
+
+    it('should send a hacks_update_challenges_delete event for the first hack entry', () => {
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, firstChallenge.challengeid);
+      assert.strictEqual(data.entry.name, firstChallenge.name);
+    });
+
+    it('should send a hacks_update_challenges_delete event for the third hack entry', () => {
+      const event = pusherListener.events[1];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, thirdChallenge.challengeid);
+      assert.strictEqual(data.entry.name, thirdChallenge.name);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      
+      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid);
+
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      
+      await pusherListener.close();
+    });
+
+  });
+
+  describe("DELETE hack challenges which don't exist", () => {
+
+    let attendee: IAttendee;
+    let challenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      
+      challenge = await MongoDB.Challenges.insertRandomChallenge();
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+      
+      let req: HackChallengesRelationship.TopLevelDocument = {
+        data: [{
+          type: 'challenges',
+          id: challenge.challengeid
+        },{
+          type: 'challenges',
+          id: 'does not exist'
+        }]
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      await api.delete(`/hacks/${hack.hackid}/challenges`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(req)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+          await pusherListener.waitForEvent();
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'Bad request.');
+    });
+
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
+    });
+
+    it('should not send any events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      await pusherListener.close();
+    });
+
+  });
+
+  describe('POST hack challenges', () => {
+
+    let attendee: IAttendee;
+    let challenge: IChallenge;
+    let firstNewChallenge: IChallenge;
+    let secondNewChallenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      
+      challenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      firstNewChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      secondNewChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
+      
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+      
+      let req: HackChallengesRelationship.TopLevelDocument = {
+        data: [{
+          type: 'challenges',
+          id: firstNewChallenge.challengeid
+        },{
+          type: 'challenges',
+          id: secondNewChallenge.challengeid
+        }]
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      await api.post(`/hacks/${hack.hackid}/challenges`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(req)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+          
+          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+          await pusherListener.waitForEvents(2);
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should not return a content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should not return a response body', () => {
+      assert.strictEqual(body, '');
+    });
+
+    it('should have added the new challenge to the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 3);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
+      assert.strictEqual(modifiedHack.challenges[1].equals(firstNewChallenge._id), true);
+      assert.strictEqual(modifiedHack.challenges[2].equals(secondNewChallenge._id), true);
+    });
+
+    it('should send two hacks_update_challenges_add events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 2);
+    });
+
+    it('should send a hacks_update_challenges_add event for the first new hack entry', () => {
+      const event = pusherListener.events[0];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, firstNewChallenge.challengeid);
+      assert.strictEqual(data.entry.name, firstNewChallenge.name);
+    });
+
+    it('should send a hacks_update_challenges_add event for the second new hack entry', () => {
+      const event = pusherListener.events[1];
+      assert.strictEqual(event.appId, ApiServer.PusherAppId);
+      assert.strictEqual(event.contentType, 'application/json');
+      assert.strictEqual(event.payload.channels[0], 'api_events');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
+      
+      const data = JSON.parse(event.payload.data);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, secondNewChallenge.challengeid);
+      assert.strictEqual(data.entry.name, secondNewChallenge.name);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      
+      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(firstNewChallenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(secondNewChallenge.challengeid);
+
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      
+      await pusherListener.close();
+    });
+
+  });
+
+  describe('POST hack challenges already in a hack', () => {
+
+    let attendee: IAttendee;
+    let challenge: IChallenge;
+    let otherChallenge: IChallenge;
+    let hack: IHack;
+    let otherHack: IHack;
+    let modifiedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      
+      challenge = await MongoDB.Challenges.insertRandomChallenge();
+      otherChallenge = await MongoDB.Challenges.insertRandomChallenge();
+      
+      hack = await MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+      otherHack = await MongoDB.Hacks.createRandomHack();
+      otherHack.challenges = [otherChallenge._id];
+      await MongoDB.Hacks.insertHack(otherHack);
+      
+      let req: HackChallengesRelationship.TopLevelDocument = {
+        data: [{
+          type: 'challenges',
+          id: otherChallenge.challengeid
+        }]
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      await api.post(`/hacks/${hack.hackid}/challenges`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(req)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+          await pusherListener.waitForEvent();
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified challenges are already in a hack.');
+    });
+
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
+    });
+
+    it('should not send any events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      
+      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
+      await MongoDB.Challenges.removeByChallengeId(otherChallenge.challengeid);
+
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      await MongoDB.Hacks.removeByHackId(otherHack.hackid);
+      await pusherListener.close();
+    });
+
+  });
+
+  describe('POST hack challenges which do not exist', () => {
+
+    let attendee: IAttendee;
+    let hack: IHack;
+    let modifiedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      
+      hack = await MongoDB.Hacks.insertRandomHack();
+      
+      let req: HackChallengesRelationship.TopLevelDocument = {
+        data: [{
+          type: 'challenges',
+          id: 'does not exist'
+        }]
+      };
+      
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      await api.post(`/hacks/${hack.hackid}/challenges`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(req)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+          
+          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+          await pusherListener.waitForEvent();
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified challenges could not be found.');
+    });
+
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 0);
+    });
+
+    it('should not send any events to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      await pusherListener.close();
+    });
+
+  });
+
+});

@@ -14,6 +14,7 @@ import {ChallengesRoute} from './routes/challenges';
 import {AttendeesRoute} from './routes/attendees';
 import {TeamMembersRoute} from './routes/team.members';
 import {TeamEntriesRoute} from './routes/team.entries';
+import {HackChallengesRoute} from './routes/hack.challenges';
 import {ExpressLogger} from './logger';
 import {EventBroadcaster} from './eventbroadcaster';
 
@@ -34,6 +35,7 @@ export class Server {
     const teamMembersRouter = new TeamMembersRoute(eventBroadcaster).createRouter();
     const teamEntriesRouter = new TeamEntriesRoute(eventBroadcaster).createRouter();
     const hacksRouter = new HacksRoute(eventBroadcaster).createRouter();
+    const hackChallengesRouter = new HackChallengesRoute(eventBroadcaster).createRouter();
     const challengesRouter = new ChallengesRoute(eventBroadcaster).createRouter();
     const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter();
 
@@ -47,6 +49,7 @@ export class Server {
     this._app.use('/teams', teamEntriesRouter);
     this._app.use('/teams', teamsRouter);
     this._app.use('/hacks', hacksRouter);
+    this._app.use('/hacks', hackChallengesRouter);
     this._app.use('/challenges', challengesRouter);
 
     this._app.get('/api', (_, res) => res.send('Hack24 API is running'));
