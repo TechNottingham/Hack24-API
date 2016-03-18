@@ -9,8 +9,10 @@ import * as middleware from './middleware';
 import {Server as HttpServer} from 'http';
 import {UsersRoute} from './routes/users';
 import {TeamsRoute} from './routes/teams';
+import {HacksRoute} from './routes/hacks';
 import {AttendeesRoute} from './routes/attendees';
 import {TeamMembersRoute} from './routes/team.members';
+import {TeamEntriesRoute} from './routes/team.entries';
 import {ExpressLogger} from './logger';
 import {EventBroadcaster} from './eventbroadcaster';
 
@@ -29,6 +31,8 @@ export class Server {
     const usersRouter = new UsersRoute(eventBroadcaster).createRouter();
     const teamsRouter = new TeamsRoute(eventBroadcaster).createRouter();
     const teamMembersRouter = new TeamMembersRoute(eventBroadcaster).createRouter();
+    const teamEntriesRouter = new TeamEntriesRoute(eventBroadcaster).createRouter();
+    const hacksRouter = new HacksRoute(eventBroadcaster).createRouter();
     const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter();
 
     this._app = express();
@@ -38,7 +42,9 @@ export class Server {
     this._app.use('/attendees', attendeesRouter);
     this._app.use('/users', usersRouter);
     this._app.use('/teams', teamMembersRouter);
+    this._app.use('/teams', teamEntriesRouter);
     this._app.use('/teams', teamsRouter);
+    this._app.use('/hacks', hacksRouter);
 
     this._app.get('/api', (_, res) => res.send('Hack24 API is running'));
     

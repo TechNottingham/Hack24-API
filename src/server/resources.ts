@@ -101,12 +101,13 @@ export declare module UsersResource {
 export declare module TeamResource {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {
-    members: JSONApi.ToManyRelationshipsObject
+    members: JSONApi.ToManyRelationshipsObject;
+    entries: JSONApi.ToManyRelationshipsObject;
   }
 
   export interface AttributesObject extends JSONApi.AttributesObject {
-    name: string;
-    motto: string;
+    name?: string;
+    motto?: string;
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
@@ -135,6 +136,41 @@ export declare module TeamMembersRelationship {
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
     links?: JSONApi.LinksObject;
     data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}
+
+export declare module TeamEntriesRelationship {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}
+
+export declare module HackResource {
+
+  export interface AttributesObject extends JSONApi.AttributesObject {
+    name?: string;
+  }
+
+  export interface ResourceObject extends JSONApi.ResourceObject {
+    attributes?: AttributesObject;
+  }
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: ResourceObject;
+  }
+
+}
+
+export declare module HacksResource {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: HackResource.ResourceObject[];
   }
   
 }
@@ -176,6 +212,7 @@ export declare module Root {
       teams: JSONApi.LinkObject;
       users: JSONApi.LinkObject;
       attendees: JSONApi.LinkObject;
+      hacks: JSONApi.LinkObject;
     }
   }
   

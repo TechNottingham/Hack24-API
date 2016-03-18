@@ -193,7 +193,8 @@ describe('Users resource', () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       
-      team = await MongoDB.Teams.createRandomTeam([user._id], 'A');
+      team = await MongoDB.Teams.createRandomTeam('A');
+      team.members = [user._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
@@ -411,7 +412,8 @@ describe('Users resource', () => {
     before(async () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
-      team = await MongoDB.Teams.createRandomTeam([user._id, otherUser._id]);
+      team = await MongoDB.Teams.createRandomTeam();
+      team.members = [user._id, otherUser._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
       

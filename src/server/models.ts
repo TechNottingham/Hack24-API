@@ -24,6 +24,7 @@ export interface ITeam {
   name: string;
   motto: string;
   members: IUserModel[];
+  entries: IHackModel[];
 }
 
 export interface ITeamModel extends ITeam, Document { }
@@ -33,9 +34,26 @@ export const TeamSchema = new Schema({
   name: { type: String, unique : true, required : true },
   motto: { type: String, required: false },
   modified: { type: Date, default: Date.now },
-  members : [{ type: Schema.Types.ObjectId, ref: 'User' }]
+  members : [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  entries : [{ type: Schema.Types.ObjectId, ref: 'Hack' }]
 });
 export const TeamModel = model<ITeamModel>('Team', TeamSchema);
+
+
+
+export interface IHack {
+  hackid: string;
+  name: string;
+}
+
+export interface IHackModel extends IHack, Document { }
+
+export const HackSchema = new Schema({
+  hackid: { type: String, unique: true, required: true },
+  name: { type: String, unique : true, required : true },
+  modified: { type: Date, default: Date.now }
+});
+export const HackModel = model<IHackModel>('Hack', HackSchema);
 
 
 

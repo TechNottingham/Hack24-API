@@ -4,6 +4,7 @@ import {spawn, ChildProcess} from 'child_process';
 import {MongoClient, Db} from 'mongodb';
 import {Users} from '../models/users'
 import {Teams} from '../models/teams'
+import {Hacks} from '../models/hacks'
 import {Attendees} from '../models/attendees'
 
 export class MongoDB {
@@ -11,6 +12,7 @@ export class MongoDB {
   private static _db: Db;
   private static _users: Users;
   private static _teams: Teams;
+  private static _hacks: Hacks;
   private static _attendees: Attendees;
   
   static get Db(): Db {
@@ -23,6 +25,10 @@ export class MongoDB {
   
   static get Teams(): Teams {
     return this._teams;
+  }
+  
+  static get Hacks(): Hacks {
+    return this._hacks;
   }
   
   static get Attendees(): Attendees {
@@ -42,12 +48,13 @@ export class MongoDB {
   private static prepareDb(db: Db): Promise<void> {
     return new Promise<void>((resolve) => {    
       this._db = db;
-      const promises = [Users.Create(db), Teams.Create(db), Attendees.Create(db)]
-      Promise.all<Users | Teams | Attendees>(promises)
-        .then((results: [Users, Teams, Attendees]) => {
+      const promises = [Users.Create(db), Teams.Create(db), Hacks.Create(db), Attendees.Create(db)]
+      Promise.all<Users | Teams | Hacks | Attendees>(promises)
+        .then((results: [Users, Teams, Hacks, Attendees]) => {
           this._users = results[0];
           this._teams = results[1];
-          this._attendees = results[2];
+          this._hacks = results[2];
+          this._attendees = results[3];
           resolve();
         });
     })

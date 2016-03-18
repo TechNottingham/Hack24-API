@@ -2,7 +2,7 @@ import * as morgan from 'morgan'
 import {transports, Logger} from 'winston'
 
 const consoleLogger = new transports.Console({
-  level: process.env.NODE_ENV === 'production' ? 'error' : process.env.LOG_LEVEL || 'debug',
+  level: process.env.NODE_ENV === 'production' ? 'info' : process.env.LOG_LEVEL || 'debug',
   timestamp: true,
   handleExceptions: false,
   colorize: process.env.NODE_ENV !== 'production'
@@ -18,7 +18,7 @@ const lineBreakRegex = /^\s+|\s+$/g;
 
 const stream: morgan.StreamOptions = {
   write: (message) => {
-    logger.info(message.replace(lineBreakRegex, ''));
+    logger.debug(message.replace(lineBreakRegex, ''));
   }
 };
 
