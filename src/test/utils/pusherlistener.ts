@@ -56,16 +56,31 @@ export class PusherListener {
     });
   }
   
-  async waitForEvent(timeout?: number) {
-    if (this._events.length > 0)
-      return Promise.resolve();
-      
+  async waitForEvent() {
+    return this.waitForEvents(1);
+  }
+  
+  async waitForEvents(count: number) {
     return new Promise<void>((resolve) => {
       let resolved = false;
-      const tryResolve = () => resolved = resolved || resolve() == void 0;
       
-      setTimeout(tryResolve, timeout || 500);
-      this._monitor.once('event', tryResolve)
+      setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        resolve();
+      }, 500);
+      
+      const tryResolve = () => {
+        if (resolved) return;
+        if (this._events.length >= count) {
+          resolved = true;
+          resolve();
+          return;
+        }
+        this._monitor.once('event', tryResolve);
+      };
+      
+      tryResolve();
     });
   }
   
