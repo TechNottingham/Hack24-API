@@ -3,6 +3,7 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
+import {ITeam} from './models/teams';
 import {IHack} from './models/hacks';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
@@ -54,7 +55,7 @@ describe('Hacks resource', () => {
           contentType = res.header['content-type'];
           response = res.body;
 
-          createdHack = await MongoDB.Hacks.findbyHackId(hack.hackid);
+          createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvent();
         });
     });
@@ -194,7 +195,7 @@ describe('Hacks resource', () => {
           contentType = res.header['content-type'];
           response = res.body;
           
-          createdHack = await MongoDB.Hacks.findbyHackId(hack.hackid);
+          createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
         });
     });
 
@@ -554,6 +555,7 @@ describe('Hacks resource', () => {
   
   describe('DELETE hack', () => {
 
+    let attendee: IAttendee;
     let hack: IHack;
     let deletedHack: IHack;
     let statusCode: number;
@@ -561,17 +563,18 @@ describe('Hacks resource', () => {
     let body: string;
 
     before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       hack = await MongoDB.Hacks.insertRandomHack();
       
       await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
-        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .end()
         .then(async (res) => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
 
-          deletedHack = await MongoDB.Hacks.findbyHackId(hack.hackid);
+          deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
         });
     });
 
@@ -587,25 +590,83 @@ describe('Hacks resource', () => {
       assert.strictEqual(body, '');
     });
     
-    it('should have deleted the attendee', () => {
+    it('should have deleted the hack', () => {
       assert.strictEqual(deletedHack, null);
     });
 
     after(async () => {
       await MongoDB.Hacks.removeByHackId(hack.hackid);
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    });
+
+  });
+  
+  describe('DELETE hack entered into a team', () => {
+
+    let attendee: IAttendee;
+    let hack: IHack;
+    let team: ITeam;
+    let deletedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      hack = await MongoDB.Hacks.insertRandomHack();
+      team = MongoDB.Teams.createRandomTeam();
+      team.entries = [hack._id];
+      await MongoDB.Teams.insertTeam(team);
+      
+      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+
+          deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Hack is entered into a team" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'Hack is entered into a team.');
+    });
+    
+    it('should not delete the hack', () => {
+      assert.strictEqual(deletedHack.hackid, hack.hackid);
+    });
+
+    after(async () => {
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      await MongoDB.Teams.removeByTeamId(team.teamid);
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
 
   });
 
   describe('DELETE hack which does not exist', () => {
 
+    let attendee: IAttendee;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      await api.delete(`/attendees/asdasdasdadasd`)
-        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      await api.delete(`/hacks/rwrerwygdfgd`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .end()
         .then(async (res) => {
           statusCode = res.status;
@@ -627,19 +688,24 @@ describe('Hacks resource', () => {
       assert.strictEqual(response.errors[0].status, '404');
       assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    });
+    
   });
 
   describe('DELETE hack with incorrect auth', () => {
 
-    let attendee: IAttendee;
+    let hack: IHack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      attendee = MongoDB.Attendees.createRandomAttendee();
+      hack = MongoDB.Hacks.createRandomHack();
       
-      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth('sack', 'boy')
         .end()
         .then((res) => {

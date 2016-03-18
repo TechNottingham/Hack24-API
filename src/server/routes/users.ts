@@ -18,158 +18,153 @@ export class UsersRoute {
   }
   
   createRouter() {
+    const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
-    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, this.getAll.bind(this));
+    
+    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll));
     router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
-    router.get('/:userId', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create));
+    router.get('/:userId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get));
     router.options('/:userId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     
     return router;
   }
   
-  getAll(req: Request, res: Response) {
-    UserModel
+  async getAll(req: Request, res: Response) {
+    const users = await UserModel
       .find({}, 'userid name')
       .sort({ userid: 1 })
-      .exec()
-      .then((users) => {
+      .exec();
+      
+    const userObjectIds = users.map((user) => user._id);
 
-        const userObjectIds = users.map((user) => user._id);
+    const teams = await TeamModel
+      .find({ members: { $in: userObjectIds } }, 'teamid name motto members')
+      .populate('members', 'userid')
+      .exec();
 
-        TeamModel
-          .find({ members: { $in: userObjectIds } }, 'teamid name motto members')
-          .populate('members', 'userid')
-          .exec()
-          .then((teams) => {
+    const userResponses = users.map((user) => {
+      const usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
+      const userResponse: UserResource.ResourceObject = {
+        links: { self: `/users/${encodeURIComponent(user.userid)}` },
+        type: 'users',
+        id: user.userid,
+        attributes: { name: user.name },
+        relationships: {
+          team: {
+            links: { self: `/users/${encodeURIComponent(user.userid)}/team` },
+            data: usersTeam ? { type: 'teams', id: usersTeam.teamid } : null
+          }
+        }
+      };
+      return userResponse;
+    });
 
-            const userResponses = users.map((user) => {
-              const usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
-              const userResponse: UserResource.ResourceObject = {
-                links: { self: `/users/${encodeURIComponent(user.userid)}` },
-                type: 'users',
-                id: user.userid,
-                attributes: { name: user.name },
-                relationships: {
-                  team: {
-                    links: { self: `/users/${encodeURIComponent(user.userid)}/team` },
-                    data: usersTeam ? { type: 'teams', id: usersTeam.teamid } : null
-                  }
-                }
-              };
-              return userResponse;
-            });
+    const includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
+      links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
+      type: 'teams',
+      id: team.teamid,
+      attributes: {
+        name: team.name,
+        motto: team.motto || null
+      },
+      relationships: {
+        members: {
+          links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
+          data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
+        },
+        entries: {
+          links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+          data: null
+        }
+      }
+    }));
 
-            const includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
-              links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
-              type: 'teams',
-              id: team.teamid,
-              attributes: {
-                name: team.name,
-                motto: team.motto || null
-              },
-              relationships: {
-                members: {
-                  links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
-                  data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
-                },
-                entries: {
-                  links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
-                  data: null
-                }
-              }
-            }));
-
-            const usersResponse = <UsersResource.TopLevelDocument> {
-              links: { self: '/users' },
-              data: userResponses,
-              included: includedTeams
-            };
-            
-            respond.Send200(res, usersResponse);
-          }, respond.Send500.bind(null, res))
-      }, respond.Send500.bind(null, res));
+    const usersResponse = <UsersResource.TopLevelDocument> {
+      links: { self: '/users' },
+      data: userResponses,
+      included: includedTeams
+    };
+    
+    respond.Send200(res, usersResponse);
   }
 
-  get(req: Request, res: Response) {
+  async get(req: Request, res: Response) {
     if (req.params.userId === undefined || typeof req.params.userId !== 'string')
       return respond.Send400(res);
 
-    UserModel
+    const user = await UserModel
       .findOne({ userid: req.params.userId }, 'userid name')
-      .exec()
-      .then((user) => {
-        if (!user)
-          return respond.Send404(res);
+      .exec();
+      
+    if (!user)
+      return respond.Send404(res);
 
-        TeamModel
-          .findOne({ members: { $in: [user._id] } }, 'teamid name members motto')
-          .populate('members', 'userid name')
-          .exec()
-          .then((team) => {
-            const userResponse = <UserResource.TopLevelDocument> {
-              links: { self: `/users/${encodeURIComponent(user.userid)}` },
-              data: {
-                type: 'users',
-                id: user.userid,
-                attributes: { name: user.name },
-                relationships: {
-                  team: {
-                    links: { self: `/users/${encodeURIComponent(user.userid)}/team` },
-                    data: null
-                  }
-                }
-              }
-            };
+    const team = await TeamModel
+      .findOne({ members: { $in: [user._id] } }, 'teamid name members motto')
+      .populate('members', 'userid name')
+      .exec();
+      
+    const userResponse = <UserResource.TopLevelDocument> {
+      links: { self: `/users/${encodeURIComponent(user.userid)}` },
+      data: {
+        type: 'users',
+        id: user.userid,
+        attributes: { name: user.name },
+        relationships: {
+          team: {
+            links: { self: `/users/${encodeURIComponent(user.userid)}/team` },
+            data: null
+          }
+        }
+      }
+    };
 
+    if (team) {
+      userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid };
 
-            if (team) {
-              userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid };
+      const includedTeam = <TeamResource.ResourceObject> {
+        links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
+        type: 'teams',
+        id: team.teamid,
+        attributes: {
+          name: team.name,
+          motto: team.motto || null
+        },
+        relationships: {
+          members: {
+            links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
+            data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
+          },
+          entries: {
+            links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
+            data: null
+          }
+        }
+      }
 
-              const includedTeam = <TeamResource.ResourceObject> {
-                links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
-                type: 'teams',
-                id: team.teamid,
-                attributes: {
-                  name: team.name,
-                  motto: team.motto || null
-                },
-                relationships: {
-                  members: {
-                    links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
-                    data: team.members ? team.members.map((member) => ({ type: 'users', id: member.userid })) : []
-                  },
-                  entries: {
-                    links: { self: `/teams/${encodeURIComponent(team.teamid)}/entries` },
-                    data: null
-                  }
-                }
-              }
-
-              const includedUsers = team.members
-                .filter((member) => member.userid !== user.userid)
-                .map<UserResource.ResourceObject>((member) => ({
-                  links: { self: `/users/${encodeURIComponent(member.userid)}` },
-                  type: 'users',
-                  id: member.userid,
-                  attributes: { name: member.name },
-                  relationships: {
-                    team: {
-                      links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
-                      data: { type: 'teams', id: team.teamid }
-                    }
-                  }
-                }));
-
-              userResponse.included = [includedTeam, ...includedUsers];
+      const includedUsers = team.members
+        .filter((member) => member.userid !== user.userid)
+        .map<UserResource.ResourceObject>((member) => ({
+          links: { self: `/users/${encodeURIComponent(member.userid)}` },
+          type: 'users',
+          id: member.userid,
+          attributes: { name: member.name },
+          relationships: {
+            team: {
+              links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
+              data: { type: 'teams', id: team.teamid }
             }
+          }
+        }));
 
-            res.status(200).contentType('application/vnd.api+json').send(userResponse);
-          }, respond.Send500.bind(null, res))
-      }, respond.Send500.bind(null, res));
+      userResponse.included = [includedTeam, ...includedUsers];
+    }
+
+    res.status(200).contentType('application/vnd.api+json').send(userResponse);
   }
 
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const requestDoc: UserResource.TopLevelDocument = req.body;
     
     if (!requestDoc 
@@ -187,44 +182,42 @@ export class UsersRoute {
       userid: requestDoc.data.id,
       name: requestDoc.data.attributes.name
     });
+    
+    try {
+      await user.save();
+    } catch (err) {
+      if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
+        return respond.Send409(res);
+      throw err;
+    }
 
-    user.save((err) => {
-      if (err) {
-        if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
-          return respond.Send409(res);
-
-        return respond.Send500(res);
-      }
-
-      const userResponse = <UserResource.TopLevelDocument> {
-        links: {
-          self: `/users/${encodeURIComponent(user.userid)}`
+    const userResponse = <UserResource.TopLevelDocument> {
+      links: {
+        self: `/users/${encodeURIComponent(user.userid)}`
+      },
+      data: {
+        type: 'users',
+        id: user.userid,
+        attributes: {
+          name: user.name
         },
-        data: {
-          type: 'users',
-          id: user.userid,
-          attributes: {
-            name: user.name
-          },
-          relationships: {
-            team: {
-              links: {
-                self: `/users/${encodeURIComponent(user.userid)}/team`
-              },
-              data: null
-            }
+        relationships: {
+          team: {
+            links: {
+              self: `/users/${encodeURIComponent(user.userid)}/team`
+            },
+            data: null
           }
         }
-      };
+      }
+    };
 
-      respond.Send201(res, userResponse);
-        
-      this._eventBroadcaster.trigger('users_add', {
-        userid: user.userid,
-        name: user.name
-      });
-      
+    this._eventBroadcaster.trigger('users_add', {
+      userid: user.userid,
+      name: user.name
     });
+      
+    respond.Send201(res, userResponse);
   }
 
 }

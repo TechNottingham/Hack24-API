@@ -199,8 +199,6 @@ export class TeamsRoute {
   async get(req: Request, res: Response) {
     const teamId = req.params.teamId;
     
-    console.log(teamId);
-    
     const team = await TeamModel
       .findOne({ teamid: teamId }, 'teamid name motto members entries')
       .populate('members entries')

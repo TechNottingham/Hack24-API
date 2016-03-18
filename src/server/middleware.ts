@@ -1,6 +1,7 @@
 import * as respond from './routes/respond';
 import {Request, Response} from 'express';
 import {AttendeeModel} from './models';
+import {Log} from './logger';
 
 const AuthorisedUsers = {
   Hackbot: {
@@ -71,5 +72,10 @@ export function allowAllOriginsWithGetAndHeaders(req: IUnauthorisedRequest, res:
 }
 
 export function AsyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
-  return (req: Request, res: Response) => fn.call(this, req, res).catch((err) => respond.Send500.bind(res));
+  return (req: Request, res: Response) => {
+      fn.call(this, req, res).catch((err) => {
+        Log.error('AsyncHandler caught an unhandled error -', err);
+        respond.Send500(res);
+      })
+  };
 }

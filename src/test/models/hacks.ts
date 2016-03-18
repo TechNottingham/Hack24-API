@@ -94,7 +94,7 @@ export class Hacks {
     });
   }
   
-  public findbyHackId(hackid: string): Promise<IHack> {
+  public findByHackId(hackid: string): Promise<IHack> {
     return new Promise<IHack>((resolve, reject) => {
       this._collection.find({ hackid: hackid }).limit(1).toArray().then((hacks: IHack[]) => {
         resolve(hacks.length > 0 ? hacks[0] : null);
