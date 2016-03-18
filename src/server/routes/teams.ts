@@ -20,10 +20,6 @@ function escapeForRegex(str: string): string {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
   
-function AsyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
-  return (req: Request, res: Response) => fn.call(this, req, res).catch((err) => respond.Send500.bind(res));
-}
-
 export class TeamsRoute {
   private _eventBroadcaster: EventBroadcaster;
   
@@ -32,7 +28,7 @@ export class TeamsRoute {
   }
   
   createRouter() {
-    const asyncHandler = AsyncHandler.bind(this);
+    const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
     
     router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.update));

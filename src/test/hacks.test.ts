@@ -551,5 +551,119 @@ describe('Hacks resource', () => {
     });
 
   });
+  
+  describe('DELETE hack', () => {
+
+    let hack: IHack;
+    let deletedHack: IHack;
+    let statusCode: number;
+    let contentType: string;
+    let body: string;
+
+    before(async () => {
+      hack = await MongoDB.Hacks.insertRandomHack();
+      
+      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
+        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          body = res.text;
+
+          deletedHack = await MongoDB.Hacks.findbyHackId(hack.hackid);
+        });
+    });
+
+    it('should respond with status code 204 No Content', () => {
+      assert.strictEqual(statusCode, 204);
+    });
+
+    it('should return no content-type', () => {
+      assert.strictEqual(contentType, undefined);
+    });
+
+    it('should return no body', () => {
+      assert.strictEqual(body, '');
+    });
+    
+    it('should have deleted the attendee', () => {
+      assert.strictEqual(deletedHack, null);
+    });
+
+    after(async () => {
+      await MongoDB.Hacks.removeByHackId(hack.hackid);
+    });
+
+  });
+
+  describe('DELETE hack which does not exist', () => {
+
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      await api.delete(`/attendees/asdasdasdadasd`)
+        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+        .end()
+        .then(async (res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+        });
+    });
+
+    it('should respond with status code 404 Not Found', () => {
+      assert.strictEqual(statusCode, 404);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Resource not found" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '404');
+      assert.strictEqual(response.errors[0].title, 'Resource not found.');
+    });
+  });
+
+  describe('DELETE hack with incorrect auth', () => {
+
+    let attendee: IAttendee;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      attendee = MongoDB.Attendees.createRandomAttendee();
+      
+      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+        .auth('sack', 'boy')
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+        });
+    });
+
+    it('should respond with status code 403 Forbidden', () => {
+      assert.strictEqual(statusCode, 403);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should respond with the expected "Forbidden" error', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '403');
+      assert.strictEqual(response.errors[0].title, 'Access is forbidden.');
+      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
+    });
+
+  });
 
 });

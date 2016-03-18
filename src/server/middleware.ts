@@ -69,3 +69,7 @@ export function allowAllOriginsWithGetAndHeaders(req: IUnauthorisedRequest, res:
   res.header('Access-Control-Request-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 }
+
+export function AsyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
+  return (req: Request, res: Response) => fn.call(this, req, res).catch((err) => respond.Send500.bind(res));
+}

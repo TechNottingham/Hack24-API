@@ -28,17 +28,20 @@ export class HacksRoute {
   }
   
   createRouter() {
+    const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
-    router.get('/:hackId', middleware.allowAllOriginsWithGetAndHeaders, this.get.bind(this));
+    
+    router.get('/:hackId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get));
+    router.delete('/:hackId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.delete));
     router.options('/:hackId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
-    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, this.getAll.bind(this));
+    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll));
     router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, this.create.bind(this));
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create));
     
     return router;
   }
 
-  getAll(req: Request, res: Response) {
+  async getAll(req: Request, res: Response) {
     let query: any = {};
     
     if (req.query.filter && req.query.filter.name) {
@@ -75,7 +78,7 @@ export class HacksRoute {
       }, respond.Send500.bind(null, res));
   }
   
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const requestDoc: HackResource.TopLevelDocument = req.body;
     
     if (!requestDoc 
@@ -123,7 +126,7 @@ export class HacksRoute {
     });
   }
 
-  get(req: Request, res: Response) {
+  async get(req: Request, res: Response) {
     const hackId = req.params.hackId;
     
     HackModel
@@ -145,6 +148,24 @@ export class HacksRoute {
         };
         respond.Send200(res, hackResponse);
       }, respond.Send500.bind(null, res));
+  }
+
+  async delete(req: Request, res: Response) {
+    const hackId = req.params.hackId;
+    
+    if (hackId === undefined || typeof hackId !== 'string' || hackId.length === 0)
+      return respond.Send400(res);
+      
+    console.log(hackId)
+      
+    const deletedHack = HackModel
+      .findOneAndRemove({ hackid: hackId }, { select: '_id' })
+      .exec();
+      
+    if (deletedHack === null)
+      return respond.Send404(res);
+          
+    respond.Send204(res);
   }
   
 }
