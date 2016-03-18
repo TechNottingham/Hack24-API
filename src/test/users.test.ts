@@ -7,7 +7,7 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
+import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
 import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 

@@ -8,7 +8,7 @@ import {Log} from '../logger';
 import {UserModel, IUserModel, TeamModel, HackModel, IHackModel} from '../models';
 import {Request, Response, Router} from 'express';
 import {ITeamModel, MongoDBErrors} from '../models';
-import {JSONApi, TeamResource, TeamsResource, UserResource, HackResource} from '../resources';
+import {JSONApi, TeamResource, TeamsResource, UserResource, HackResource} from '../../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
 import {JsonApiParser} from '../parsers';
 

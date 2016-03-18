@@ -3,7 +3,7 @@
 import * as respond from './respond';
 
 import {Request, Response} from 'express';
-import {Root} from '../resources';
+import {Root} from '../../resources';
 
 export function Get(req: Request, res: Response) {
   const rootResponse: Root.TopLevelDocument = {
@@ -23,6 +23,9 @@ export function Get(req: Request, res: Response) {
       },
       hacks: {
         href: '/hacks'
+      },
+      challenges: {
+        href: '/challenges'
       }
     }
   }

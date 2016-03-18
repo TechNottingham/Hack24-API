@@ -175,6 +175,32 @@ export declare module HacksResource {
   
 }
 
+export declare module ChallengesResource {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: ChallengeResource.ResourceObject[];
+  }
+  
+}
+
+export declare module ChallengeResource {
+
+  export interface AttributesObject extends JSONApi.AttributesObject {
+    name?: string;
+  }
+
+  export interface ResourceObject extends JSONApi.ResourceObject {
+    attributes?: AttributesObject;
+  }
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: ResourceObject;
+  }
+
+}
+
 export declare module AttendeeResource {
 
   export interface AttributesObject extends JSONApi.AttributesObject {
@@ -212,6 +238,8 @@ export declare module Root {
       teams: JSONApi.LinkObject;
       users: JSONApi.LinkObject;
       attendees: JSONApi.LinkObject;
+      hacks: JSONApi.LinkObject;
+      challenges: JSONApi.LinkObject;
     }
   }
   

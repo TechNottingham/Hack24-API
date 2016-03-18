@@ -7,7 +7,7 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamMembersRelationship, UserResource} from './resources';
+import {JSONApi, TeamMembersRelationship, UserResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
 
 describe('Team Members relationship', () => {

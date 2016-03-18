@@ -6,7 +6,7 @@ import * as middleware from '../middleware';
 import {UserModel, TeamModel} from '../models';
 import {Request, Response, Router} from 'express';
 import {MongoDBErrors} from '../models';
-import {UserResource, UsersResource, TeamResource} from '../resources';
+import {UserResource, UsersResource, TeamResource} from '../../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
 import {JsonApiParser} from '../parsers';
 

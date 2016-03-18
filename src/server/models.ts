@@ -57,6 +57,22 @@ export const HackModel = model<IHackModel>('Hack', HackSchema);
 
 
 
+export interface IChallenge {
+  challengeid: string;
+  name: string;
+}
+
+export interface IChallengeModel extends IChallenge, Document { }
+
+export const ChallengeSchema = new Schema({
+  challengeid: { type: String, unique: true, required: true },
+  name: { type: String, unique : true, required : true },
+  modified: { type: Date, default: Date.now }
+});
+export const ChallengeModel = model<IChallengeModel>('Challenge', ChallengeSchema);
+
+
+
 export interface IAttendee {
   attendeeid: string;
 }

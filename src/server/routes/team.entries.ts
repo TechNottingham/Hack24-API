@@ -5,7 +5,7 @@ import * as middleware from '../middleware';
 
 import {HackModel, TeamModel} from '../models';
 import {Request, Response, Router} from 'express';
-import {JSONApi, TeamEntriesRelationship, HackResource} from '../resources';
+import {JSONApi, TeamEntriesRelationship, HackResource} from '../../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
 import {JsonApiParser} from '../parsers';
 

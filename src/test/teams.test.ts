@@ -8,7 +8,7 @@ import {IHack} from './models/hacks';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource} from './resources';
+import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource} from '../resources';
 import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 

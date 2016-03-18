@@ -5,7 +5,7 @@ import {MongoDB} from './utils/mongodb';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, AttendeeResource, AttendeesResource} from './resources'
+import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
 
 describe('Attendees resource', () => {
 

@@ -7,7 +7,7 @@ import {IHack} from './models/hacks';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamEntriesRelationship, HackResource} from './resources';
+import {JSONApi, TeamEntriesRelationship, HackResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
 
 describe('Team Entries relationship', () => {

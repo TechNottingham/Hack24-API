@@ -5,7 +5,7 @@ import * as middleware from '../middleware';
 
 import {UserModel, TeamModel} from '../models';
 import {Request, Response, Router} from 'express';
-import {JSONApi, UserResource, TeamMembersRelationship} from '../resources';
+import {JSONApi, UserResource, TeamMembersRelationship} from '../../resources';
 import {EventBroadcaster} from '../eventbroadcaster';
 import {JsonApiParser} from '../parsers';
 
