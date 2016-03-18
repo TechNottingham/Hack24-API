@@ -6,7 +6,7 @@ import {Request, Response} from 'express';
 import {Root} from '../resources';
 
 export function Get(req: Request, res: Response) {
-  let rootResponse: Root.TopLevelDocument = {
+  const rootResponse: Root.TopLevelDocument = {
     jsonapi: {
       version: '1.0'
     },
@@ -20,6 +20,9 @@ export function Get(req: Request, res: Response) {
       },
       attendees: {
         href: '/attendees'
+      },
+      hacks: {
+        href: '/hacks'
       }
     }
   }

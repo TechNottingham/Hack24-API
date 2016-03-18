@@ -140,6 +140,15 @@ export declare module TeamMembersRelationship {
   
 }
 
+export declare module TeamEntriesRelationship {
+
+  export interface TopLevelDocument extends JSONApi.TopLevelDocument {
+    links?: JSONApi.LinksObject;
+    data: JSONApi.ResourceIdentifierObject[];
+  }
+  
+}
+
 export declare module HackResource {
 
   export interface AttributesObject extends JSONApi.AttributesObject {
