@@ -599,13 +599,14 @@ describe('Teams resource', () => {
       assert.strictEqual(teamResponse.relationships.entries.data[1].id, thirdHack.hackid);
     });
 
-    it('should include the related members', () => {
-      assert.strictEqual(response.included.length, 3);
+    it('should include the related members and entries', () => {
+      assert.strictEqual(response.included.length, 6);
       assert.strictEqual(response.included.filter((obj) => obj.type === 'users').length, 3);
+      assert.strictEqual(response.included.filter((obj) => obj.type === 'hacks').length, 3);
     });
 
-    it('should include each expected user', () => {
-      const users = <UserResource.ResourceObject[]> response.included;
+    it('should include each expected users', () => {
+      const users = <UserResource.ResourceObject[]> response.included.filter((doc) => doc.type == 'users');
       
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -618,6 +619,22 @@ describe('Teams resource', () => {
       assert.strictEqual(users[2].links.self, `/users/${thirdUser.userid}`);
       assert.strictEqual(users[2].id, thirdUser.userid);
       assert.strictEqual(users[2].attributes.name, thirdUser.name);
+    });
+
+    it('should include each expected hacks', () => {
+      const hacks = <HackResource.ResourceObject[]> response.included.filter((doc) => doc.type == 'hacks');
+      
+      assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
+      assert.strictEqual(hacks[0].id, firstHack.hackid);
+      assert.strictEqual(hacks[0].attributes.name, firstHack.name);
+      
+      assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
+      assert.strictEqual(hacks[1].id, secondHack.hackid);
+      assert.strictEqual(hacks[1].attributes.name, secondHack.name);
+      
+      assert.strictEqual(hacks[2].links.self, `/hacks/${thirdHack.hackid}`);
+      assert.strictEqual(hacks[2].id, thirdHack.hackid);
+      assert.strictEqual(hacks[2].attributes.name, thirdHack.name);
     });
 
     after(async () => {
@@ -744,17 +761,21 @@ describe('Teams resource', () => {
     });
 
     it('should return the user relationships', () => {
-      assert.strictEqual(response.data.relationships.members.data[0].type, 'users');
-      assert.strictEqual(response.data.relationships.members.data[0].id, firstUser.userid);
-      assert.strictEqual(response.data.relationships.members.data[1].type, 'users');
-      assert.strictEqual(response.data.relationships.members.data[1].id, secondUser.userid);
+      const users = response.data.relationships.members.data;
+      
+      assert.strictEqual(users[0].type, 'users');
+      assert.strictEqual(users[0].id, firstUser.userid);
+      assert.strictEqual(users[1].type, 'users');
+      assert.strictEqual(users[1].id, secondUser.userid);
     });
 
     it('should return the hack relationships', () => {
-      assert.strictEqual(response.data.relationships.entries.data[0].type, 'hacks');
-      assert.strictEqual(response.data.relationships.entries.data[0].id, firstHack.hackid);
-      assert.strictEqual(response.data.relationships.entries.data[1].type, 'hacks');
-      assert.strictEqual(response.data.relationships.entries.data[1].id, secondHack.hackid);
+      const hacks = response.data.relationships.entries.data;
+      
+      assert.strictEqual(hacks[0].type, 'hacks');
+      assert.strictEqual(hacks[0].id, firstHack.hackid);
+      assert.strictEqual(hacks[1].type, 'hacks');
+      assert.strictEqual(hacks[1].id, secondHack.hackid);
     });
 
     it('should include the related members and entries', () => {

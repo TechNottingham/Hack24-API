@@ -76,18 +76,29 @@ export class TeamsRoute {
     }));
     
     const totalCount = await TeamModel.count({}).exec();
-        
-    const includedUsers = teams.map((team) => team.members.map<UserResource.ResourceObject>((member) => ({
-      links: { self: `/users/${member.userid}` },
-      type: 'users',
-      id: member.userid,
-      attributes: { name: member.name }
-    })));
+    
+    const includes = teams.reduce((docs, team) => {
+      const members = team.members.map<UserResource.ResourceObject>((member) => ({
+        links: { self: `/users/${member.userid}` },
+        type: 'users',
+        id: member.userid,
+        attributes: { name: member.name }
+      }));
+      
+      const entries = team.entries.map<HackResource.ResourceObject>((hack) => ({
+        links: { self: `/hacks/${hack.hackid}` },
+        type: 'hacks',
+        id: hack.hackid,
+        attributes: { name: hack.name }
+      }));
+      
+      return [...docs, ...members, ...entries];
+    }, []);
     
     const teamsResponse: TeamsResource.TopLevelDocument = {
       links: { self: `/teams` },
       data: teamResponses,
-      included: [].concat.apply([], includedUsers)
+      included: includes
     };
     
     respond.Send200(res, teamsResponse);

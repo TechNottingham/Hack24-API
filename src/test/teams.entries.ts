@@ -198,7 +198,7 @@ describe('Team Entries relationship', () => {
           body = res.text;
           
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
+          await pusherListener.waitForEvents(2);
         });
     });
 
@@ -343,7 +343,7 @@ describe('Team Entries relationship', () => {
 
   });
 
-  describe('POST team entries_', () => {
+  describe('POST team entries', () => {
 
     let attendee: IAttendee;
     let hack: IHack;
@@ -390,7 +390,7 @@ describe('Team Entries relationship', () => {
           body = res.text;
           
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
+          await pusherListener.waitForEvents(2);
         });
     });
 
