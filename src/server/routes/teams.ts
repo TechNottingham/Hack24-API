@@ -19,42 +19,43 @@ function slugify(name: string): string {
 function escapeForRegex(str: string): string {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
-  
+
 export class TeamsRoute {
   private _eventBroadcaster: EventBroadcaster;
-  
+
   constructor(eventBroadcaster: EventBroadcaster) {
     this._eventBroadcaster = eventBroadcaster;
   }
-  
+
   createRouter() {
     const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
-    
+
     router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.update));
     router.get('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get));
+    router.delete('/:teamId', /* middleware.requiresUser, middleware.requiresAttendeeUser, */ JsonApiParser, asyncHandler(this.delete));
     router.options('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll));
     router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create));
-    
+
     return router;
   }
 
   async getAll(req: Request, res: Response) {
     let query: any = {};
-    
+
     if (req.query.filter && req.query.filter.name) {
       query.name = new RegExp(escapeForRegex(req.query.filter.name), 'i');
     }
-    
+
     const teams = await TeamModel
       .find(query, 'teamid name motto members entries')
       .sort({ teamid: 1 })
       .populate('members', 'userid name')
       .populate('entries', 'hackid name')
       .exec();
-    
+
     const teamResponses = teams.map<TeamResource.ResourceObject>((team) => ({
       links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
       type: 'teams',
@@ -74,9 +75,9 @@ export class TeamsRoute {
         }
       }
     }));
-    
+
     const totalCount = await TeamModel.count({}).exec();
-    
+
     const includes = teams.reduce((docs, team) => {
       const members = team.members.map<UserResource.ResourceObject>((member) => ({
         links: { self: `/users/${member.userid}` },
@@ -84,30 +85,30 @@ export class TeamsRoute {
         id: member.userid,
         attributes: { name: member.name }
       }));
-      
+
       const entries = team.entries.map<HackResource.ResourceObject>((hack) => ({
         links: { self: `/hacks/${hack.hackid}` },
         type: 'hacks',
         id: hack.hackid,
         attributes: { name: hack.name }
       }));
-      
+
       return [...docs, ...members, ...entries];
     }, []);
-    
+
     const teamsResponse: TeamsResource.TopLevelDocument = {
       links: { self: `/teams` },
       data: teamResponses,
       included: includes
     };
-    
+
     respond.Send200(res, teamsResponse);
   }
-  
+
   async create(req: Request, res: Response) {
     const requestDoc: TeamResource.TopLevelDocument = req.body;
-    
-    if (!requestDoc 
+
+    if (!requestDoc
       || !requestDoc.data
       || requestDoc.data.id
       || !requestDoc.data.type
@@ -116,7 +117,7 @@ export class TeamsRoute {
       || !requestDoc.data.attributes.name
       || typeof requestDoc.data.attributes.name !== 'string')
       return respond.Send400(res);
-      
+
     const relationships = requestDoc.data.relationships;
     let members: JSONApi.ResourceIdentifierObject[] = [];
     let entries: JSONApi.ResourceIdentifierObject[] = [];
@@ -127,14 +128,14 @@ export class TeamsRoute {
           return respond.Send400(res);
         members = relationships.members.data;
       }
-      
+
       if (relationships.entries && relationships.entries.data) {
         if (!Array.isArray(relationships.entries.data))
           return respond.Send400(res);
         entries = relationships.entries.data;
       }
     }
-    
+
     const team = new TeamModel({
       teamid: slugify(requestDoc.data.attributes.name),
       name: requestDoc.data.attributes.name,
@@ -142,10 +143,10 @@ export class TeamsRoute {
       members: [],
       entries: []
     });
-    
+
     let users: IUserModel[] = [];
     let hacks: IHackModel[] = [];
-    
+
     if (members.length > 0) {
       users = await UserModel.find({
         userid: {
@@ -154,7 +155,7 @@ export class TeamsRoute {
       }, '_id userid name').exec();
       team.members = users.map((user) => user._id);
     }
-    
+
     if (entries.length > 0) {
       hacks = await HackModel.find({
         hackid: {
@@ -163,7 +164,7 @@ export class TeamsRoute {
       }, '_id hackid name').exec();
       team.entries = hacks.map((hack) => hack._id);
     }
-    
+
     try {
       await team.save();
     } catch (err) {
@@ -171,7 +172,7 @@ export class TeamsRoute {
         return respond.Send409(res);
       throw err;
     }
-    
+
     const teamResponse: TeamResource.TopLevelDocument = {
       links: {
         self: `/teams/${encodeURIComponent(team.teamid)}`
@@ -195,7 +196,7 @@ export class TeamsRoute {
         }
       }
     };
-    
+
     this._eventBroadcaster.trigger('teams_add', {
       teamid: team.teamid,
       name: team.name,
@@ -203,35 +204,35 @@ export class TeamsRoute {
       members: users.map((user) => ({ userid: user.userid, name: user.name })),
       entries: hacks.map((hack) => ({ hackid: hack.hackid, name: hack.name }))
     });
-    
+
     respond.Send201(res, teamResponse);
   }
 
   async get(req: Request, res: Response) {
     const teamId = req.params.teamId;
-    
+
     const team = await TeamModel
       .findOne({ teamid: teamId }, 'teamid name motto members entries')
       .populate('members entries')
       .exec();
-      
+
     if (team === null)
       return respond.Send404(res);
-      
+
     const includedUsers = team.members.map<UserResource.ResourceObject>((user) => ({
       links: { self: `/users/${user.userid}` },
       type: 'users',
       id: user.userid,
       attributes: { name: user.name }
     }));
-    
+
     const includedHacks = team.entries.map<HackResource.ResourceObject>((hack) => ({
       links: { self: `/hacks/${hack.hackid}` },
       type: 'hacks',
       id: hack.hackid,
       attributes: { name: hack.name }
     }));
-      
+
     const result: TeamResource.TopLevelDocument = {
       links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
       data: {
@@ -254,32 +255,32 @@ export class TeamsRoute {
       },
       included: [...includedUsers, ...includedHacks]
     };
-    
+
     respond.Send200(res, result);
   }
 
   async update(req: Request, res: Response) {
     const teamId = req.params.teamId;
     const requestDoc: TeamResource.TopLevelDocument = req.body;
-    
-    if (!requestDoc 
+
+    if (!requestDoc
       || !requestDoc.data
       || !requestDoc.data.id
       || !requestDoc.data.type
       || requestDoc.data.type !== 'teams')
       return respond.Send400(res);
-    
+
     if (teamId !== requestDoc.data.id)
       return respond.Send400(res, `The id '${teamId}' does not match the document id '${requestDoc.data.id}'.`);
-    
+
     if (requestDoc.data.attributes === undefined)
       return respond.Send204(res);
-    
+
     if (requestDoc.data.attributes.motto === undefined)
       return respond.Send204(res);
-      
+
     Log.info(`Modifying team "${teamId}" motto to "${requestDoc.data.attributes.motto}"`);
-    
+
     const newMotto = requestDoc.data.attributes.motto.toString();
     const projection = {
       teamid: true,
@@ -288,23 +289,32 @@ export class TeamsRoute {
       'members.userid': true,
       'members.name': true
     };
-      
+
     TeamModel
       .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: newMotto }, { select: projection })
       .exec()
       .then((team) => {
         respond.Send204(res);
-        
+
         if (team.motto === newMotto) return;
-        
+
         this._eventBroadcaster.trigger('teams_update_motto', {
           teamid: team.teamid,
           name: team.name,
           motto: newMotto,
           members: team.members.map((member) => ({ userid: member.userid, name: member.name }))
         });
-        
+
       }, respond.Send500.bind(null, res));
   }
-  
+
+  async delete(req: Request, res: Response) {
+    const teamId = req.params.teamId;
+
+    TeamModel
+      .remove({ teamid: teamId })
+      .exec()
+      .then(() => respond.Send204(res));
+  }
+
 }
