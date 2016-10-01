@@ -322,8 +322,8 @@ export class TeamsRoute {
         TeamModel
           .remove({ teamid: teamId })
           .exec()
-          .then(() => respond.Send204(res));
-      });
+          .then(() => respond.Send204(res), () => respond.Send500(res));
+      }, () => respond.Send500(res));
   }
 
 }
