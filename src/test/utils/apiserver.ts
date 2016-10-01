@@ -54,16 +54,21 @@ export class ApiServer {
 
     return new Promise<void>((resolve, reject) => {
 
+      let env: any = {
+        PORT: this._port,
+        HACKBOT_PASSWORD: this._hackbotPassword,
+        ADMIN_USERNAME: this._adminUsername,
+        ADMIN_PASSWORD: this._adminPassword,
+        PUSHER_URL: `http://${this._pusherKey}:${this._pusherSecret}@${this._pusherHost}:${this._pusherPort}/apps/${this._pusherAppId}`,
+      };
+
+      if ('MONGODB_URL' in process.env) {
+        env.MONGODB_URL = process.env.MONGODB_URL;
+      }
+
       this._api = fork('../bin/server.js', [], {
         cwd: process.cwd(),
-        env: {
-          PORT: this._port,
-          HACKBOT_PASSWORD: this._hackbotPassword,
-          ADMIN_USERNAME: this._adminUsername,
-          ADMIN_PASSWORD: this._adminPassword,
-          PUSHER_URL: `http://${this._pusherKey}:${this._pusherSecret}@${this._pusherHost}:${this._pusherPort}/apps/${this._pusherAppId}`,
-          MONGODB_URL: process.env.MONGODB_URL,
-        },
+        env: env,
         silent: true
       });
 
