@@ -312,9 +312,18 @@ export class TeamsRoute {
     const teamId = req.params.teamId;
 
     TeamModel
-      .remove({ teamid: teamId })
+      .findOne({ teamid: teamId })
       .exec()
-      .then(() => respond.Send204(res));
+      .then((team) => {
+        if (team.members.length > 0) {
+          return respond.Send400(res, 'Only empty teams can be deleted');
+        }
+
+        TeamModel
+          .remove({ teamid: teamId })
+          .exec()
+          .then(() => respond.Send204(res));
+      });
   }
 
 }

@@ -1388,4 +1388,53 @@ describe('Teams resource', () => {
     });
   });
 
+  describe('DELETE team when members', () => {
+
+    let attendee: IAttendee;
+    let team: ITeam;
+    let user: IUser;
+    let statusCode: number;
+    let contentType: string;
+    let response: JSONApi.TopLevelDocument;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
+
+      await MongoDB.Teams.removeAll();
+
+      user = await MongoDB.Users.insertRandomUser('A');
+      team = await MongoDB.Teams.insertRandomTeam([user._id], 'ABCD');
+
+      await api.delete(`/teams/${team.teamid}`)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send()
+        .end()
+        .then((res) => {
+          statusCode = res.status;
+          contentType = res.header['content-type'];
+          response = res.body;
+        });
+    });
+
+    it('should respond with status code 400 Bad Request', () => {
+      assert.strictEqual(statusCode, 400);
+    });
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8');
+    });
+
+    it('should return an error with status code 400 and the expected title', () => {
+      assert.strictEqual(response.errors.length, 1);
+      assert.strictEqual(response.errors[0].status, '400');
+      assert.strictEqual(response.errors[0].title, 'Only empty teams can be deleted');
+    });
+
+    it('should not delete the team', async () => {
+      const result = await MongoDB.Teams.findbyTeamId(team.teamid);
+      assert.notStrictEqual(result, null);
+    });
+  });
+
 });
