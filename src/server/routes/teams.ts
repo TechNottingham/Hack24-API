@@ -33,7 +33,7 @@ export class TeamsRoute {
 
     router.patch('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.update));
     router.get('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get));
-    router.delete('/:teamId', /* middleware.requiresUser, middleware.requiresAttendeeUser, */ JsonApiParser, asyncHandler(this.delete));
+    router.delete('/:teamId', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.delete));
     router.options('/:teamId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
     router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll));
     router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
