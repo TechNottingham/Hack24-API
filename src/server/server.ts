@@ -1,5 +1,3 @@
-"use strict";
-
 import * as respond from './routes/respond';
 import * as express from 'express';
 import * as mongoose from 'mongoose';

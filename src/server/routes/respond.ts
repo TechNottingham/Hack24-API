@@ -1,5 +1,3 @@
-"use strict";
-
 import {Response} from 'express'
 import {JSONApi} from '../../resources'
 

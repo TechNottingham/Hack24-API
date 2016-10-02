@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IHack} from './models/hacks';
@@ -17,7 +15,7 @@ describe('Hack Entries relationship', () => {
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
-  
+
   describe('OPTIONS hack challenges', () => {
 
     let statusCode: number;
@@ -29,7 +27,7 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       let hack = MongoDB.Hacks.createRandomHack();
-      
+
       await api.options(`/hacks/${hack.hackid}/challenges`)
         .end()
         .then((res) => {
@@ -59,7 +57,7 @@ describe('Hack Entries relationship', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
   describe('GET hack challenges', () => {
@@ -79,11 +77,11 @@ describe('Hack Entries relationship', () => {
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
       thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
-      
+
       hack = MongoDB.Hacks.createRandomHack();
       hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
       await MongoDB.Hacks.insertHack(hack);
-            
+
       await api.get(`/hacks/${hack.hackid}/challenges`)
         .end()
         .then((res) => {
@@ -117,25 +115,25 @@ describe('Hack Entries relationship', () => {
     it('should return each entry', () => {
       assert.strictEqual(response.data[0].type, 'challenges');
       assert.strictEqual(response.data[0].id, firstChallenge.challengeid);
-      
+
       assert.strictEqual(response.data[1].type, 'challenges');
       assert.strictEqual(response.data[1].id, secondChallenge.challengeid);
-      
+
       assert.strictEqual(response.data[2].type, 'challenges');
       assert.strictEqual(response.data[2].id, thirdChallenge.challengeid);
     });
 
     it('should include each expected challenge', () => {
       const challenges = <ChallengeResource.ResourceObject[]> response.included;
-      
+
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
       assert.strictEqual(challenges[0].attributes.name, firstChallenge.name);
-      
+
       assert.strictEqual(challenges[1].links.self, `/challenges/${secondChallenge.challengeid}`);
       assert.strictEqual(challenges[1].id, secondChallenge.challengeid);
       assert.strictEqual(challenges[1].attributes.name, secondChallenge.name);
-      
+
       assert.strictEqual(challenges[2].links.self, `/challenges/${thirdChallenge.challengeid}`);
       assert.strictEqual(challenges[2].id, thirdChallenge.challengeid);
       assert.strictEqual(challenges[2].attributes.name, thirdChallenge.name);
@@ -166,15 +164,15 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
       thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
-      
+
       hack = MongoDB.Hacks.createRandomHack();
       hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
       await MongoDB.Hacks.insertHack(hack);
-      
+
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
@@ -184,7 +182,7 @@ describe('Hack Entries relationship', () => {
           id: thirdChallenge.challengeid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/hacks/${hack.hackid}/challenges`)
@@ -196,7 +194,7 @@ describe('Hack Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvents(2);
         });
@@ -229,7 +227,7 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
@@ -243,7 +241,7 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
@@ -253,13 +251,13 @@ describe('Hack Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
       await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
       await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid);
 
       await MongoDB.Hacks.removeByHackId(hack.hackid);
-      
+
       await pusherListener.close();
     });
 
@@ -278,12 +276,12 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       challenge = await MongoDB.Challenges.insertRandomChallenge();
       hack = MongoDB.Hacks.createRandomHack();
       hack.challenges = [challenge._id];
       await MongoDB.Hacks.insertHack(hack);
-      
+
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
@@ -293,7 +291,7 @@ describe('Hack Entries relationship', () => {
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/hacks/${hack.hackid}/challenges`)
@@ -305,7 +303,7 @@ describe('Hack Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvent();
         });
@@ -358,15 +356,15 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       challenge = await MongoDB.Challenges.insertRandomChallenge('A');
       firstNewChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
       secondNewChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
-      
+
       hack = MongoDB.Hacks.createRandomHack();
       hack.challenges = [challenge._id];
       await MongoDB.Hacks.insertHack(hack);
-      
+
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
@@ -376,7 +374,7 @@ describe('Hack Entries relationship', () => {
           id: secondNewChallenge.challengeid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/hacks/${hack.hackid}/challenges`)
@@ -388,7 +386,7 @@ describe('Hack Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvents(2);
         });
@@ -423,7 +421,7 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
@@ -437,7 +435,7 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
@@ -447,13 +445,13 @@ describe('Hack Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
       await MongoDB.Challenges.removeByChallengeId(firstNewChallenge.challengeid);
       await MongoDB.Challenges.removeByChallengeId(secondNewChallenge.challengeid);
 
       await MongoDB.Hacks.removeByHackId(hack.hackid);
-      
+
       await pusherListener.close();
     });
 
@@ -474,24 +472,24 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       challenge = await MongoDB.Challenges.insertRandomChallenge();
       otherChallenge = await MongoDB.Challenges.insertRandomChallenge();
-      
+
       hack = await MongoDB.Hacks.createRandomHack();
       hack.challenges = [challenge._id];
       await MongoDB.Hacks.insertHack(hack);
       otherHack = await MongoDB.Hacks.createRandomHack();
       otherHack.challenges = [otherChallenge._id];
       await MongoDB.Hacks.insertHack(otherHack);
-      
+
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: otherChallenge.challengeid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/hacks/${hack.hackid}/challenges`)
@@ -503,7 +501,7 @@ describe('Hack Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvent();
         });
@@ -534,7 +532,7 @@ describe('Hack Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
       await MongoDB.Challenges.removeByChallengeId(otherChallenge.challengeid);
 
@@ -557,16 +555,16 @@ describe('Hack Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       hack = await MongoDB.Hacks.insertRandomHack();
-      
+
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/hacks/${hack.hackid}/challenges`)
@@ -578,7 +576,7 @@ describe('Hack Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
           await pusherListener.waitForEvent();
         });

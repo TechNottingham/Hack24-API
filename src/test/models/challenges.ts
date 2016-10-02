@@ -1,5 +1,3 @@
-"use strict";
-
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
@@ -11,7 +9,7 @@ export interface IChallenge {
 
 export class Challenges {
   private _collection: Collection;
-  
+
   public static Create(db: Db): Promise<Challenges> {
     return new Promise<Challenges>((resolve, reject) => {
       var challenges = new Challenges();
@@ -22,7 +20,7 @@ export class Challenges {
       });
     });
   }
-  
+
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteMany({}).then(() => {
@@ -32,7 +30,7 @@ export class Challenges {
       })
     });
   }
-  
+
   public removeByName(name: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ name: name }).then(() => {
@@ -42,7 +40,7 @@ export class Challenges {
       })
     });
   }
-  
+
   public removeByChallengeId(challengeid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ challengeid: challengeid }).then(() => {
@@ -52,16 +50,16 @@ export class Challenges {
       })
     });
   }
-  
+
   public createRandomChallenge(prefix?: string): IChallenge {
     prefix = prefix || '';
     let randomPart = Random.str(5);
-    return { 
+    return {
       challengeid: `random-challenge-${prefix}${randomPart}`,
       name: `Random Challenge ${prefix}${randomPart}`
     };
   }
-  
+
   public insertChallenge(challenge: IChallenge): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(challenge).then(() => {
@@ -71,7 +69,7 @@ export class Challenges {
       })
     });
   }
-  
+
   public insertRandomChallenge(prefix?: string): Promise<IChallenge> {
     let randomChallenge = this.createRandomChallenge(prefix);
     return new Promise<IChallenge>((resolve, reject) => {
@@ -83,7 +81,7 @@ export class Challenges {
       })
     });
   }
-  
+
   public findbyName(name: string): Promise<IChallenge> {
     return new Promise<IChallenge>((resolve, reject) => {
       this._collection.find({ name: name }).limit(1).toArray().then((challenges: IChallenge[]) => {
@@ -93,7 +91,7 @@ export class Challenges {
       });
     });
   }
-  
+
   public findByChallengeId(challengeid: string): Promise<IChallenge> {
     return new Promise<IChallenge>((resolve, reject) => {
       this._collection.find({ challengeid: challengeid }).limit(1).toArray().then((challenges: IChallenge[]) => {

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as respond from './respond';
 
 import {Request, Response} from 'express';

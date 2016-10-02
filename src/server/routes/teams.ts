@@ -1,5 +1,3 @@
-"use strict";
-
 import * as respond from './respond';
 import * as slug from 'slug';
 import * as middleware from '../middleware';

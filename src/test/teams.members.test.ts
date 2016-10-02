@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -17,7 +15,7 @@ describe('Team Members relationship', () => {
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
-  
+
   describe('OPTIONS team members', () => {
 
     let statusCode: number;
@@ -29,7 +27,7 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       let team = MongoDB.Teams.createRandomTeam();
-      
+
       await api.options(`/teams/${team.teamid}/members`)
         .end()
         .then((res) => {
@@ -59,7 +57,7 @@ describe('Team Members relationship', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
   describe('GET team members', () => {
@@ -79,9 +77,9 @@ describe('Team Members relationship', () => {
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
       thirdUser = await MongoDB.Users.insertRandomUser('C');
-      
+
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id]);
-            
+
       await api.get(`/teams/${team.teamid}/members`)
         .end()
         .then((res) => {
@@ -115,25 +113,25 @@ describe('Team Members relationship', () => {
     it('should return each member', () => {
       assert.strictEqual(response.data[0].type, 'users');
       assert.strictEqual(response.data[0].id, firstUser.userid);
-      
+
       assert.strictEqual(response.data[1].type, 'users');
       assert.strictEqual(response.data[1].id, secondUser.userid);
-      
+
       assert.strictEqual(response.data[2].type, 'users');
       assert.strictEqual(response.data[2].id, thirdUser.userid);
     });
 
     it('should include each expected user', () => {
       let users = <UserResource.ResourceObject[]> response.included;
-      
+
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
       assert.strictEqual(users[0].attributes.name, firstUser.name);
-      
+
       assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
-      
+
       assert.strictEqual(users[2].links.self, `/users/${thirdUser.userid}`);
       assert.strictEqual(users[2].id, thirdUser.userid);
       assert.strictEqual(users[2].attributes.name, thirdUser.name);
@@ -164,13 +162,13 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
       thirdUser = await MongoDB.Users.insertRandomUser('C');
-      
+
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id]);
-      
+
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
@@ -180,7 +178,7 @@ describe('Team Members relationship', () => {
           id: thirdUser.userid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/teams/${team.teamid}/members`)
@@ -192,7 +190,7 @@ describe('Team Members relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvents(2);
         });
@@ -225,7 +223,7 @@ describe('Team Members relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_members_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -239,7 +237,7 @@ describe('Team Members relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_members_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -249,13 +247,13 @@ describe('Team Members relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Users.removeByUserId(firstUser.userid);
       await MongoDB.Users.removeByUserId(secondUser.userid);
       await MongoDB.Users.removeByUserId(thirdUser.userid);
 
       await MongoDB.Teams.removeByTeamId(team.teamid);
-      
+
       await pusherListener.close();
     });
 
@@ -274,10 +272,10 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       user = await MongoDB.Users.insertRandomUser();
       team = await MongoDB.Teams.insertRandomTeam([user._id]);
-      
+
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
@@ -287,7 +285,7 @@ describe('Team Members relationship', () => {
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/teams/${team.teamid}/members`)
@@ -299,7 +297,7 @@ describe('Team Members relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
@@ -352,13 +350,13 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       user = await MongoDB.Users.insertRandomUser('A');
       firstNewUser = await MongoDB.Users.insertRandomUser('B');
       secondNewUser = await MongoDB.Users.insertRandomUser('C');
-      
+
       team = await MongoDB.Teams.insertRandomTeam([user._id]);
-      
+
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
@@ -368,7 +366,7 @@ describe('Team Members relationship', () => {
           id: secondNewUser.userid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/members`)
@@ -380,7 +378,7 @@ describe('Team Members relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
@@ -415,7 +413,7 @@ describe('Team Members relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_members_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -429,7 +427,7 @@ describe('Team Members relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_members_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -439,13 +437,13 @@ describe('Team Members relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Users.removeByUserId(user.userid);
       await MongoDB.Users.removeByUserId(firstNewUser.userid);
       await MongoDB.Users.removeByUserId(secondNewUser.userid);
 
       await MongoDB.Teams.removeByTeamId(team.teamid);
-      
+
       await pusherListener.close();
     });
 
@@ -466,20 +464,20 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       user = await MongoDB.Users.insertRandomUser();
       otherUser = await MongoDB.Users.insertRandomUser();
-      
+
       team = await MongoDB.Teams.insertRandomTeam([user._id]);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id]);
-      
+
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: otherUser.userid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/members`)
@@ -491,7 +489,7 @@ describe('Team Members relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
@@ -522,7 +520,7 @@ describe('Team Members relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Users.removeByUserId(user.userid);
       await MongoDB.Users.removeByUserId(otherUser.userid);
 
@@ -545,16 +543,16 @@ describe('Team Members relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       team = await MongoDB.Teams.insertRandomTeam();
-      
+
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/members`)
@@ -566,7 +564,7 @@ describe('Team Members relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });

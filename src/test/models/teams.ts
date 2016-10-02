@@ -1,5 +1,3 @@
-"use strict";
-
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
@@ -14,7 +12,7 @@ export interface ITeam {
 
 export class Teams {
   private _collection: Collection;
-  
+
   public static Create(db: Db): Promise<Teams> {
     return new Promise<Teams>((resolve, reject) => {
       var teams = new Teams();
@@ -25,7 +23,7 @@ export class Teams {
       });
     });
   }
-  
+
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteMany({}).then(() => {
@@ -35,7 +33,7 @@ export class Teams {
       })
     });
   }
-  
+
   public removeByName(name: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ name: name }).then(() => {
@@ -45,7 +43,7 @@ export class Teams {
       })
     });
   }
-  
+
   public removeByTeamId(teamid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ teamid: teamid }).then(() => {
@@ -55,11 +53,11 @@ export class Teams {
       })
     });
   }
-  
+
   public createRandomTeam(prefix?: string): ITeam {
     prefix = prefix || '';
     let randomPart = Random.str(5);
-    return { 
+    return {
       teamid: `random-team-${prefix}${randomPart}`,
       name: `Random Team ${prefix}${randomPart}`,
       motto: `Random motto ${randomPart}`,
@@ -67,7 +65,7 @@ export class Teams {
       entries: []
     };
   }
-  
+
   public insertTeam(team: ITeam): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(team).then(() => {
@@ -77,7 +75,7 @@ export class Teams {
       })
     });
   }
-  
+
   public insertRandomTeam(members?: ObjectID[], prefix?: string): Promise<ITeam> {
     const randomTeam = this.createRandomTeam(prefix);
     randomTeam.members = members || [];
@@ -90,7 +88,7 @@ export class Teams {
       })
     });
   }
-  
+
   public findbyName(name: string): Promise<ITeam> {
     return new Promise<ITeam>((resolve, reject) => {
       this._collection.find({ name: name }).limit(1).toArray().then((teams: ITeam[]) => {
@@ -100,7 +98,7 @@ export class Teams {
       });
     });
   }
-  
+
   public findbyTeamId(teamid: string): Promise<ITeam> {
     return new Promise<ITeam>((resolve, reject) => {
       this._collection.find({ teamid: teamid }).limit(1).toArray().then((teams: ITeam[]) => {

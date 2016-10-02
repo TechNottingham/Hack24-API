@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -29,7 +27,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       challenge = MongoDB.Challenges.createRandomChallenge();
-      
+
       const challengeRequest: ChallengeResource.TopLevelDocument = {
         data: {
           type: 'challenges',
@@ -38,7 +36,7 @@ describe('Challenges resource', () => {
           }
         }
       };
-      
+
       await api.post('/challenges')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
@@ -98,7 +96,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       challenge = await MongoDB.Challenges.insertRandomChallenge();
-      
+
       const challengeRequest: ChallengeResource.TopLevelDocument = {
         data: {
           type: 'challenges',
@@ -107,7 +105,7 @@ describe('Challenges resource', () => {
           }
         }
       };
-      
+
       await api.post('/challenges')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
@@ -149,7 +147,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       const challenge = MongoDB.Challenges.createRandomChallenge();
-      
+
       const challengeRequest: ChallengeResource.TopLevelDocument = {
         data: {
           type: 'challenges',
@@ -158,7 +156,7 @@ describe('Challenges resource', () => {
           }
         }
       };
-      
+
       await api.post('/challenges')
         .auth('not a user', ApiServer.AdminPassword)
         .type('application/vnd.api+json')
@@ -168,7 +166,7 @@ describe('Challenges resource', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           createdChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
         });
     });
@@ -193,7 +191,7 @@ describe('Challenges resource', () => {
     });
 
   });
-  
+
   describe('OPTIONS challenges', () => {
 
     let statusCode: number;
@@ -233,9 +231,9 @@ describe('Challenges resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET challenges', () => {
 
     let firstChallenge: IChallenge;
@@ -249,10 +247,10 @@ describe('Challenges resource', () => {
 
     before(async () => {
       await MongoDB.Challenges.removeAll();
-      
+
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
-            
+
       await api.get('/challenges')
         .end()
         .then((res) => {
@@ -285,7 +283,7 @@ describe('Challenges resource', () => {
 
     it('should return the first challenge', () => {
       const challengeResponse = response.data[0];
-      
+
       assert.strictEqual(challengeResponse.type, 'challenges');
       assert.strictEqual(challengeResponse.id, firstChallenge.challengeid);
       assert.strictEqual(challengeResponse.attributes.name, firstChallenge.name);
@@ -293,7 +291,7 @@ describe('Challenges resource', () => {
 
     it('should return the second challenge', () => {
       const challengeResponse = response.data[1];
-      
+
       assert.strictEqual(challengeResponse.type, 'challenges');
       assert.strictEqual(challengeResponse.id, secondChallenge.challengeid);
       assert.strictEqual(challengeResponse.attributes.name, secondChallenge.name);
@@ -305,7 +303,7 @@ describe('Challenges resource', () => {
     });
 
   });
-  
+
   describe('OPTIONS challenges by slug (challengeid)', () => {
 
     let statusCode: number;
@@ -317,7 +315,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       let challenge = MongoDB.Challenges.createRandomChallenge();
-      
+
       await api.options(`/challenges/${challenge.challengeid}`)
         .end()
         .then((res) => {
@@ -347,9 +345,9 @@ describe('Challenges resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET challenge by slug (challengeid)', () => {
 
     let challenge: IChallenge;
@@ -362,7 +360,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       challenge = await MongoDB.Challenges.insertRandomChallenge();
-      
+
       await api.get(`/challenges/${challenge.challengeid}`)
         .set('Accept', 'application/json')
         .end()
@@ -405,7 +403,7 @@ describe('Challenges resource', () => {
     });
 
   });
-  
+
   describe('GET challenge by slug (challengeid) which does not exist', () => {
 
     let statusCode: number;
@@ -464,11 +462,11 @@ describe('Challenges resource', () => {
 
     before(async () => {
       await MongoDB.Challenges.removeAll();
-      
+
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('ABCD');
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('ABEF');
       thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('ABCE');
-            
+
       await api.get('/challenges?filter[name]=ABC')
         .end()
         .then((res) => {
@@ -502,10 +500,10 @@ describe('Challenges resource', () => {
     it('should return two challenges', () => {
       assert.strictEqual(response.data.length, 2);
     });
-    
+
     it('should return the first challenge', () => {
       const challengeResponse = response.data[0];
-      
+
       assert.strictEqual(challengeResponse.type, 'challenges');
       assert.strictEqual(challengeResponse.id, firstChallenge.challengeid);
       assert.strictEqual(challengeResponse.attributes.name, firstChallenge.name);
@@ -513,7 +511,7 @@ describe('Challenges resource', () => {
 
     it('should return the third challenge', () => {
       const challengeResponse = response.data[1];
-      
+
       assert.strictEqual(challengeResponse.type, 'challenges');
       assert.strictEqual(challengeResponse.id, thirdChallenge.challengeid);
       assert.strictEqual(challengeResponse.attributes.name, thirdChallenge.name);
@@ -526,7 +524,7 @@ describe('Challenges resource', () => {
     });
 
   });
-  
+
   describe('DELETE challenge', () => {
 
     let challenge: IChallenge;
@@ -537,7 +535,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       challenge = await MongoDB.Challenges.insertRandomChallenge();
-      
+
       await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .end()
@@ -561,7 +559,7 @@ describe('Challenges resource', () => {
     it('should return no body', () => {
       assert.strictEqual(body, '');
     });
-    
+
     it('should have deleted the challenge', () => {
       assert.strictEqual(deletedChallenge, null);
     });
@@ -602,7 +600,7 @@ describe('Challenges resource', () => {
       assert.strictEqual(response.errors[0].status, '404');
       assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
-    
+
   });
 
   describe('DELETE challenge with incorrect auth', () => {
@@ -614,7 +612,7 @@ describe('Challenges resource', () => {
 
     before(async () => {
       challenge = MongoDB.Challenges.createRandomChallenge();
-      
+
       await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
         .auth('sack', 'boy')
         .end()

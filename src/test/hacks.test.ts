@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -33,7 +31,7 @@ describe('Hacks resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       hack = MongoDB.Hacks.createRandomHack();
-      
+
       const hackRequest: HackResource.TopLevelDocument = {
         data: {
           type: 'hacks',
@@ -42,9 +40,9 @@ describe('Hacks resource', () => {
           }
         }
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
-      
+
       await api.post('/hacks')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -92,13 +90,13 @@ describe('Hacks resource', () => {
 
     it('should send a hacks_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
-      
+
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
@@ -123,7 +121,7 @@ describe('Hacks resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       hack = await MongoDB.Hacks.insertRandomHack();
-      
+
       const hackRequest: HackResource.TopLevelDocument = {
         data: {
           type: 'hacks',
@@ -132,7 +130,7 @@ describe('Hacks resource', () => {
           }
         }
       };
-      
+
       await api.post('/hacks')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -175,7 +173,7 @@ describe('Hacks resource', () => {
 
     before(async () => {
       const hack = MongoDB.Hacks.createRandomHack();
-      
+
       const hackRequest: HackResource.TopLevelDocument = {
         data: {
           type: 'hacks',
@@ -184,7 +182,7 @@ describe('Hacks resource', () => {
           }
         }
       };
-      
+
       await api.post('/hacks')
         .auth('not a user', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -194,7 +192,7 @@ describe('Hacks resource', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
         });
     });
@@ -219,7 +217,7 @@ describe('Hacks resource', () => {
     });
 
   });
-  
+
   describe('OPTIONS hacks', () => {
 
     let statusCode: number;
@@ -259,9 +257,9 @@ describe('Hacks resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET hacks', () => {
 
     let firstHack: IHack;
@@ -275,10 +273,10 @@ describe('Hacks resource', () => {
 
     before(async () => {
       await MongoDB.Hacks.removeAll();
-      
+
       firstHack = await MongoDB.Hacks.insertRandomHack('A');
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
-            
+
       await api.get('/hacks')
         .end()
         .then((res) => {
@@ -311,7 +309,7 @@ describe('Hacks resource', () => {
 
     it('should return the first hack', () => {
       const hackResponse = response.data[0];
-      
+
       assert.strictEqual(hackResponse.type, 'hacks');
       assert.strictEqual(hackResponse.id, firstHack.hackid);
       assert.strictEqual(hackResponse.attributes.name, firstHack.name);
@@ -319,7 +317,7 @@ describe('Hacks resource', () => {
 
     it('should return the second hack', () => {
       const hackResponse = response.data[1];
-      
+
       assert.strictEqual(hackResponse.type, 'hacks');
       assert.strictEqual(hackResponse.id, secondHack.hackid);
       assert.strictEqual(hackResponse.attributes.name, secondHack.name);
@@ -331,7 +329,7 @@ describe('Hacks resource', () => {
     });
 
   });
-  
+
   describe('OPTIONS hacks by slug (hackid)', () => {
 
     let statusCode: number;
@@ -343,7 +341,7 @@ describe('Hacks resource', () => {
 
     before(async () => {
       let hack = MongoDB.Hacks.createRandomHack();
-      
+
       await api.options(`/hacks/${hack.hackid}`)
         .end()
         .then((res) => {
@@ -373,9 +371,9 @@ describe('Hacks resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET hack by slug (hackid)', () => {
 
     let hack: IHack;
@@ -388,7 +386,7 @@ describe('Hacks resource', () => {
 
     before(async () => {
       hack = await MongoDB.Hacks.insertRandomHack();
-      
+
       await api.get(`/hacks/${hack.hackid}`)
         .set('Accept', 'application/json')
         .end()
@@ -431,7 +429,7 @@ describe('Hacks resource', () => {
     });
 
   });
-  
+
   describe('GET hack by slug (hackid) which does not exist', () => {
 
     let statusCode: number;
@@ -490,11 +488,11 @@ describe('Hacks resource', () => {
 
     before(async () => {
       await MongoDB.Hacks.removeAll();
-      
+
       firstHack = await MongoDB.Hacks.insertRandomHack('ABCD');
       secondHack = await MongoDB.Hacks.insertRandomHack('ABEF');
       thirdHack = await MongoDB.Hacks.insertRandomHack('ABCE');
-            
+
       await api.get('/hacks?filter[name]=ABC')
         .end()
         .then((res) => {
@@ -528,10 +526,10 @@ describe('Hacks resource', () => {
     it('should return two hacks', () => {
       assert.strictEqual(response.data.length, 2);
     });
-    
+
     it('should return the first hack', () => {
       const hackResponse = response.data[0];
-      
+
       assert.strictEqual(hackResponse.type, 'hacks');
       assert.strictEqual(hackResponse.id, firstHack.hackid);
       assert.strictEqual(hackResponse.attributes.name, firstHack.name);
@@ -539,7 +537,7 @@ describe('Hacks resource', () => {
 
     it('should return the third hack', () => {
       const hackResponse = response.data[1];
-      
+
       assert.strictEqual(hackResponse.type, 'hacks');
       assert.strictEqual(hackResponse.id, thirdHack.hackid);
       assert.strictEqual(hackResponse.attributes.name, thirdHack.name);
@@ -552,7 +550,7 @@ describe('Hacks resource', () => {
     });
 
   });
-  
+
   describe('DELETE hack', () => {
 
     let attendee: IAttendee;
@@ -565,7 +563,7 @@ describe('Hacks resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       hack = await MongoDB.Hacks.insertRandomHack();
-      
+
       await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .end()
@@ -589,7 +587,7 @@ describe('Hacks resource', () => {
     it('should return no body', () => {
       assert.strictEqual(body, '');
     });
-    
+
     it('should have deleted the hack', () => {
       assert.strictEqual(deletedHack, null);
     });
@@ -600,7 +598,7 @@ describe('Hacks resource', () => {
     });
 
   });
-  
+
   describe('DELETE hack entered into a team', () => {
 
     let attendee: IAttendee;
@@ -617,7 +615,7 @@ describe('Hacks resource', () => {
       team = MongoDB.Teams.createRandomTeam();
       team.entries = [hack._id];
       await MongoDB.Teams.insertTeam(team);
-      
+
       await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .end()
@@ -643,7 +641,7 @@ describe('Hacks resource', () => {
       assert.strictEqual(response.errors[0].status, '400');
       assert.strictEqual(response.errors[0].title, 'Hack is entered into a team.');
     });
-    
+
     it('should not delete the hack', () => {
       assert.strictEqual(deletedHack.hackid, hack.hackid);
     });
@@ -692,7 +690,7 @@ describe('Hacks resource', () => {
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
     });
-    
+
   });
 
   describe('DELETE hack with incorrect auth', () => {
@@ -704,7 +702,7 @@ describe('Hacks resource', () => {
 
     before(async () => {
       hack = MongoDB.Hacks.createRandomHack();
-      
+
       await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth('sack', 'boy')
         .end()

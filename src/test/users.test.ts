@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -18,7 +16,7 @@ describe('Users resource', () => {
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
-  
+
   describe('OPTIONS user by ID', () => {
 
     let statusCode: number;
@@ -30,7 +28,7 @@ describe('Users resource', () => {
 
     before(async () => {
       let user = MongoDB.Users.createRandomUser();
-      
+
       await api.options(`/users/${user.userid}`)
         .end()
         .then((res) => {
@@ -60,7 +58,7 @@ describe('Users resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
   describe('GET user by ID', () => {
@@ -75,7 +73,7 @@ describe('Users resource', () => {
 
     before(async () => {
       user = await MongoDB.Users.insertRandomUser();
-      
+
       await api.get(`/users/${user.userid}`)
         .end()
         .then((res) => {
@@ -131,7 +129,7 @@ describe('Users resource', () => {
     });
 
   });
-  
+
   describe('OPTIONS users', () => {
 
     let statusCode: number;
@@ -171,9 +169,9 @@ describe('Users resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET users in teams', () => {
 
     let user: IUser;
@@ -189,16 +187,16 @@ describe('Users resource', () => {
 
     before(async () => {
       await MongoDB.Users.removeAll();
-      
+
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
-      
+
       team = await MongoDB.Teams.createRandomTeam('A');
       team.members = [user._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
-      
+
       await api.get(`/users`)
         .end()
         .then((res) => {
@@ -300,7 +298,7 @@ describe('Users resource', () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id]);
-      
+
       await api.get(`/users/${user.userid}`)
         .end()
         .then((res) => {
@@ -365,7 +363,7 @@ describe('Users resource', () => {
     it('should include the related team members', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 2);
-      
+
       let relatedUser = includedTeam.relationships.members.data[0];
       assert.strictEqual(relatedUser.type, 'users');
       assert.strictEqual(relatedUser.id, user.userid);
@@ -416,7 +414,7 @@ describe('Users resource', () => {
       team.members = [user._id, otherUser._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
-      
+
       await api.get(`/users/${user.userid}`)
         .end()
         .then((res) => {
@@ -481,7 +479,7 @@ describe('Users resource', () => {
     it('should include the related team members', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 2);
-      
+
       let relatedUser = includedTeam.relationships.members.data[0];
       assert.strictEqual(relatedUser.type, 'users');
       assert.strictEqual(relatedUser.id, user.userid);
@@ -524,7 +522,7 @@ describe('Users resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = MongoDB.Users.createRandomUser();
-      
+
       const requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
@@ -534,7 +532,7 @@ describe('Users resource', () => {
           }
         }
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post('/users')
@@ -584,13 +582,13 @@ describe('Users resource', () => {
 
     it('should send a users_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
-      
+
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'users_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.userid, user.userid);
       assert.strictEqual(data.name, user.name);
@@ -615,7 +613,7 @@ describe('Users resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
-      
+
       let requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
@@ -702,7 +700,7 @@ describe('Users resource', () => {
     });
 
   });
-  
+
   describe('POST new user without authentication', () => {
 
     let userId: string;
@@ -714,7 +712,7 @@ describe('Users resource', () => {
 
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      
+
       await api.post('/users')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
@@ -724,7 +722,7 @@ describe('Users resource', () => {
           contentType = res.header['content-type'];
           authenticateHeader = res.header['www-authenticate'];
           response = res.body;
-          
+
           createdUser = await MongoDB.Users.findbyUserId(userId);
         });
     });
@@ -757,7 +755,7 @@ describe('Users resource', () => {
     });
 
   });
-  
+
   describe('POST new user with incorrect authentication', () => {
 
     let userId: string;
@@ -768,7 +766,7 @@ describe('Users resource', () => {
 
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      
+
       await api.post('/users')
         .auth('hackbot', 'incorrect_password')
         .type('application/vnd.api+json')
@@ -778,7 +776,7 @@ describe('Users resource', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           createdUser = await MongoDB.Users.findbyUserId(userId);
         });
     });

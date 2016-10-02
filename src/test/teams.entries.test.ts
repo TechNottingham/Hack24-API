@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {ITeam} from './models/teams';
@@ -17,7 +15,7 @@ describe('Team Entries relationship', () => {
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
-  
+
   describe('OPTIONS team entries', () => {
 
     let statusCode: number;
@@ -29,7 +27,7 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       let team = MongoDB.Teams.createRandomTeam();
-      
+
       await api.options(`/teams/${team.teamid}/entries`)
         .end()
         .then((res) => {
@@ -59,7 +57,7 @@ describe('Team Entries relationship', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
   describe('GET team entries', () => {
@@ -79,11 +77,11 @@ describe('Team Entries relationship', () => {
       firstHack = await MongoDB.Hacks.insertRandomHack('A');
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
       thirdHack = await MongoDB.Hacks.insertRandomHack('C');
-      
+
       team = MongoDB.Teams.createRandomTeam();
       team.entries = [firstHack._id, secondHack._id, thirdHack._id];
       await MongoDB.Teams.insertTeam(team);
-            
+
       await api.get(`/teams/${team.teamid}/entries`)
         .end()
         .then((res) => {
@@ -117,25 +115,25 @@ describe('Team Entries relationship', () => {
     it('should return each entry', () => {
       assert.strictEqual(response.data[0].type, 'hacks');
       assert.strictEqual(response.data[0].id, firstHack.hackid);
-      
+
       assert.strictEqual(response.data[1].type, 'hacks');
       assert.strictEqual(response.data[1].id, secondHack.hackid);
-      
+
       assert.strictEqual(response.data[2].type, 'hacks');
       assert.strictEqual(response.data[2].id, thirdHack.hackid);
     });
 
     it('should include each expected hack', () => {
       const hacks = <HackResource.ResourceObject[]> response.included;
-      
+
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
       assert.strictEqual(hacks[0].attributes.name, firstHack.name);
-      
+
       assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
       assert.strictEqual(hacks[1].id, secondHack.hackid);
       assert.strictEqual(hacks[1].attributes.name, secondHack.name);
-      
+
       assert.strictEqual(hacks[2].links.self, `/hacks/${thirdHack.hackid}`);
       assert.strictEqual(hacks[2].id, thirdHack.hackid);
       assert.strictEqual(hacks[2].attributes.name, thirdHack.name);
@@ -166,15 +164,15 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       firstHack = await MongoDB.Hacks.insertRandomHack('A');
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
       thirdHack = await MongoDB.Hacks.insertRandomHack('C');
-      
+
       team = MongoDB.Teams.createRandomTeam();
       team.entries = [firstHack._id, secondHack._id, thirdHack._id];
       await MongoDB.Teams.insertTeam(team);
-      
+
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
@@ -184,7 +182,7 @@ describe('Team Entries relationship', () => {
           id: thirdHack.hackid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/teams/${team.teamid}/entries`)
@@ -196,7 +194,7 @@ describe('Team Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvents(2);
         });
@@ -229,7 +227,7 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_entries_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -243,7 +241,7 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_entries_delete');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -253,13 +251,13 @@ describe('Team Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Hacks.removeByHackId(firstHack.hackid);
       await MongoDB.Hacks.removeByHackId(secondHack.hackid);
       await MongoDB.Hacks.removeByHackId(thirdHack.hackid);
 
       await MongoDB.Teams.removeByTeamId(team.teamid);
-      
+
       await pusherListener.close();
     });
 
@@ -278,12 +276,12 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       hack = await MongoDB.Hacks.insertRandomHack();
       team = MongoDB.Teams.createRandomTeam();
       team.entries = [hack._id];
       await MongoDB.Teams.insertTeam(team);
-      
+
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
@@ -293,7 +291,7 @@ describe('Team Entries relationship', () => {
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.delete(`/teams/${team.teamid}/entries`)
@@ -305,7 +303,7 @@ describe('Team Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
@@ -358,15 +356,15 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       hack = await MongoDB.Hacks.insertRandomHack('A');
       firstNewHack = await MongoDB.Hacks.insertRandomHack('B');
       secondNewHack = await MongoDB.Hacks.insertRandomHack('C');
-      
+
       team = MongoDB.Teams.createRandomTeam();
       team.entries = [hack._id];
       await MongoDB.Teams.insertTeam(team);
-      
+
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
@@ -376,7 +374,7 @@ describe('Team Entries relationship', () => {
           id: secondNewHack.hackid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/entries`)
@@ -388,7 +386,7 @@ describe('Team Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           body = res.text;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvents(2);
         });
@@ -423,7 +421,7 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_entries_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -437,7 +435,7 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'teams_update_entries_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
@@ -447,13 +445,13 @@ describe('Team Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Hacks.removeByHackId(hack.hackid);
       await MongoDB.Hacks.removeByHackId(firstNewHack.hackid);
       await MongoDB.Hacks.removeByHackId(secondNewHack.hackid);
 
       await MongoDB.Teams.removeByTeamId(team.teamid);
-      
+
       await pusherListener.close();
     });
 
@@ -474,24 +472,24 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       hack = await MongoDB.Hacks.insertRandomHack();
       otherHack = await MongoDB.Hacks.insertRandomHack();
-      
+
       team = await MongoDB.Teams.createRandomTeam();
       team.entries = [hack._id];
       await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.createRandomTeam();
       otherTeam.entries = [otherHack._id];
       await MongoDB.Teams.insertTeam(otherTeam);
-      
+
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: otherHack.hackid
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/entries`)
@@ -503,7 +501,7 @@ describe('Team Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
@@ -534,7 +532,7 @@ describe('Team Entries relationship', () => {
 
     after(async () => {
       await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      
+
       await MongoDB.Hacks.removeByHackId(hack.hackid);
       await MongoDB.Hacks.removeByHackId(otherHack.hackid);
 
@@ -557,16 +555,16 @@ describe('Team Entries relationship', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       team = await MongoDB.Teams.insertRandomTeam();
-      
+
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: 'does not exist'
         }]
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       await api.post(`/teams/${team.teamid}/entries`)
@@ -578,7 +576,7 @@ describe('Team Entries relationship', () => {
           statusCode = res.status;
           contentType = res.header['content-type'];
           response = res.body;
-          
+
           modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
           await pusherListener.waitForEvent();
         });
