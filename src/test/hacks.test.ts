@@ -1,13 +1,11 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
-import {IHack} from './models/hacks';
-import {IAttendee} from './models/attendees';
+import {Team} from './models/teams';
+import {Hack} from './models/hacks';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, HacksResource, HackResource, UserResource} from '../resources';
-import {Random} from './utils/random';
+import {JSONApi, HacksResource, HackResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
 
 describe('Hacks resource', () => {
@@ -20,9 +18,9 @@ describe('Hacks resource', () => {
 
   describe('POST new hack', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let createdHack: IHack;
+    let attendee: Attendee;
+    let hack: Hack;
+    let createdHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: HackResource.TopLevelDocument;
@@ -36,9 +34,9 @@ describe('Hacks resource', () => {
         data: {
           type: 'hacks',
           attributes: {
-            name: hack.name
-          }
-        }
+            name: hack.name,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -105,15 +103,15 @@ describe('Hacks resource', () => {
       MongoDB.Hacks.removeByHackId(hack.hackid),
       MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST hack which already exists', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
+    let attendee: Attendee;
+    let hack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -126,9 +124,9 @@ describe('Hacks resource', () => {
         data: {
           type: 'hacks',
           attributes: {
-            name: hack.name
-          }
-        }
+            name: hack.name,
+          },
+        },
       };
 
       const res = await api.post('/hacks')
@@ -158,14 +156,14 @@ describe('Hacks resource', () => {
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-      MongoDB.Hacks.removeByHackId(hack.hackid)
+      MongoDB.Hacks.removeByHackId(hack.hackid),
     ]));
 
   });
 
   describe('POST hack with incorrect authentication', () => {
 
-    let createdHack: IHack;
+    let createdHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -177,9 +175,9 @@ describe('Hacks resource', () => {
         data: {
           type: 'hacks',
           attributes: {
-            name: hack.name
-          }
-        }
+            name: hack.name,
+          },
+        },
       };
 
       const res = await api.post('/hacks')
@@ -258,8 +256,8 @@ describe('Hacks resource', () => {
 
   describe('GET hacks', () => {
 
-    let firstHack: IHack;
-    let secondHack: IHack;
+    let firstHack: Hack;
+    let secondHack: Hack;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -319,7 +317,7 @@ describe('Hacks resource', () => {
 
     after(() => Promise.all([
       MongoDB.Hacks.removeByHackId(firstHack.hackid),
-      MongoDB.Hacks.removeByHackId(secondHack.hackid)
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
     ]));
 
   });
@@ -368,7 +366,7 @@ describe('Hacks resource', () => {
 
   describe('GET hack by slug (hackid)', () => {
 
-    let hack: IHack;
+    let hack: Hack;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -464,9 +462,9 @@ describe('Hacks resource', () => {
 
   describe('GET hacks by filter', () => {
 
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let thirdHack: IHack;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let thirdHack: Hack;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -532,16 +530,16 @@ describe('Hacks resource', () => {
     after(() => Promise.all([
       MongoDB.Hacks.removeByHackId(firstHack.hackid),
       MongoDB.Hacks.removeByHackId(secondHack.hackid),
-      MongoDB.Hacks.removeByHackId(thirdHack.hackid)
+      MongoDB.Hacks.removeByHackId(thirdHack.hackid),
     ]));
 
   });
 
   describe('DELETE hack', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let deletedHack: IHack;
+    let attendee: Attendee;
+    let hack: Hack;
+    let deletedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -579,17 +577,17 @@ describe('Hacks resource', () => {
 
     after(() => Promise.all([
       MongoDB.Hacks.removeByHackId(hack.hackid),
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid)
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
     ]));
 
   });
 
   describe('DELETE hack entered into a team', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let team: ITeam;
-    let deletedHack: IHack;
+    let attendee: Attendee;
+    let hack: Hack;
+    let team: Team;
+    let deletedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -633,14 +631,14 @@ describe('Hacks resource', () => {
     after(() => Promise.all([
       MongoDB.Hacks.removeByHackId(hack.hackid),
       MongoDB.Teams.removeByTeamId(team.teamid),
-      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid)
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
     ]));
 
   });
 
   describe('DELETE hack which does not exist', () => {
 
-    let attendee: IAttendee;
+    let attendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -677,7 +675,7 @@ describe('Hacks resource', () => {
 
   describe('DELETE hack with incorrect auth', () => {
 
-    let hack: IHack;
+    let hack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {Root} from '../resources'
+import {Root} from '../resources';
 
 describe('API Root', () => {
 

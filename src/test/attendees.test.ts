@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IAttendee} from './models/attendees';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
+import {JSONApi, AttendeeResource, AttendeesResource} from '../resources';
 
 describe('Attendees resource', () => {
 
@@ -15,7 +15,7 @@ describe('Attendees resource', () => {
 
   describe('GET attendee by ID', () => {
 
-    let attendee: IAttendee;
+    let attendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
@@ -58,7 +58,7 @@ describe('Attendees resource', () => {
 
   describe('GET attendee by ID with incorrect auth', () => {
 
-    let attendee: IAttendee;
+    let attendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
@@ -96,8 +96,8 @@ describe('Attendees resource', () => {
 
   describe('POST new attendee', () => {
 
-    let attendee: IAttendee;
-    let createdAttendee: IAttendee;
+    let attendee: Attendee;
+    let createdAttendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
@@ -108,8 +108,8 @@ describe('Attendees resource', () => {
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
-          id: attendee.attendeeid
-        }
+          id: attendee.attendeeid,
+        },
       };
 
       const res = await api.post('/attendees')
@@ -151,8 +151,8 @@ describe('Attendees resource', () => {
 
   describe('POST new attendee with incorrect auth', () => {
 
-    let attendee: IAttendee;
-    let createdAttendee: IAttendee;
+    let attendee: Attendee;
+    let createdAttendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeeResource.TopLevelDocument;
@@ -163,8 +163,8 @@ describe('Attendees resource', () => {
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
-          id: attendee.attendeeid
-        }
+          id: attendee.attendeeid,
+        },
       };
 
       const res = await api.post('/attendees')
@@ -204,7 +204,7 @@ describe('Attendees resource', () => {
 
   describe('POST attendee with existing ID', () => {
 
-    let attendee: IAttendee;
+    let attendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -215,8 +215,8 @@ describe('Attendees resource', () => {
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
-          id: attendee.attendeeid
-        }
+          id: attendee.attendeeid,
+        },
       };
 
       const res = await api.post('/attendees')
@@ -250,8 +250,8 @@ describe('Attendees resource', () => {
 
   describe('GET attendees', () => {
 
-    let attendee: IAttendee;
-    let otherAttendee: IAttendee;
+    let attendee: Attendee;
+    let otherAttendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: AttendeesResource.TopLevelDocument;
@@ -299,7 +299,7 @@ describe('Attendees resource', () => {
 
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(attendee.attendeeid),
-      MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
+      MongoDB.Users.removeByUserId(otherAttendee.attendeeid),
     ]));
 
   });
@@ -339,8 +339,8 @@ describe('Attendees resource', () => {
 
   describe('DELETE attendee', () => {
 
-    let attendee: IAttendee;
-    let deletedAttendee: IAttendee;
+    let attendee: Attendee;
+    let deletedAttendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -412,7 +412,7 @@ describe('Attendees resource', () => {
 
   describe('DELETE attendee with incorrect auth', () => {
 
-    let attendee: IAttendee;
+    let attendee: Attendee;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;

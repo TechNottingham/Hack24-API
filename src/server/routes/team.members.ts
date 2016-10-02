@@ -14,7 +14,7 @@ export class TeamMembersRoute {
     this._eventBroadcaster = eventBroadcaster;
   }
 
-  createRouter() {
+  public createRouter() {
     const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
 
@@ -26,7 +26,7 @@ export class TeamMembersRoute {
     return router;
   }
 
-  async get(req: Request, res: Response) {
+  public async get(req: Request, res: Response) {
     const teamId = req.params.teamId;
 
     const team = await TeamModel
@@ -34,55 +34,60 @@ export class TeamMembersRoute {
       .populate('members', 'userid name')
       .exec();
 
-    if (team === null)
+    if (team === null) {
       return respond.Send404(res);
+    }
 
     const members = team.members.map<JSONApi.ResourceIdentifierObject>((member) => ({
       type: 'users',
-      id: member.userid
+      id: member.userid,
     }));
 
     const includedUsers = team.members.map<UserResource.ResourceObject>((member) => ({
       links: { self: `/users/${member.userid}` },
       type: 'users',
       id: member.userid,
-      attributes: { name: member.name }
+      attributes: { name: member.name },
     }));
 
     const membersResponse: TeamMembersRelationship.TopLevelDocument = {
       links: { self: `/teams/${encodeURIComponent(team.teamid)}/members` },
       data: members,
-      included: includedUsers
+      included: includedUsers,
     };
 
     respond.Send200(res, membersResponse);
   };
 
-  async delete(req: Request, res: Response) {
+  public async delete(req: Request, res: Response) {
     const teamId = req.params.teamId;
     const requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
 
     if (!requestDoc
       || !requestDoc.data
-      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data))) {
       return respond.Send400(res);
+    }
 
     const errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
-    if (errorCases.length > 0)
+    if (errorCases.length > 0) {
       return respond.Send400(res);
+    }
 
     const team = await TeamModel
       .findOne({ teamid: teamId }, 'teamid name members')
       .populate('members', 'userid name')
       .exec();
 
-    if (team === null)
+    if (team === null) {
       return respond.Send404(res);
+    }
 
     const usersToDelete = team.members.filter((member) => requestDoc.data.some((memberToDelete) => member.userid === memberToDelete.id));
 
-    if (usersToDelete.length < requestDoc.data.length)
+    if (usersToDelete.length < requestDoc.data.length) {
       return respond.Send400(res);
+    }
 
     const userIdsToDelete = usersToDelete.map((u) => u.userid);
     team.members = team.members.filter((member) => userIdsToDelete.indexOf(member.userid) === -1);
@@ -95,56 +100,62 @@ export class TeamMembersRoute {
         name: team.name,
         member: {
           userid: user.userid,
-          name: user.name
-        }
+          name: user.name,
+        },
       });
     });
 
     respond.Send204(res);
   };
 
-  async add(req: Request, res: Response) {
+  public async add(req: Request, res: Response) {
     const teamId = req.params.teamId;
     const requestDoc: TeamMembersRelationship.TopLevelDocument = req.body;
 
     if (!requestDoc
       || !requestDoc.data
-      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data))) {
       return respond.Send400(res);
+    }
 
     const errorCases = requestDoc.data.filter((member) => member.type !== 'users' || typeof member.id !== 'string');
-    if (errorCases.length > 0)
+    if (errorCases.length > 0) {
       return respond.Send400(res);
+    }
 
     const team = await TeamModel
       .findOne({ teamid: teamId }, 'teamid name members')
       .populate('members', 'userid')
       .exec();
 
-    if (team === null)
+    if (team === null) {
       return respond.Send404(res);
+    }
 
     const userIdsToAdd = requestDoc.data.map((user) => user.id);
     const existingUserIds = userIdsToAdd.filter((userIdToAdd) => team.members.some((actualMember) => actualMember.userid === userIdToAdd));
 
-    if (existingUserIds.length > 0)
+    if (existingUserIds.length > 0) {
       return respond.Send400(res, 'One or more users are already members of this team.');
+    }
 
     const users = await UserModel
       .find({ userid: { $in: userIdsToAdd } }, 'userid name')
       .exec();
 
-    if (users.length !== userIdsToAdd.length)
+    if (users.length !== userIdsToAdd.length) {
       return respond.Send400(res, 'One or more of the specified users could not be found.');
+    }
 
     const userObjectIds = users.map((user) => user._id);
 
     const teams = await TeamModel
-      .find({ members: { $in: userObjectIds }}, 'teamid')
+      .find({ members: { $in: userObjectIds } }, 'teamid')
       .exec();
 
-    if (teams.length > 0)
+    if (teams.length > 0) {
       return respond.Send400(res, 'One or more of the specified users are already in a team.');
+    }
 
     team.members = team.members.concat(users.map((user) => user._id));
 
@@ -156,8 +167,8 @@ export class TeamMembersRoute {
         name: team.name,
         member: {
           userid: user.userid,
-          name: user.name
-        }
+          name: user.name,
+        },
       });
     });
 

@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {ITeam} from './models/teams';
-import {IHack} from './models/hacks';
-import {IAttendee} from './models/attendees';
+import {Team} from './models/teams';
+import {Hack} from './models/hacks';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamEntriesRelationship, HackResource} from '../resources';
@@ -60,10 +60,10 @@ describe('Team Entries relationship', () => {
 
   describe('GET team entries', () => {
 
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let thirdHack: IHack;
-    let team: ITeam;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let thirdHack: Hack;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -120,7 +120,7 @@ describe('Team Entries relationship', () => {
     });
 
     it('should include each expected hack', () => {
-      const hacks = <HackResource.ResourceObject[]>response.included;
+      const hacks = <HackResource.ResourceObject[]> response.included;
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -140,19 +140,19 @@ describe('Team Entries relationship', () => {
       MongoDB.Hacks.removeByHackId(secondHack.hackid),
       MongoDB.Hacks.removeByHackId(thirdHack.hackid),
 
-      MongoDB.Teams.removeByTeamId(team.teamid)
+      MongoDB.Teams.removeByTeamId(team.teamid),
     ]));
 
   });
 
   describe('DELETE multiple team entries', () => {
 
-    let attendee: IAttendee;
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let thirdHack: IHack;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let thirdHack: Hack;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -172,11 +172,11 @@ describe('Team Entries relationship', () => {
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
-          id: firstHack.hackid
+          id: firstHack.hackid,
         }, {
             type: 'hacks',
-            id: thirdHack.hackid
-          }]
+            id: thirdHack.hackid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -253,17 +253,17 @@ describe('Team Entries relationship', () => {
 
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe("DELETE team entries which don't exist", () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let hack: Hack;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -280,11 +280,11 @@ describe('Team Entries relationship', () => {
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
-          id: hack.hackid
+          id: hack.hackid,
         }, {
             type: 'hacks',
-            id: 'does not exist'
-          }]
+            id: 'does not exist',
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -331,19 +331,19 @@ describe('Team Entries relationship', () => {
       MongoDB.Hacks.removeByHackId(hack.hackid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team entries', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let firstNewHack: IHack;
-    let secondNewHack: IHack;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let hack: Hack;
+    let firstNewHack: Hack;
+    let secondNewHack: Hack;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -363,11 +363,11 @@ describe('Team Entries relationship', () => {
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
-          id: firstNewHack.hackid
+          id: firstNewHack.hackid,
         }, {
             type: 'hacks',
-            id: secondNewHack.hackid
-          }]
+            id: secondNewHack.hackid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -446,19 +446,19 @@ describe('Team Entries relationship', () => {
 
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team entries already in a team', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let otherHack: IHack;
-    let team: ITeam;
-    let otherTeam: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let hack: Hack;
+    let otherHack: Hack;
+    let team: Team;
+    let otherTeam: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -480,8 +480,8 @@ describe('Team Entries relationship', () => {
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
-          id: otherHack.hackid
-        }]
+          id: otherHack.hackid,
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -532,16 +532,16 @@ describe('Team Entries relationship', () => {
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Teams.removeByTeamId(otherTeam.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team entries which do not exist', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -555,8 +555,8 @@ describe('Team Entries relationship', () => {
       let req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
-          id: 'does not exist'
-        }]
+          id: 'does not exist',
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -601,7 +601,7 @@ describe('Team Entries relationship', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });

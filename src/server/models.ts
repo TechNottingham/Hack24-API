@@ -1,31 +1,29 @@
-import {Schema, model, Document, Model} from 'mongoose';
+import {Schema, model, Document} from 'mongoose';
 
-export interface IUser {
+export interface User {
   userid: string;
   name: string;
   modified: Date;
 }
 
-export interface IUserModel extends IUser, Document { }
+export interface UserModel extends User, Document { }
 
 export const UserSchema = new Schema({
   userid: { type: String, unique: true, required: true },
   name: { type: String, required: true },
   modified: { type: Date, default: Date.now },
 });
-export const UserModel = model<IUserModel>('User', UserSchema);
+export const UserModel = model<UserModel>('User', UserSchema);
 
-
-
-export interface ITeam {
+export interface Team {
   teamid: string;
   name: string;
   motto: string;
-  members: IUserModel[];
-  entries: IHackModel[];
+  members: UserModel[];
+  entries: HackModel[];
 }
 
-export interface ITeamModel extends ITeam, Document { }
+export interface TeamModel extends Team, Document { }
 
 export const TeamSchema = new Schema({
   teamid: { type: String, unique: true, required: true },
@@ -33,58 +31,50 @@ export const TeamSchema = new Schema({
   motto: { type: String, required: false },
   modified: { type: Date, default: Date.now },
   members : [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  entries : [{ type: Schema.Types.ObjectId, ref: 'Hack' }]
+  entries : [{ type: Schema.Types.ObjectId, ref: 'Hack' }],
 });
-export const TeamModel = model<ITeamModel>('Team', TeamSchema);
+export const TeamModel = model<TeamModel>('Team', TeamSchema);
 
-
-
-export interface IHack {
+export interface Hack {
   hackid: string;
   name: string;
-  challenges: IChallengeModel[];
+  challenges: ChallengeModel[];
 }
 
-export interface IHackModel extends IHack, Document { }
+export interface HackModel extends Hack, Document { }
 
 export const HackSchema = new Schema({
   hackid: { type: String, unique: true, required: true },
   name: { type: String, unique : true, required : true },
   modified: { type: Date, default: Date.now },
-  challenges : [{ type: Schema.Types.ObjectId, ref: 'Challenge' }]
+  challenges : [{ type: Schema.Types.ObjectId, ref: 'Challenge' }],
 });
-export const HackModel = model<IHackModel>('Hack', HackSchema);
+export const HackModel = model<HackModel>('Hack', HackSchema);
 
-
-
-export interface IChallenge {
+export interface Challenge {
   challengeid: string;
   name: string;
 }
 
-export interface IChallengeModel extends IChallenge, Document { }
+export interface ChallengeModel extends Challenge, Document { }
 
 export const ChallengeSchema = new Schema({
   challengeid: { type: String, unique: true, required: true },
   name: { type: String, unique : true, required : true },
-  modified: { type: Date, default: Date.now }
+  modified: { type: Date, default: Date.now },
 });
-export const ChallengeModel = model<IChallengeModel>('Challenge', ChallengeSchema);
+export const ChallengeModel = model<ChallengeModel>('Challenge', ChallengeSchema);
 
-
-
-export interface IAttendee {
+export interface Attendee {
   attendeeid: string;
 }
 
-export interface IAttendeeModel extends IAttendee, Document { }
+export interface AttendeeModel extends Attendee, Document { }
 
 export const AttendeeSchema = new Schema({
   attendeeid: { type: String, unique: true, required: true },
 });
-export const AttendeeModel = model<IAttendeeModel>('Attendee', AttendeeSchema);
-
-
+export const AttendeeModel = model<AttendeeModel>('Attendee', AttendeeSchema);
 
 export enum MongoDBErrors {
   E11000_DUPLICATE_KEY = 11000

@@ -1,13 +1,22 @@
-import {spawn, ChildProcess} from 'child_process';
 import {MongoClient, Db} from 'mongodb';
-import {Users} from '../models/users'
-import {Teams} from '../models/teams'
-import {Hacks} from '../models/hacks'
-import {Challenges} from '../models/challenges'
-import {Attendees} from '../models/attendees'
+import {Users} from '../models/users';
+import {Teams} from '../models/teams';
+import {Hacks} from '../models/hacks';
+import {Challenges} from '../models/challenges';
+import {Attendees} from '../models/attendees';
 
 export class MongoDB {
-  private static _spawn: ChildProcess;
+
+  public static async ensureRunning() {
+    let db: Db;
+    try {
+      db = await this.connectMongo();
+    } catch (err) {
+      throw new Error(`Unable to connect to MongoDB - ${err.message}`);
+    }
+    await this.prepareDb(db);
+  }
+
   private static _db: Db;
   private static _users: Users;
   private static _teams: Teams;
@@ -39,20 +48,10 @@ export class MongoDB {
     return this._attendees;
   }
 
-  static async ensureRunning() {
-    let db: Db;
-    try {
-      db = await this.connectMongo();
-    } catch (err) {
-      throw new Error(`Unable to connect to MongoDB - ${err.message}`)
-    }
-    await this.prepareDb(db);
-  }
-
   private static prepareDb(db: Db): Promise<void> {
     return new Promise<void>((resolve) => {
       this._db = db;
-      const promises = [Users.Create(db), Teams.Create(db), Hacks.Create(db), Challenges.Create(db), Attendees.Create(db)]
+      const promises = [Users.Create(db), Teams.Create(db), Hacks.Create(db), Challenges.Create(db), Attendees.Create(db)];
       Promise.all<Users | Teams | Hacks | Challenges | Attendees>(promises)
         .then((results: [Users, Teams, Hacks, Challenges, Attendees]) => {
           this._users = results[0];
@@ -62,7 +61,7 @@ export class MongoDB {
           this._attendees = results[4];
           resolve();
         });
-    })
+    });
   }
 
   private static async connectMongo() {

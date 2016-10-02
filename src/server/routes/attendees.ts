@@ -15,7 +15,7 @@ export class AttendeesRoute {
     this._eventBroadcaster = eventBroadcaster;
   }
 
-  createRouter() {
+  public createRouter() {
     const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
 
@@ -27,29 +27,31 @@ export class AttendeesRoute {
     return router;
   }
 
-  async get(req: Request, res: Response) {
-    if (req.params.attendeeId === undefined || typeof req.params.attendeeId !== 'string')
+  public async get(req: Request, res: Response) {
+    if (req.params.attendeeId === undefined || typeof req.params.attendeeId !== 'string') {
       return respond.Send400(res);
+    }
 
     const attendee = await AttendeeModel
       .findOne({ attendeeid: req.params.attendeeId }, 'attendeeid')
       .exec();
 
-    if (!attendee)
+    if (!attendee) {
       return respond.Send404(res);
+    }
 
     const attendeeResponse = <AttendeeResource.TopLevelDocument> {
       links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
       data: {
         type: 'attendees',
-        id: attendee.attendeeid
-      }
+        id: attendee.attendeeid,
+      },
     };
 
     res.status(200).contentType('application/vnd.api+json').send(attendeeResponse);
   }
 
-  async getAll(req: Request, res: Response) {
+  public async getAll(req: Request, res: Response) {
 
     const attendees = await AttendeeModel
       .find({}, 'attendeeid')
@@ -59,20 +61,20 @@ export class AttendeesRoute {
     const attendeesData = attendees.map<AttendeeResource.ResourceObject>((attendee) => ({
       links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
       type: 'attendees',
-      id: attendee.attendeeid
+      id: attendee.attendeeid,
     }));
 
     const attendeesResponse = <AttendeesResource.TopLevelDocument> {
       links: {
-        self: '/attendees'
+        self: '/attendees',
       },
-      data: attendeesData
-    }
+      data: attendeesData,
+    };
 
     respond.Send200(res, attendeesResponse);
   }
 
-  async create(req: Request, res: Response) {
+  public async create(req: Request, res: Response) {
     const requestDoc: AttendeeResource.TopLevelDocument = req.body;
 
     if (!requestDoc
@@ -80,18 +82,20 @@ export class AttendeesRoute {
       || !requestDoc.data.id
       || typeof requestDoc.data.id !== 'string'
       || !requestDoc.data.type
-      || requestDoc.data.type !== 'attendees')
+      || requestDoc.data.type !== 'attendees') {
       return respond.Send400(res);
+    }
 
     const attendee = new AttendeeModel({
-      attendeeid: requestDoc.data.id
+      attendeeid: requestDoc.data.id,
     });
 
     try {
-      await attendee.save()
+      await attendee.save();
     } catch (err) {
-      if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY)
+      if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY) {
         return respond.Send409(res);
+      }
       throw err;
     }
 
@@ -99,25 +103,27 @@ export class AttendeesRoute {
       links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
       data: {
         type: 'attendees',
-        id: attendee.attendeeid
-      }
+        id: attendee.attendeeid,
+      },
     };
 
     respond.Send201(res, attendeeResponse);
   }
 
-  async delete(req: Request, res: Response) {
+  public async delete(req: Request, res: Response) {
     const attendeeid = req.params.attendeeId;
 
-    if (attendeeid === undefined || typeof attendeeid !== 'string' || attendeeid.length === 0)
+    if (attendeeid === undefined || typeof attendeeid !== 'string' || attendeeid.length === 0) {
       return respond.Send400(res);
+    }
 
     const deletedAttendee = await AttendeeModel
       .findOneAndRemove({ attendeeid: attendeeid }, { select: '_id' })
       .exec();
 
-    if (deletedAttendee === null)
+    if (deletedAttendee === null) {
       return respond.Send404(res);
+    }
 
     respond.Send204(res);
   }

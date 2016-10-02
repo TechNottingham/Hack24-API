@@ -17,8 +17,8 @@ import {ExpressLogger} from './logger';
 import {EventBroadcaster} from './eventbroadcaster';
 
 export interface ServerInfo {
-  IP: string
-  Port: number
+  IP: string;
+  Port: number;
 }
 
 export class Server {
@@ -56,11 +56,11 @@ export class Server {
     this._app.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
   }
 
-  listen(): Promise<ServerInfo> {
+  public listen(): Promise<ServerInfo> {
     return new Promise<ServerInfo>((resolve, reject) => {
       mongoose.connect(process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost/hack24db');
 
-      var db = mongoose.connection;
+      let db = mongoose.connection;
       db.on('error', (err) => {
         db.removeAllListeners('open');
         err.message = `Unable to connect to MongoDB - ${err.message}`;
@@ -71,7 +71,9 @@ export class Server {
         const port = process.env.PORT || 5000;
 
         this._server = this._app.listen(port, function(err) {
-          if (err) return reject(err);
+          if (err) {
+            return reject(err);
+          }
           resolve({ IP: '0.0.0.0', Port: port });
         });
       });
@@ -79,7 +81,7 @@ export class Server {
     });
   }
 
-  close(): Promise<void> {
+  public close(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._server.close(() => {
         resolve();

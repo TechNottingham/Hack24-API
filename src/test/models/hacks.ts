@@ -1,7 +1,7 @@
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
-export interface IHack {
+export interface Hack {
   _id?: ObjectID;
   hackid: string;
   name: string;
@@ -9,18 +9,21 @@ export interface IHack {
 }
 
 export class Hacks {
-  private _collection: Collection;
 
   public static Create(db: Db): Promise<Hacks> {
     return new Promise<Hacks>((resolve, reject) => {
-      var hacks = new Hacks();
+      let hacks = new Hacks();
       db.collection('hacks', (err, collection) => {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         hacks._collection = collection;
         resolve(hacks);
       });
     });
   }
+
+  private _collection: Collection;
 
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -28,7 +31,7 @@ export class Hacks {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove all hacks: ' + err.message));
-      })
+      });
     });
   }
 
@@ -38,7 +41,7 @@ export class Hacks {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove hack: ' + err.message));
-      })
+      });
     });
   }
 
@@ -48,45 +51,45 @@ export class Hacks {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove hack: ' + err.message));
-      })
+      });
     });
   }
 
-  public createRandomHack(prefix?: string): IHack {
+  public createRandomHack(prefix?: string): Hack {
     prefix = prefix || '';
     let randomPart = Random.str(5);
     return {
       hackid: `random-hack-${prefix}${randomPart}`,
       name: `Random Hack ${prefix}${randomPart}`,
-      challenges: []
+      challenges: [],
     };
   }
 
-  public insertHack(hack: IHack): Promise<ObjectID> {
+  public insertHack(hack: Hack): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(hack).then(() => {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not insert hack: ' + err.message));
-      })
+      });
     });
   }
 
-  public insertRandomHack(prefix?: string): Promise<IHack> {
+  public insertRandomHack(prefix?: string): Promise<Hack> {
     let randomHack = this.createRandomHack(prefix);
-    return new Promise<IHack>((resolve, reject) => {
+    return new Promise<Hack>((resolve, reject) => {
       this._collection.insertOne(randomHack).then((result) => {
         randomHack._id = result.insertedId;
         resolve(randomHack);
       }).catch((err) => {
         reject(new Error('Could not insert random hack: ' + err.message));
-      })
+      });
     });
   }
 
-  public findbyName(name: string): Promise<IHack> {
-    return new Promise<IHack>((resolve, reject) => {
-      this._collection.find({ name: name }).limit(1).toArray().then((hacks: IHack[]) => {
+  public findbyName(name: string): Promise<Hack> {
+    return new Promise<Hack>((resolve, reject) => {
+      this._collection.find({ name: name }).limit(1).toArray().then((hacks: Hack[]) => {
         resolve(hacks.length > 0 ? hacks[0] : null);
       }).catch((err) => {
         reject(new Error('Error when finding hack: ' + err.message));
@@ -94,9 +97,9 @@ export class Hacks {
     });
   }
 
-  public findByHackId(hackid: string): Promise<IHack> {
-    return new Promise<IHack>((resolve, reject) => {
-      this._collection.find({ hackid: hackid }).limit(1).toArray().then((hacks: IHack[]) => {
+  public findByHackId(hackid: string): Promise<Hack> {
+    return new Promise<Hack>((resolve, reject) => {
+      this._collection.find({ hackid: hackid }).limit(1).toArray().then((hacks: Hack[]) => {
         resolve(hacks.length > 0 ? hacks[0] : null);
       }).catch((err) => {
         reject(new Error('Error when finding hack: ' + err.message));

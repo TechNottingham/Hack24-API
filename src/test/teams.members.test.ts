@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
-import {IAttendee} from './models/attendees';
+import {User} from './models/users';
+import {Team} from './models/teams';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamMembersRelationship, UserResource} from '../resources';
@@ -60,10 +60,10 @@ describe('Team Members relationship', () => {
 
   describe('GET team members', () => {
 
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let thirdUser: IUser;
-    let team: ITeam;
+    let firstUser: User;
+    let secondUser: User;
+    let thirdUser: User;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -118,7 +118,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]>response.included;
+      let users = <UserResource.ResourceObject[]> response.included;
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -138,19 +138,19 @@ describe('Team Members relationship', () => {
       MongoDB.Users.removeByUserId(secondUser.userid),
       MongoDB.Users.removeByUserId(thirdUser.userid),
 
-      MongoDB.Teams.removeByTeamId(team.teamid)
+      MongoDB.Teams.removeByTeamId(team.teamid),
     ]));
 
   });
 
   describe('DELETE multiple team members', () => {
 
-    let attendee: IAttendee;
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let thirdUser: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let firstUser: User;
+    let secondUser: User;
+    let thirdUser: User;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -168,11 +168,11 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: firstUser.userid
+          id: firstUser.userid,
         }, {
             type: 'users',
-            id: thirdUser.userid
-          }]
+            id: thirdUser.userid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -249,17 +249,17 @@ describe('Team Members relationship', () => {
 
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe("DELETE team members which don't exist", () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let user: User;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -274,11 +274,11 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: user.userid
+          id: user.userid,
         }, {
             type: 'users',
-            id: 'does not exist'
-          }]
+            id: 'does not exist',
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -325,19 +325,19 @@ describe('Team Members relationship', () => {
       MongoDB.Users.removeByUserId(user.userid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team members', () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
-    let firstNewUser: IUser;
-    let secondNewUser: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let user: User;
+    let firstNewUser: User;
+    let secondNewUser: User;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -355,11 +355,11 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: firstNewUser.userid
+          id: firstNewUser.userid,
         }, {
             type: 'users',
-            id: secondNewUser.userid
-          }]
+            id: secondNewUser.userid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -438,19 +438,19 @@ describe('Team Members relationship', () => {
 
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team members already in a team', () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
-    let otherUser: IUser;
-    let team: ITeam;
-    let otherTeam: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let user: User;
+    let otherUser: User;
+    let team: Team;
+    let otherTeam: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -468,8 +468,8 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: otherUser.userid
-        }]
+          id: otherUser.userid,
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -520,16 +520,16 @@ describe('Team Members relationship', () => {
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Teams.removeByTeamId(otherTeam.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team members which do not exist', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -543,8 +543,8 @@ describe('Team Members relationship', () => {
       let req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
-          id: 'does not exist'
-        }]
+          id: 'does not exist',
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -589,7 +589,7 @@ describe('Team Members relationship', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
