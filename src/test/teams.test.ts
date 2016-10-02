@@ -1405,16 +1405,15 @@ describe('Teams resource', () => {
       user = await MongoDB.Users.insertRandomUser('A');
       team = await MongoDB.Teams.insertRandomTeam([user._id], 'ABCD');
 
-      await api.delete(`/teams/${team.teamid}`)
+      const res = await api.delete(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send()
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 400 Bad Request', () => {

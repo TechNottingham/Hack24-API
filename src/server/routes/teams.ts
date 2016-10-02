@@ -311,19 +311,14 @@ export class TeamsRoute {
   async delete(req: Request, res: Response) {
     const teamId = req.params.teamId;
 
-    TeamModel
-      .findOne({ teamid: teamId })
-      .exec()
-      .then((team) => {
-        if (team.members.length > 0) {
-          return respond.Send400(res, 'Only empty teams can be deleted');
-        }
+    const team = await TeamModel.findOne({ teamid: teamId }).exec();
 
-        TeamModel
-          .remove({ teamid: teamId })
-          .exec()
-          .then(() => respond.Send204(res), () => respond.Send500(res));
-      }, () => respond.Send500(res));
+    if (team.members.length > 0) {
+      return respond.Send400(res, 'Only empty teams can be deleted');
+    }
+
+    await TeamModel.remove({ teamid: teamId }).exec();
+
+    respond.Send204(res);
   }
-
 }
