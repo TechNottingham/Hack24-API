@@ -102,11 +102,12 @@ describe('Hacks resource', () => {
       assert.strictEqual(data.name, hack.name);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -157,10 +158,10 @@ describe('Hacks resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid)
+    ]));
 
   });
 
@@ -323,10 +324,10 @@ describe('Hacks resource', () => {
       assert.strictEqual(hackResponse.attributes.name, secondHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-    });
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid)
+    ]));
 
   });
 
@@ -424,9 +425,7 @@ describe('Hacks resource', () => {
       assert.strictEqual(response.data.attributes.name, hack.name);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-    });
+    after(() => MongoDB.Hacks.removeByHackId(hack.hackid));
 
   });
 
@@ -543,11 +542,11 @@ describe('Hacks resource', () => {
       assert.strictEqual(hackResponse.attributes.name, thirdHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid),
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid),
-      await MongoDB.Hacks.removeByHackId(thirdHack.hackid)
-    });
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Hacks.removeByHackId(thirdHack.hackid)
+    ]));
 
   });
 
@@ -592,10 +591,10 @@ describe('Hacks resource', () => {
       assert.strictEqual(deletedHack, null);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid)
+    ]));
 
   });
 
@@ -646,11 +645,11 @@ describe('Hacks resource', () => {
       assert.strictEqual(deletedHack.hackid, hack.hackid);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid)
+    ]));
 
   });
 
@@ -687,9 +686,7 @@ describe('Hacks resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource not found.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 

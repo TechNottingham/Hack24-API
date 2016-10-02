@@ -139,13 +139,12 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(challenges[2].attributes.name, thirdChallenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid);
-
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-    });
+    after(() => Promise.all([
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid)
+    ]));
 
   });
 
@@ -249,17 +248,17 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(data.entry.name, thirdChallenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid);
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
 
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -332,12 +331,12 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      pusherListener.close()
+    ]));
 
   });
 
@@ -443,17 +442,17 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(data.entry.name, secondNewChallenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(firstNewChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(secondNewChallenge.challengeid);
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(firstNewChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondNewChallenge.challengeid),
 
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
+      MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -530,16 +529,17 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(otherChallenge.challengeid);
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(otherChallenge.challengeid),
 
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Hacks.removeByHackId(otherHack.hackid);
-      await pusherListener.close();
-    });
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Hacks.removeByHackId(otherHack.hackid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -604,11 +604,12 @@ describe('Hack Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+
+      pusherListener.close()
+    ]));
 
   });
 

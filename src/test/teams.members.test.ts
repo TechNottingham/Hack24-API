@@ -137,13 +137,13 @@ describe('Team Members relationship', () => {
       assert.strictEqual(users[2].attributes.name, thirdUser.name);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(firstUser.userid);
-      await MongoDB.Users.removeByUserId(secondUser.userid);
-      await MongoDB.Users.removeByUserId(thirdUser.userid);
+    after(() => Promise.all([
+      MongoDB.Users.removeByUserId(firstUser.userid),
+      MongoDB.Users.removeByUserId(secondUser.userid),
+      MongoDB.Users.removeByUserId(thirdUser.userid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-    });
+      MongoDB.Teams.removeByTeamId(team.teamid)
+    ]));
 
   });
 
@@ -245,17 +245,17 @@ describe('Team Members relationship', () => {
       assert.strictEqual(data.member.name, thirdUser.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Users.removeByUserId(firstUser.userid);
-      await MongoDB.Users.removeByUserId(secondUser.userid);
-      await MongoDB.Users.removeByUserId(thirdUser.userid);
+      MongoDB.Users.removeByUserId(firstUser.userid),
+      MongoDB.Users.removeByUserId(secondUser.userid),
+      MongoDB.Users.removeByUserId(thirdUser.userid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
+      MongoDB.Teams.removeByTeamId(team.teamid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -326,12 +326,13 @@ describe('Team Members relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -435,17 +436,17 @@ describe('Team Members relationship', () => {
       assert.strictEqual(data.member.name, secondNewUser.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(firstNewUser.userid);
-      await MongoDB.Users.removeByUserId(secondNewUser.userid);
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(firstNewUser.userid),
+      MongoDB.Users.removeByUserId(secondNewUser.userid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
+      MongoDB.Teams.removeByTeamId(team.teamid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -518,16 +519,17 @@ describe('Team Members relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Teams.removeByTeamId(otherTeam.teamid);
-      await pusherListener.close();
-    });
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -592,11 +594,12 @@ describe('Team Members relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 

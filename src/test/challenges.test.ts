@@ -81,9 +81,7 @@ describe('Challenges resource', () => {
       assert.strictEqual(createdChallenge.name, challenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-    });
+    after(() => MongoDB.Challenges.removeByChallengeId(challenge.challengeid));
 
   });
 
@@ -132,9 +130,7 @@ describe('Challenges resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-    });
+    after(() => MongoDB.Challenges.removeByChallengeId(challenge.challengeid));
 
   });
 
@@ -297,10 +293,10 @@ describe('Challenges resource', () => {
       assert.strictEqual(challengeResponse.attributes.name, secondChallenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid);
-      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid);
-    });
+    after(() => Promise.all([
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid)
+    ]));
 
   });
 
@@ -398,9 +394,7 @@ describe('Challenges resource', () => {
       assert.strictEqual(response.data.attributes.name, challenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-    });
+    after(() => MongoDB.Challenges.removeByChallengeId(challenge.challengeid));
 
   });
 
@@ -517,11 +511,11 @@ describe('Challenges resource', () => {
       assert.strictEqual(challengeResponse.attributes.name, thirdChallenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
-      await MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
-      await MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid)
-    });
+    after(() => Promise.all([
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid)
+    ]));
 
   });
 
@@ -564,9 +558,7 @@ describe('Challenges resource', () => {
       assert.strictEqual(deletedChallenge, null);
     });
 
-    after(async () => {
-      await MongoDB.Challenges.removeByChallengeId(challenge.challengeid);
-    });
+    after(() => MongoDB.Challenges.removeByChallengeId(challenge.challengeid));
 
   });
 

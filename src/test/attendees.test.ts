@@ -53,9 +53,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -94,9 +92,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -141,7 +137,7 @@ describe('Attendees resource', () => {
     });
 
     it('should return the attendee resource object self link', () => {
-      assert.strictEqual(response.links.self, `/attendees/${encodeURIComponent( attendee.attendeeid)}`);
+      assert.strictEqual(response.links.self, `/attendees/${encodeURIComponent(attendee.attendeeid)}`);
     });
 
     it('should return the attendees type', () => {
@@ -152,9 +148,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -208,9 +202,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(createdAttendee, null);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -257,9 +249,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -313,10 +303,10 @@ describe('Attendees resource', () => {
       assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(otherAttendee.attendeeid)}`);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(attendee.attendeeid),
-      await MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
+    ]));
 
   });
 
@@ -393,9 +383,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(deletedAttendee, null);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 

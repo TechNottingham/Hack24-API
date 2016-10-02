@@ -124,9 +124,7 @@ describe('Users resource', () => {
       assert.strictEqual(response.data.relationships.team.data, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(user.userid);
-    });
+    after(() => MongoDB.Users.removeByUserId(user.userid));
 
   });
 
@@ -271,12 +269,12 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.relationships.members.data[0].id, otherUser.userid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Teams.removeByTeamId(otherTeam.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -385,11 +383,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -501,11 +499,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -594,11 +592,12 @@ describe('Users resource', () => {
       assert.strictEqual(data.name, user.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -650,10 +649,10 @@ describe('Users resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid)
+    ]));
 
   });
 
@@ -750,9 +749,7 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(userId);
-    });
+    after(() => MongoDB.Users.removeByUserId(userId));
 
   });
 
@@ -800,9 +797,7 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(userId);
-    });
+    after(() => MongoDB.Users.removeByUserId(userId));
 
   });
 

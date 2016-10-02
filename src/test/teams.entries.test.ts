@@ -124,7 +124,7 @@ describe('Team Entries relationship', () => {
     });
 
     it('should include each expected hack', () => {
-      const hacks = <HackResource.ResourceObject[]> response.included;
+      const hacks = <HackResource.ResourceObject[]>response.included;
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -139,13 +139,13 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(hacks[2].attributes.name, thirdHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-      await MongoDB.Hacks.removeByHackId(thirdHack.hackid);
+    after(() => Promise.all([
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Hacks.removeByHackId(thirdHack.hackid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-    });
+      MongoDB.Teams.removeByTeamId(team.teamid)
+    ]));
 
   });
 
@@ -177,10 +177,10 @@ describe('Team Entries relationship', () => {
         data: [{
           type: 'hacks',
           id: firstHack.hackid
-        },{
-          type: 'hacks',
-          id: thirdHack.hackid
-        }]
+        }, {
+            type: 'hacks',
+            id: thirdHack.hackid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -249,17 +249,17 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(data.entry.name, thirdHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-      await MongoDB.Hacks.removeByHackId(thirdHack.hackid);
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Hacks.removeByHackId(thirdHack.hackid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
+      MongoDB.Teams.removeByTeamId(team.teamid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -286,10 +286,10 @@ describe('Team Entries relationship', () => {
         data: [{
           type: 'hacks',
           id: hack.hackid
-        },{
-          type: 'hacks',
-          id: 'does not exist'
-        }]
+        }, {
+            type: 'hacks',
+            id: 'does not exist'
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -332,12 +332,13 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -369,10 +370,10 @@ describe('Team Entries relationship', () => {
         data: [{
           type: 'hacks',
           id: firstNewHack.hackid
-        },{
-          type: 'hacks',
-          id: secondNewHack.hackid
-        }]
+        }, {
+            type: 'hacks',
+            id: secondNewHack.hackid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -443,17 +444,17 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(data.entry.name, secondNewHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Hacks.removeByHackId(firstNewHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondNewHack.hackid);
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Hacks.removeByHackId(firstNewHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondNewHack.hackid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
+      MongoDB.Teams.removeByTeamId(team.teamid),
 
-      await pusherListener.close();
-    });
+      pusherListener.close()
+    ]));
 
   });
 
@@ -530,16 +531,17 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      await MongoDB.Hacks.removeByHackId(hack.hackid);
-      await MongoDB.Hacks.removeByHackId(otherHack.hackid);
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Hacks.removeByHackId(otherHack.hackid),
 
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Teams.removeByTeamId(otherTeam.teamid);
-      await pusherListener.close();
-    });
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -604,11 +606,12 @@ describe('Team Entries relationship', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
