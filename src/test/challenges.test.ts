@@ -37,18 +37,17 @@ describe('Challenges resource', () => {
         }
       };
 
-      await api.post('/challenges')
+      const res = await api.post('/challenges')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(challengeRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
     });
 
     it('should respond with status code 201 Created', () => {
@@ -104,16 +103,15 @@ describe('Challenges resource', () => {
         }
       };
 
-      await api.post('/challenges')
+      const res = await api.post('/challenges')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(challengeRequest)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -153,18 +151,17 @@ describe('Challenges resource', () => {
         }
       };
 
-      await api.post('/challenges')
+      const res = await api.post('/challenges')
         .auth('not a user', ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(challengeRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -198,16 +195,14 @@ describe('Challenges resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/challenges')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/challenges').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -247,16 +242,14 @@ describe('Challenges resource', () => {
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
 
-      await api.get('/challenges')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/challenges').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -312,16 +305,14 @@ describe('Challenges resource', () => {
     before(async () => {
       let challenge = MongoDB.Challenges.createRandomChallenge();
 
-      await api.options(`/challenges/${challenge.challengeid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/challenges/${challenge.challengeid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -357,17 +348,16 @@ describe('Challenges resource', () => {
     before(async () => {
       challenge = await MongoDB.Challenges.insertRandomChallenge();
 
-      await api.get(`/challenges/${challenge.challengeid}`)
+      const res = await api.get(`/challenges/${challenge.challengeid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -408,17 +398,16 @@ describe('Challenges resource', () => {
     let response: ChallengeResource.TopLevelDocument;
 
     before(async () => {
-      await api.get(`/challenges/does not exist`)
+      const res = await api.get(`/challenges/does not exist`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -461,16 +450,14 @@ describe('Challenges resource', () => {
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('ABEF');
       thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('ABCE');
 
-      await api.get('/challenges?filter[name]=ABC')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/challenges?filter[name]=ABC').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -530,16 +517,15 @@ describe('Challenges resource', () => {
     before(async () => {
       challenge = await MongoDB.Challenges.insertRandomChallenge();
 
-      await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
+      const res = await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          deletedChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      deletedChallenge = await MongoDB.Challenges.findByChallengeId(challenge.challengeid);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -569,14 +555,13 @@ describe('Challenges resource', () => {
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      await api.delete(`/challenges/rwrerwygdfgd`)
+      const res = await api.delete(`/challenges/rwrerwygdfgd`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -605,14 +590,13 @@ describe('Challenges resource', () => {
     before(async () => {
       challenge = MongoDB.Challenges.createRandomChallenge();
 
-      await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
+      const res = await api.delete(`/challenges/${encodeURIComponent(challenge.challengeid)}`)
         .auth('sack', 'boy')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 403 Forbidden', () => {

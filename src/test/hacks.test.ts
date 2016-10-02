@@ -43,19 +43,18 @@ describe('Hacks resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post('/hacks')
+      const res = await api.post('/hacks')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(hackRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -132,16 +131,15 @@ describe('Hacks resource', () => {
         }
       };
 
-      await api.post('/hacks')
+      const res = await api.post('/hacks')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(hackRequest)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -184,18 +182,17 @@ describe('Hacks resource', () => {
         }
       };
 
-      await api.post('/hacks')
+      const res = await api.post('/hacks')
         .auth('not a user', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(hackRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdHack = await MongoDB.Hacks.findByHackId(hack.hackid);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -229,16 +226,14 @@ describe('Hacks resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/hacks')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/hacks').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -278,16 +273,14 @@ describe('Hacks resource', () => {
       firstHack = await MongoDB.Hacks.insertRandomHack('A');
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
 
-      await api.get('/hacks')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/hacks').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -343,16 +336,14 @@ describe('Hacks resource', () => {
     before(async () => {
       let hack = MongoDB.Hacks.createRandomHack();
 
-      await api.options(`/hacks/${hack.hackid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/hacks/${hack.hackid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -388,17 +379,16 @@ describe('Hacks resource', () => {
     before(async () => {
       hack = await MongoDB.Hacks.insertRandomHack();
 
-      await api.get(`/hacks/${hack.hackid}`)
+      const res = await api.get(`/hacks/${hack.hackid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -439,17 +429,16 @@ describe('Hacks resource', () => {
     let response: HackResource.TopLevelDocument;
 
     before(async () => {
-      await api.get(`/hacks/does not exist`)
+      const res = await api.get(`/hacks/does not exist`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -492,16 +481,14 @@ describe('Hacks resource', () => {
       secondHack = await MongoDB.Hacks.insertRandomHack('ABEF');
       thirdHack = await MongoDB.Hacks.insertRandomHack('ABCE');
 
-      await api.get('/hacks?filter[name]=ABC')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/hacks?filter[name]=ABC').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -563,16 +550,15 @@ describe('Hacks resource', () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       hack = await MongoDB.Hacks.insertRandomHack();
 
-      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
+      const res = await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -615,16 +601,15 @@ describe('Hacks resource', () => {
       team.entries = [hack._id];
       await MongoDB.Teams.insertTeam(team);
 
-      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
+      const res = await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
     });
 
     it('should respond with status code 400 Bad Request', () => {
@@ -662,14 +647,14 @@ describe('Hacks resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      await api.delete(`/hacks/rwrerwygdfgd`)
+
+      const res = await api.delete(`/hacks/rwrerwygdfgd`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -700,14 +685,13 @@ describe('Hacks resource', () => {
     before(async () => {
       hack = MongoDB.Hacks.createRandomHack();
 
-      await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
+      const res = await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth('sack', 'boy')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 403 Forbidden', () => {

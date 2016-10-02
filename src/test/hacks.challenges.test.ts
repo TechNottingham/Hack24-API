@@ -28,16 +28,14 @@ describe('Hack Entries relationship', () => {
     before(async () => {
       let hack = MongoDB.Hacks.createRandomHack();
 
-      await api.options(`/hacks/${hack.hackid}/challenges`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/hacks/${hack.hackid}/challenges`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -82,16 +80,14 @@ describe('Hack Entries relationship', () => {
       hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
       await MongoDB.Hacks.insertHack(hack);
 
-      await api.get(`/hacks/${hack.hackid}/challenges`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get(`/hacks/${hack.hackid}/challenges`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -124,7 +120,7 @@ describe('Hack Entries relationship', () => {
     });
 
     it('should include each expected challenge', () => {
-      const challenges = <ChallengeResource.ResourceObject[]> response.included;
+      const challenges = <ChallengeResource.ResourceObject[]>response.included;
 
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
@@ -176,27 +172,26 @@ describe('Hack Entries relationship', () => {
         data: [{
           type: 'challenges',
           id: firstChallenge.challengeid
-        },{
-          type: 'challenges',
-          id: thirdChallenge.challengeid
-        }]
+        }, {
+            type: 'challenges',
+            id: thirdChallenge.challengeid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.delete(`/hacks/${hack.hackid}/challenges`)
+      const res = await api.delete(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvents(2);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvents(2);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -285,27 +280,26 @@ describe('Hack Entries relationship', () => {
         data: [{
           type: 'challenges',
           id: challenge.challengeid
-        },{
-          type: 'challenges',
-          id: 'does not exist'
-        }]
+        }, {
+            type: 'challenges',
+            id: 'does not exist'
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.delete(`/hacks/${hack.hackid}/challenges`)
+      const res = await api.delete(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {
@@ -368,27 +362,26 @@ describe('Hack Entries relationship', () => {
         data: [{
           type: 'challenges',
           id: firstNewChallenge.challengeid
-        },{
-          type: 'challenges',
-          id: secondNewChallenge.challengeid
-        }]
+        }, {
+            type: 'challenges',
+            id: secondNewChallenge.challengeid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/hacks/${hack.hackid}/challenges`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvents(2);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvents(2);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -491,19 +484,18 @@ describe('Hack Entries relationship', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/hacks/${hack.hackid}/challenges`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {
@@ -567,19 +559,18 @@ describe('Hack Entries relationship', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/hacks/${hack.hackid}/challenges`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {

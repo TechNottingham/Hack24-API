@@ -29,16 +29,14 @@ describe('Users resource', () => {
     before(async () => {
       let user = MongoDB.Users.createRandomUser();
 
-      await api.options(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -74,16 +72,14 @@ describe('Users resource', () => {
     before(async () => {
       user = await MongoDB.Users.insertRandomUser();
 
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -138,16 +134,14 @@ describe('Users resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/users')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/users').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -195,16 +189,14 @@ describe('Users resource', () => {
       await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
 
-      await api.get(`/users`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get(`/users`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -246,7 +238,7 @@ describe('Users resource', () => {
     });
 
     it('should include the first team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[0];
+      let includedTeam = <TeamResource.ResourceObject>response.included[0];
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
@@ -258,7 +250,7 @@ describe('Users resource', () => {
     });
 
     it('should include the second team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[1];
+      let includedTeam = <TeamResource.ResourceObject>response.included[1];
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
       assert.strictEqual(includedTeam.id, otherTeam.teamid);
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
@@ -297,18 +289,16 @@ describe('Users resource', () => {
       otherUser = await MongoDB.Users.insertRandomUser('B');
       team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id]);
 
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
-          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
-        });
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
+      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -413,18 +403,16 @@ describe('Users resource', () => {
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
 
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
-          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
-        });
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
+      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -533,19 +521,18 @@ describe('Users resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .send(requestDoc)
         .type('application/vnd.api+json')
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdUser = await MongoDB.Users.findbyUserId(user.userid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(user.userid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -623,16 +610,15 @@ describe('Users resource', () => {
         }
       };
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(requestDoc)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -666,16 +652,14 @@ describe('Users resource', () => {
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      await api.get('/users/U' + Random.int(10000, 99999))
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/users/U' + Random.int(10000, 99999)).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -712,18 +696,17 @@ describe('Users resource', () => {
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          authenticateHeader = res.header['www-authenticate'];
-          response = res.body;
+        .end();
 
-          createdUser = await MongoDB.Users.findbyUserId(userId);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      authenticateHeader = res.header['www-authenticate'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(userId);
     });
 
     it('should respond with status code 401 Unauthorized', () => {
@@ -764,18 +747,17 @@ describe('Users resource', () => {
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .auth('hackbot', 'incorrect_password')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdUser = await MongoDB.Users.findbyUserId(userId);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(userId);
     });
 
     it('should respond with status code 403 Forbidden', () => {

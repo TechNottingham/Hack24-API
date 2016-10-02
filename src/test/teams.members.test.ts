@@ -28,16 +28,14 @@ describe('Team Members relationship', () => {
     before(async () => {
       let team = MongoDB.Teams.createRandomTeam();
 
-      await api.options(`/teams/${team.teamid}/members`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/teams/${team.teamid}/members`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -80,16 +78,14 @@ describe('Team Members relationship', () => {
 
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id]);
 
-      await api.get(`/teams/${team.teamid}/members`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get(`/teams/${team.teamid}/members`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -122,7 +118,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]> response.included;
+      let users = <UserResource.ResourceObject[]>response.included;
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -173,27 +169,26 @@ describe('Team Members relationship', () => {
         data: [{
           type: 'users',
           id: firstUser.userid
-        },{
-          type: 'users',
-          id: thirdUser.userid
-        }]
+        }, {
+            type: 'users',
+            id: thirdUser.userid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.delete(`/teams/${team.teamid}/members`)
+      const res = await api.delete(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvents(2);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvents(2);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -280,27 +275,26 @@ describe('Team Members relationship', () => {
         data: [{
           type: 'users',
           id: user.userid
-        },{
-          type: 'users',
-          id: 'does not exist'
-        }]
+        }, {
+            type: 'users',
+            id: 'does not exist'
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.delete(`/teams/${team.teamid}/members`)
+      const res = await api.delete(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {
@@ -362,27 +356,26 @@ describe('Team Members relationship', () => {
         data: [{
           type: 'users',
           id: firstNewUser.userid
-        },{
-          type: 'users',
-          id: secondNewUser.userid
-        }]
+        }, {
+            type: 'users',
+            id: secondNewUser.userid
+          }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -481,19 +474,18 @@ describe('Team Members relationship', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {
@@ -557,19 +549,18 @@ describe('Team Members relationship', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/teams/${team.teamid}/members`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 400 Bad Request', () => {

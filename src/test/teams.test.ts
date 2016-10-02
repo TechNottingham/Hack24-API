@@ -45,19 +45,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -149,19 +148,18 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -246,19 +244,18 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -361,16 +358,15 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -414,18 +410,17 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth('not a user', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -459,16 +454,14 @@ describe('Teams resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/teams')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/teams').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -539,16 +532,14 @@ describe('Teams resource', () => {
       secondTeam.entries = [secondHack._id, thirdHack._id];
       await MongoDB.Teams.insertTeam(secondTeam);
 
-      await api.get('/teams')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/teams').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -698,16 +689,14 @@ describe('Teams resource', () => {
     before(async () => {
       let team = MongoDB.Teams.createRandomTeam();
 
-      await api.options(`/teams/${team.teamid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/teams/${team.teamid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -761,17 +750,16 @@ describe('Teams resource', () => {
       team.entries = [firstHack._id, secondHack._id];
       await MongoDB.Teams.insertTeam(team);
 
-      await api.get(`/teams/${team.teamid}`)
+      const res = await api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -884,17 +872,16 @@ describe('Teams resource', () => {
 
       await MongoDB.Teams.insertTeam(team);
 
-      await api.get(`/teams/${team.teamid}`)
+      const res = await api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -978,17 +965,16 @@ describe('Teams resource', () => {
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
-      await api.get(`/teams/does not exist`)
+      const res = await api.get(`/teams/does not exist`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -1039,19 +1025,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1109,19 +1094,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1184,19 +1168,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1269,19 +1252,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1335,16 +1317,14 @@ describe('Teams resource', () => {
       secondTeam = await MongoDB.Teams.insertRandomTeam([], 'ABEF');
       thirdTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCE');
 
-      await api.get('/teams?filter[name]=ABC')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/teams?filter[name]=ABC').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
