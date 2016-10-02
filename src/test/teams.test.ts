@@ -1353,21 +1353,17 @@ describe('Teams resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-
-      await MongoDB.Teams.removeAll();
-
       team = await MongoDB.Teams.insertRandomTeam([], 'ABCD');
 
-      await api.delete(`/teams/${team.teamid}`)
+      const res = await api.delete(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send()
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1386,6 +1382,10 @@ describe('Teams resource', () => {
       const result = await MongoDB.Teams.findbyTeamId(team.teamid);
       assert.strictEqual(result, null);
     });
+
+    after(async () => {
+      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
+    });
   });
 
   describe('DELETE team when members', () => {
@@ -1399,9 +1399,6 @@ describe('Teams resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-
-      await MongoDB.Teams.removeAll();
-
       user = await MongoDB.Users.insertRandomUser('A');
       team = await MongoDB.Teams.insertRandomTeam([user._id], 'ABCD');
 
@@ -1433,6 +1430,14 @@ describe('Teams resource', () => {
     it('should not delete the team', async () => {
       const result = await MongoDB.Teams.findbyTeamId(team.teamid);
       assert.notStrictEqual(result, null);
+    });
+
+    after(async () => {
+      await Promise.all([
+        MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+        MongoDB.Teams.removeByTeamId(team.teamid),
+        MongoDB.Users.removeByUserId(user.userid),
+      ]);
     });
   });
 
