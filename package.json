@@ -1,7 +1,7 @@
 {
   "name": "hack24-api",
   "description": "Hack24 Application",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "main": "bin/server.js",
   "scripts": {
