@@ -14,7 +14,8 @@
             "description": "Hackbot API password"
         },
         "PUSHER_URL": {
-            "description": "Pusher URL"
+            "description": "Pusher URL",
+            "value": "https://KEY:SECRET@api-eu.pusher.com/apps/APP_ID"
         }
     },
     "addons": [
