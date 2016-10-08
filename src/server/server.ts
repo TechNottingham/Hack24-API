@@ -54,7 +54,7 @@ export class Server {
 
   listen(): Promise<ServerInfo> {
     return new Promise<ServerInfo>((resolve, reject) => {
-      mongoose.connect(process.env.MONGODB_URL || 'mongodb://localhost/hack24db');
+      mongoose.connect(process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost/hack24db');
 
       var db = mongoose.connection;
       db.on('error', (err) => {
