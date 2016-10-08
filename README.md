@@ -1,4 +1,6 @@
 [![Build Status]](https://travis-ci.org/TechNottingham/Hack24-API) [![Stories in Ready]](http://waffle.io/TechNottingham/Hackbot)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/TechNottingham/Hack24-API)
+
 
 # Hack24-API
 An API for storing users, teams, hacks, challenges and sponsors
@@ -26,7 +28,7 @@ You will need installations of the following, available on your path:
 
     ```bash
     $ MONGODB_URL='mongodb://localhost/hack24api' npm start
-    
+
     Server started on port 5000
     ```
 
@@ -34,7 +36,7 @@ You will need installations of the following, available on your path:
 
 Since this is a TypeScript project, the `.ts` files will need to be transcompiled into JavaScript `.js` files before the test suite can be run. To simplify this, there are two `npm` scripts which will handle the compilation and testing cycles for you.
 
-1. `npm run build:watch` - runs `tsc` with the `--watch|w` flag to trigger a recompile whenever any files change within the `src` path (the `.ts` files). 
+1. `npm run build:watch` - runs `tsc` with the `--watch|w` flag to trigger a recompile whenever any files change within the `src` path (the `.ts` files).
 2. `npm run test:watch` - runs `mocha` with the `--watch|w` flag to trigger a run through all tests if it sees the contents of the `build` path change (the compiled `.js` files).
 
 You can begin your CI process by executing either `ci` or `ci.cmd` in the root of the repository. Note also that if you see strange results when testing, it's worth deleting the `build` path and restarting the CI script - this is due to the `tsc -w` command being unable to remove any scripts that you may have deleted in the source path.
