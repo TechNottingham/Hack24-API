@@ -1,5 +1,3 @@
-"use strict";
-
 import {Schema, model, Document, Model} from 'mongoose';
 
 export interface IUser {
@@ -44,6 +42,7 @@ export const TeamModel = model<ITeamModel>('Team', TeamSchema);
 export interface IHack {
   hackid: string;
   name: string;
+  challenges: IChallengeModel[];
 }
 
 export interface IHackModel extends IHack, Document { }
@@ -51,9 +50,26 @@ export interface IHackModel extends IHack, Document { }
 export const HackSchema = new Schema({
   hackid: { type: String, unique: true, required: true },
   name: { type: String, unique : true, required : true },
-  modified: { type: Date, default: Date.now }
+  modified: { type: Date, default: Date.now },
+  challenges : [{ type: Schema.Types.ObjectId, ref: 'Challenge' }]
 });
 export const HackModel = model<IHackModel>('Hack', HackSchema);
+
+
+
+export interface IChallenge {
+  challengeid: string;
+  name: string;
+}
+
+export interface IChallengeModel extends IChallenge, Document { }
+
+export const ChallengeSchema = new Schema({
+  challengeid: { type: String, unique: true, required: true },
+  name: { type: String, unique : true, required : true },
+  modified: { type: Date, default: Date.now }
+});
+export const ChallengeModel = model<IChallengeModel>('Challenge', ChallengeSchema);
 
 
 

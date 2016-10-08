@@ -1,11 +1,9 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, AttendeeResource, AttendeesResource} from './resources'
+import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
 
 describe('Attendees resource', () => {
 
@@ -24,15 +22,14 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
-      await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+
+      const res = await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -55,9 +52,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -70,15 +65,14 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
-      
-      await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+
+      const res = await api.get(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('joe', 'blogs')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -96,9 +90,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -112,7 +104,7 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
-      
+
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
@@ -120,18 +112,17 @@ describe('Attendees resource', () => {
         }
       };
 
-      await api.post('/attendees')
+      const res = await api.post('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .send(requestDoc)
         .type('application/vnd.api+json')
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
     });
 
     it('should respond with status code 201 Created', () => {
@@ -143,7 +134,7 @@ describe('Attendees resource', () => {
     });
 
     it('should return the attendee resource object self link', () => {
-      assert.strictEqual(response.links.self, `/attendees/${encodeURIComponent( attendee.attendeeid)}`);
+      assert.strictEqual(response.links.self, `/attendees/${encodeURIComponent(attendee.attendeeid)}`);
     });
 
     it('should return the attendees type', () => {
@@ -154,9 +145,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.data.id, attendee.attendeeid);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -170,7 +159,7 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
-      
+
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
@@ -178,17 +167,16 @@ describe('Attendees resource', () => {
         }
       };
 
-      await api.post('/attendees')
+      const res = await api.post('/attendees')
         .auth('gary', 'adam')
         .send(requestDoc)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-          
-          createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -210,9 +198,7 @@ describe('Attendees resource', () => {
       assert.strictEqual(createdAttendee, null);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -225,7 +211,7 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
+
       let requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
@@ -233,16 +219,15 @@ describe('Attendees resource', () => {
         }
       };
 
-      await api.post('/attendees')
+      const res = await api.post('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(requestDoc)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -259,12 +244,10 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
-  
+
   describe('GET attendees', () => {
 
     let attendee: IAttendee;
@@ -275,18 +258,17 @@ describe('Attendees resource', () => {
 
     before(async () => {
       await MongoDB.Attendees.removeAll();
-      
+
       attendee = await MongoDB.Attendees.insertRandomAttendee('A');
       otherAttendee = await MongoDB.Attendees.insertRandomAttendee('B');
-      
-      await api.get('/attendees')
+
+      const res = await api.get('/attendees')
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -314,14 +296,14 @@ describe('Attendees resource', () => {
       assert.strictEqual(thisAttendee.id, otherAttendee.attendeeid);
       assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(otherAttendee.attendeeid)}`);
     });
-    
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(attendee.attendeeid),
-      await MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
-    });
+
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(otherAttendee.attendeeid)
+    ]));
 
   });
-  
+
   describe('GET attendees with incorrect auth', () => {
 
     let statusCode: number;
@@ -329,14 +311,13 @@ describe('Attendees resource', () => {
     let response: AttendeesResource.TopLevelDocument;
 
     before(async () => {
-      await api.get('/attendees')
+      const res = await api.get('/attendees')
         .auth('zippy', 'bungle')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -366,17 +347,16 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
-      
-      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
-        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
 
-          deletedAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
-        });
+      const res = await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+        .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      deletedAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid);
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -390,14 +370,12 @@ describe('Attendees resource', () => {
     it('should return no body', () => {
       assert.strictEqual(body, '');
     });
-    
+
     it('should have deleted the attendee', () => {
       assert.strictEqual(deletedAttendee, null);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
 
   });
 
@@ -408,14 +386,13 @@ describe('Attendees resource', () => {
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      await api.delete(`/attendees/asdasdasdadasd`)
+      const res = await api.delete(`/attendees/asdasdasdadasd`)
         .auth(ApiServer.AdminUsername, ApiServer.AdminPassword)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -442,15 +419,14 @@ describe('Attendees resource', () => {
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee();
-      
-      await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
+
+      const res = await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('sack', 'boy')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -469,5 +445,5 @@ describe('Attendees resource', () => {
     });
 
   });
-  
+
 });

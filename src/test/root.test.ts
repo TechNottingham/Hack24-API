@@ -1,9 +1,7 @@
-"use strict";
-
 import * as assert from 'assert';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {Root} from './resources'
+import {Root} from '../resources'
 
 describe('API Root', () => {
 
@@ -23,17 +21,14 @@ describe('API Root', () => {
     let response: Root.TopLevelDocument;
 
     before(async () => {
-      
-      await api.get('/')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -69,9 +64,9 @@ describe('API Root', () => {
     it('should return the attendees link', () => {
       assert.strictEqual(response.links.attendees.href, '/attendees');
     });
-    
+
   });
-  
+
   describe('OPTIONS root document', () => {
 
     let statusCode: number;
@@ -82,16 +77,14 @@ describe('API Root', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -111,7 +104,7 @@ describe('API Root', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
 });

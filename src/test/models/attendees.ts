@@ -1,5 +1,3 @@
-"use strict";
-
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
@@ -10,7 +8,7 @@ export interface IAttendee {
 
 export class Attendees {
   private _collection: Collection;
-  
+
   public static Create(db: Db): Promise<Attendees> {
     return new Promise<Attendees>((resolve, reject) => {
       var attendees = new Attendees();
@@ -21,7 +19,7 @@ export class Attendees {
       });
     });
   }
-  
+
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteMany({}).then(() => {
@@ -31,7 +29,7 @@ export class Attendees {
       })
     });
   }
-  
+
   public removeByAttendeeId(attendeeid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ attendeeid: attendeeid}).then(() => {
@@ -41,7 +39,7 @@ export class Attendees {
       })
     });
   }
-  
+
   public createRandomAttendee(prefix?: string): IAttendee {
     prefix = prefix || '';
     let randomPart = Random.str(5);
@@ -49,7 +47,7 @@ export class Attendees {
       attendeeid: `testattendee+${prefix}${randomPart}@hack24.co.uk`
     };
   }
-  
+
   public insertAttendee(attendee: IAttendee): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(attendee).then((result) => {
@@ -59,7 +57,7 @@ export class Attendees {
       })
     });
   }
-  
+
   public insertRandomAttendee(prefix?: string): Promise<IAttendee> {
     let randomAttendee = this.createRandomAttendee(prefix);
     return new Promise<IAttendee>((resolve, reject) => {
@@ -71,7 +69,7 @@ export class Attendees {
       })
     });
   }
-  
+
   public findbyAttendeeId(attendeeid: string): Promise<IAttendee> {
     return new Promise<IAttendee>((resolve, reject) => {
       this._collection.find({ attendeeid: attendeeid }).limit(1).toArray().then((attendees: IAttendee[]) => {

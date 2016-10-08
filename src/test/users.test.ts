@@ -1,5 +1,3 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
@@ -7,7 +5,7 @@ import {ITeam} from './models/teams';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, UserResource, UsersResource, TeamResource} from './resources'
+import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
 import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 
@@ -18,7 +16,7 @@ describe('Users resource', () => {
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
-  
+
   describe('OPTIONS user by ID', () => {
 
     let statusCode: number;
@@ -30,17 +28,15 @@ describe('Users resource', () => {
 
     before(async () => {
       let user = MongoDB.Users.createRandomUser();
-      
-      await api.options(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+
+      const res = await api.options(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -60,7 +56,7 @@ describe('Users resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
 
   describe('GET user by ID', () => {
@@ -75,17 +71,15 @@ describe('Users resource', () => {
 
     before(async () => {
       user = await MongoDB.Users.insertRandomUser();
-      
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -126,12 +120,10 @@ describe('Users resource', () => {
       assert.strictEqual(response.data.relationships.team.data, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(user.userid);
-    });
+    after(() => MongoDB.Users.removeByUserId(user.userid));
 
   });
-  
+
   describe('OPTIONS users', () => {
 
     let statusCode: number;
@@ -142,16 +134,14 @@ describe('Users resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/users')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/users').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -171,9 +161,9 @@ describe('Users resource', () => {
     it('should return no body', () => {
       assert.strictEqual(response, '');
     });
-    
+
   });
-  
+
   describe('GET users in teams', () => {
 
     let user: IUser;
@@ -189,26 +179,24 @@ describe('Users resource', () => {
 
     before(async () => {
       await MongoDB.Users.removeAll();
-      
+
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
-      
+
       team = await MongoDB.Teams.createRandomTeam('A');
       team.members = [user._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B');
-      
-      await api.get(`/users`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+
+      const res = await api.get(`/users`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -250,7 +238,7 @@ describe('Users resource', () => {
     });
 
     it('should include the first team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[0];
+      let includedTeam = <TeamResource.ResourceObject>response.included[0];
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
@@ -262,7 +250,7 @@ describe('Users resource', () => {
     });
 
     it('should include the second team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[1];
+      let includedTeam = <TeamResource.ResourceObject>response.included[1];
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
       assert.strictEqual(includedTeam.id, otherTeam.teamid);
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
@@ -273,12 +261,12 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.relationships.members.data[0].id, otherUser.userid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Teams.removeByTeamId(otherTeam.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -300,19 +288,17 @@ describe('Users resource', () => {
       user = await MongoDB.Users.insertRandomUser('A');
       otherUser = await MongoDB.Users.insertRandomUser('B');
       team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id]);
-      
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
-          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
-        });
+
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
+      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -365,7 +351,7 @@ describe('Users resource', () => {
     it('should include the related team members', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 2);
-      
+
       let relatedUser = includedTeam.relationships.members.data[0];
       assert.strictEqual(relatedUser.type, 'users');
       assert.strictEqual(relatedUser.id, user.userid);
@@ -387,11 +373,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -416,19 +402,17 @@ describe('Users resource', () => {
       team.members = [user._id, otherUser._id];
       delete team.motto;
       await MongoDB.Teams.insertTeam(team);
-      
-      await api.get(`/users/${user.userid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-          includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
-          includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
-        });
+
+      const res = await api.get(`/users/${user.userid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
+      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -481,7 +465,7 @@ describe('Users resource', () => {
     it('should include the related team members', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`);
       assert.strictEqual(includedTeam.relationships.members.data.length, 2);
-      
+
       let relatedUser = includedTeam.relationships.members.data[0];
       assert.strictEqual(relatedUser.type, 'users');
       assert.strictEqual(relatedUser.id, user.userid);
@@ -503,11 +487,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedUser.relationships.team.data.id, team.teamid);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Users.removeByUserId(otherUser.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Users.removeByUserId(otherUser.userid)
+    ]));
 
   });
 
@@ -524,7 +508,7 @@ describe('Users resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = MongoDB.Users.createRandomUser();
-      
+
       const requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
@@ -534,22 +518,21 @@ describe('Users resource', () => {
           }
         }
       };
-      
+
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .send(requestDoc)
         .type('application/vnd.api+json')
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdUser = await MongoDB.Users.findbyUserId(user.userid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(user.userid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -584,23 +567,24 @@ describe('Users resource', () => {
 
     it('should send a users_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
-      
+
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'users_add');
-      
+
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.userid, user.userid);
       assert.strictEqual(data.name, user.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -615,7 +599,7 @@ describe('Users resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
       user = await MongoDB.Users.insertRandomUser();
-      
+
       let requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
@@ -626,16 +610,15 @@ describe('Users resource', () => {
         }
       };
 
-      await api.post('/users')
+      const res = await api.post('/users')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(requestDoc)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -652,10 +635,10 @@ describe('Users resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid)
+    ]));
 
   });
 
@@ -669,16 +652,14 @@ describe('Users resource', () => {
     let response: JSONApi.TopLevelDocument;
 
     before(async () => {
-      await api.get('/users/U' + Random.int(10000, 99999))
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/users/U' + Random.int(10000, 99999)).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -702,7 +683,7 @@ describe('Users resource', () => {
     });
 
   });
-  
+
   describe('POST new user without authentication', () => {
 
     let userId: string;
@@ -714,19 +695,18 @@ describe('Users resource', () => {
 
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      
-      await api.post('/users')
+
+      const res = await api.post('/users')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          authenticateHeader = res.header['www-authenticate'];
-          response = res.body;
-          
-          createdUser = await MongoDB.Users.findbyUserId(userId);
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      authenticateHeader = res.header['www-authenticate'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(userId);
     });
 
     it('should respond with status code 401 Unauthorized', () => {
@@ -752,12 +732,10 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(userId);
-    });
+    after(() => MongoDB.Users.removeByUserId(userId));
 
   });
-  
+
   describe('POST new user with incorrect authentication', () => {
 
     let userId: string;
@@ -768,19 +746,18 @@ describe('Users resource', () => {
 
     before(async () => {
       userId = 'U' + Random.int(10000, 99999);
-      
-      await api.post('/users')
+
+      const res = await api.post('/users')
         .auth('hackbot', 'incorrect_password')
         .type('application/vnd.api+json')
         .send({ userid: userId, name: 'Name_' + Random.str(5) })
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-          
-          createdUser = await MongoDB.Users.findbyUserId(userId);
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdUser = await MongoDB.Users.findbyUserId(userId);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -802,9 +779,7 @@ describe('Users resource', () => {
       assert.strictEqual(createdUser, null);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(userId);
-    });
+    after(() => MongoDB.Users.removeByUserId(userId));
 
   });
 

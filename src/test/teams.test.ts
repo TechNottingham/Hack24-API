@@ -1,14 +1,13 @@
-"use strict";
-
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
 import {IUser} from './models/users';
 import {ITeam} from './models/teams';
 import {IHack} from './models/hacks';
+import {IChallenge} from './models/challenges';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource} from './resources';
+import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource, ChallengeResource} from '../resources';
 import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 
@@ -46,19 +45,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -116,11 +114,12 @@ describe('Teams resource', () => {
       assert.strictEqual(data.members.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -149,19 +148,18 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -200,11 +198,11 @@ describe('Teams resource', () => {
       assert.strictEqual(data.members.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      pusherListener.close()
+    ]));
 
   });
 
@@ -237,28 +235,27 @@ describe('Teams resource', () => {
           },
           relationships: {
             members: {
-              data: [{ type: 'users', id: user.userid}]
+              data: [{ type: 'users', id: user.userid }]
             },
             entries: {
-              data: [{ type: 'hacks', id: hack.hackid}]
+              data: [{ type: 'hacks', id: hack.hackid }]
             }
           }
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 201 Created', () => {
@@ -329,12 +326,13 @@ describe('Teams resource', () => {
       assert.strictEqual(data.entries[0].name, hack.name);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Users.removeByUserId(user.userid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Users.removeByUserId(user.userid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -360,16 +358,15 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -386,10 +383,10 @@ describe('Teams resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+    ]));
 
   });
 
@@ -413,18 +410,17 @@ describe('Teams resource', () => {
         }
       };
 
-      await api.post('/teams')
+      const res = await api.post('/teams')
         .auth('not a user', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          response = res.body;
+        .end();
 
-          createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -458,16 +454,14 @@ describe('Teams resource', () => {
     let response: string;
 
     before(async () => {
-      await api.options('/teams')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options('/teams').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -492,6 +486,8 @@ describe('Teams resource', () => {
 
   describe('GET teams', () => {
 
+    let firstChallenge: IChallenge;
+    let secondChallenge: IChallenge;
     let firstUser: IUser;
     let secondUser: IUser;
     let thirdUser: IUser;
@@ -510,13 +506,20 @@ describe('Teams resource', () => {
     before(async () => {
       await MongoDB.Teams.removeAll();
 
+      firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
       thirdUser = await MongoDB.Users.insertRandomUser('C');
 
-      firstHack = await MongoDB.Hacks.insertRandomHack('A');
+      firstHack = MongoDB.Hacks.createRandomHack('A');
+      firstHack.challenges = [firstChallenge._id];
+      await MongoDB.Hacks.insertHack(firstHack);
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
-      thirdHack = await MongoDB.Hacks.insertRandomHack('C');
+      thirdHack = MongoDB.Hacks.createRandomHack('C');
+      thirdHack.challenges = [secondChallenge._id];
+      await MongoDB.Hacks.insertHack(thirdHack);
 
       firstTeam = MongoDB.Teams.createRandomTeam('A');
       firstTeam.members = [firstUser._id];
@@ -529,16 +532,14 @@ describe('Teams resource', () => {
       secondTeam.entries = [secondHack._id, thirdHack._id];
       await MongoDB.Teams.insertTeam(secondTeam);
 
-      await api.get('/teams')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/teams').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -599,14 +600,15 @@ describe('Teams resource', () => {
       assert.strictEqual(teamResponse.relationships.entries.data[1].id, thirdHack.hackid);
     });
 
-    it('should include the related members and entries', () => {
-      assert.strictEqual(response.included.length, 6);
+    it('should include the related members, entries and challenges', () => {
+      assert.strictEqual(response.included.length, 8);
       assert.strictEqual(response.included.filter((obj) => obj.type === 'users').length, 3);
       assert.strictEqual(response.included.filter((obj) => obj.type === 'hacks').length, 3);
+      assert.strictEqual(response.included.filter((obj) => obj.type === 'challenges').length, 2);
     });
 
     it('should include each expected users', () => {
-      const users = <UserResource.ResourceObject[]> response.included.filter((doc) => doc.type == 'users');
+      const users = <UserResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'users');
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -621,12 +623,16 @@ describe('Teams resource', () => {
       assert.strictEqual(users[2].attributes.name, thirdUser.name);
     });
 
-    it('should include each expected hacks', () => {
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((doc) => doc.type == 'hacks');
+    it('should include each expected hack', () => {
+      const hacks = <HackResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'hacks');
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
       assert.strictEqual(hacks[0].attributes.name, firstHack.name);
+
+      const firstHackChallenges = hacks[0].relationships['challenges'].data;
+      assert.strictEqual(firstHackChallenges[0].id, firstChallenge.challengeid);
+      assert.strictEqual(firstHackChallenges[0].type, 'challenges');
 
       assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
       assert.strictEqual(hacks[1].id, secondHack.hackid);
@@ -635,20 +641,39 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[2].links.self, `/hacks/${thirdHack.hackid}`);
       assert.strictEqual(hacks[2].id, thirdHack.hackid);
       assert.strictEqual(hacks[2].attributes.name, thirdHack.name);
+
+      const secondHackChallenges = hacks[2].relationships['challenges'].data;
+      assert.strictEqual(secondHackChallenges[0].id, secondChallenge.challengeid);
+      assert.strictEqual(secondHackChallenges[0].type, 'challenges');
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(firstUser.userid);
-      await MongoDB.Users.removeByUserId(secondUser.userid);
-      await MongoDB.Users.removeByUserId(thirdUser.userid);
+    it('should include each expected challenge from hacks', () => {
+      const challenges = <ChallengeResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'challenges');
 
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-      await MongoDB.Hacks.removeByHackId(thirdHack.hackid);
+      assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
+      assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
+      assert.strictEqual(challenges[0].attributes.name, firstChallenge.name);
 
-      await MongoDB.Teams.removeByTeamId(firstTeam.teamid);
-      await MongoDB.Teams.removeByTeamId(secondTeam.teamid);
+      assert.strictEqual(challenges[1].links.self, `/challenges/${secondChallenge.challengeid}`);
+      assert.strictEqual(challenges[1].id, secondChallenge.challengeid);
+      assert.strictEqual(challenges[1].attributes.name, secondChallenge.name);
     });
+
+    after(() => Promise.all([
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+
+      MongoDB.Users.removeByUserId(firstUser.userid),
+      MongoDB.Users.removeByUserId(secondUser.userid),
+      MongoDB.Users.removeByUserId(thirdUser.userid),
+
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Hacks.removeByHackId(thirdHack.hackid),
+
+      MongoDB.Teams.removeByTeamId(firstTeam.teamid),
+      MongoDB.Teams.removeByTeamId(secondTeam.teamid)
+    ]));
 
   });
 
@@ -664,16 +689,14 @@ describe('Teams resource', () => {
     before(async () => {
       let team = MongoDB.Teams.createRandomTeam();
 
-      await api.options(`/teams/${team.teamid}`)
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.text;
-        });
+      const res = await api.options(`/teams/${team.teamid}`).end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.text;
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -698,6 +721,7 @@ describe('Teams resource', () => {
 
   describe('GET team by slug (teamid)', () => {
 
+    let challenge: IChallenge;
     let firstUser: IUser;
     let secondUser: IUser;
     let firstHack: IHack;
@@ -711,10 +735,14 @@ describe('Teams resource', () => {
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
+      challenge = await MongoDB.Challenges.insertRandomChallenge();
+
       firstUser = await MongoDB.Users.insertRandomUser('A');
       secondUser = await MongoDB.Users.insertRandomUser('B');
 
-      firstHack = await MongoDB.Hacks.insertRandomHack('A');
+      firstHack = MongoDB.Hacks.createRandomHack('A');
+      firstHack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(firstHack);
       secondHack = await MongoDB.Hacks.insertRandomHack('B');
 
       team = MongoDB.Teams.createRandomTeam();
@@ -722,17 +750,16 @@ describe('Teams resource', () => {
       team.entries = [firstHack._id, secondHack._id];
       await MongoDB.Teams.insertTeam(team);
 
-      await api.get(`/teams/${team.teamid}`)
+      const res = await api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -778,10 +805,10 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[1].id, secondHack.hackid);
     });
 
-    it('should include the related members and entries', () => {
-      assert.strictEqual(response.included.length, 4);
+    it('should include the related members, entries and challenges', () => {
+      assert.strictEqual(response.included.length, 5);
 
-      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
+      const users = <UserResource.ResourceObject[]>response.included.filter((o) => o.type === 'users');
       assert.strictEqual(users.length, 2);
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -790,23 +817,31 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
 
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
+      const hacks = <HackResource.ResourceObject[]>response.included.filter((o) => o.type === 'hacks');
       assert.strictEqual(hacks.length, 2);
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
       assert.strictEqual(hacks[0].attributes.name, firstHack.name);
-      assert.strictEqual(hacks[1].links.self, `/hacks/${secondHack.hackid}`);
-      assert.strictEqual(hacks[1].id, secondHack.hackid);
-      assert.strictEqual(hacks[1].attributes.name, secondHack.name);
+
+      const firstHackChallenges = hacks[0].relationships['challenges'].data;
+      assert.strictEqual(firstHackChallenges[0].id, challenge.challengeid);
+      assert.strictEqual(firstHackChallenges[0].type, 'challenges');
+
+      const challenges = <ChallengeResource.ResourceObject[]>response.included.filter((o) => o.type === 'challenges');
+      assert.strictEqual(challenges.length, 1);
+      assert.strictEqual(challenges[0].links.self, `/challenges/${challenge.challengeid}`);
+      assert.strictEqual(challenges[0].id, challenge.challengeid);
+      assert.strictEqual(challenges[0].attributes.name, challenge.name);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(firstUser.userid);
-      await MongoDB.Users.removeByUserId(secondUser.userid);
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-    });
+    after(() => Promise.all([
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Users.removeByUserId(firstUser.userid),
+      MongoDB.Users.removeByUserId(secondUser.userid),
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Teams.removeByTeamId(team.teamid)
+    ]));
 
   });
 
@@ -837,17 +872,16 @@ describe('Teams resource', () => {
 
       await MongoDB.Teams.insertTeam(team);
 
-      await api.get(`/teams/${team.teamid}`)
+      const res = await api.get(`/teams/${team.teamid}`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -892,7 +926,7 @@ describe('Teams resource', () => {
     it('should include the related members and entries', () => {
       assert.strictEqual(response.included.length, 4);
 
-      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
+      const users = <UserResource.ResourceObject[]>response.included.filter((o) => o.type === 'users');
       assert.strictEqual(users.length, 2);
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -901,7 +935,7 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
 
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
+      const hacks = <HackResource.ResourceObject[]>response.included.filter((o) => o.type === 'hacks');
       assert.strictEqual(hacks.length, 2);
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -911,13 +945,13 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[1].attributes.name, secondHack.name);
     });
 
-    after(async () => {
-      await MongoDB.Users.removeByUserId(firstUser.userid);
-      await MongoDB.Users.removeByUserId(secondUser.userid);
-      await MongoDB.Hacks.removeByHackId(firstHack.hackid);
-      await MongoDB.Hacks.removeByHackId(secondHack.hackid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-    });
+    after(() => Promise.all([
+      MongoDB.Users.removeByUserId(firstUser.userid),
+      MongoDB.Users.removeByUserId(secondUser.userid),
+      MongoDB.Hacks.removeByHackId(firstHack.hackid),
+      MongoDB.Hacks.removeByHackId(secondHack.hackid),
+      MongoDB.Teams.removeByTeamId(team.teamid)
+    ]));
 
   });
 
@@ -931,17 +965,16 @@ describe('Teams resource', () => {
     let response: TeamResource.TopLevelDocument;
 
     before(async () => {
-      await api.get(`/teams/does not exist`)
+      const res = await api.get(`/teams/does not exist`)
         .set('Accept', 'application/json')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 404 Not Found', () => {
@@ -992,19 +1025,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1030,11 +1062,12 @@ describe('Teams resource', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -1061,19 +1094,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1099,11 +1131,12 @@ describe('Teams resource', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -1135,19 +1168,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1185,11 +1217,12 @@ describe('Teams resource', () => {
       assert.strictEqual(data.members.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -1219,19 +1252,18 @@ describe('Teams resource', () => {
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      await api.patch(`/teams/${team.teamid}`)
+      const res = await api.patch(`/teams/${team.teamid}`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
-        .end()
-        .then(async (res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          body = res.text;
+        .end();
 
-          modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
-          await pusherListener.waitForEvent();
-        });
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      body = res.text;
+
+      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 204 No Content', () => {
@@ -1257,11 +1289,12 @@ describe('Teams resource', () => {
       assert.strictEqual(pusherListener.events.length, 0);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-      await MongoDB.Teams.removeByTeamId(team.teamid);
-      await pusherListener.close();
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+
+      pusherListener.close()
+    ]));
 
   });
 
@@ -1284,16 +1317,14 @@ describe('Teams resource', () => {
       secondTeam = await MongoDB.Teams.insertRandomTeam([], 'ABEF');
       thirdTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCE');
 
-      await api.get('/teams?filter[name]=ABC')
-        .end()
-        .then((res) => {
-          statusCode = res.status;
-          contentType = res.header['content-type'];
-          accessControlAllowOrigin = res.header['access-control-allow-origin'];
-          accessControlRequestMethod = res.header['access-control-request-method'];
-          accessControlRequestHeaders = res.header['access-control-request-headers'];
-          response = res.body;
-        });
+      const res = await api.get('/teams?filter[name]=ABC').end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      accessControlAllowOrigin = res.header['access-control-allow-origin'];
+      accessControlRequestMethod = res.header['access-control-request-method'];
+      accessControlRequestHeaders = res.header['access-control-request-headers'];
+      response = res.body;
     });
 
     it('should respond with status code 200 OK', () => {
@@ -1336,11 +1367,12 @@ describe('Teams resource', () => {
       assert.strictEqual(teamResponse.attributes.motto, thirdTeam.motto);
     });
 
-    after(async () => {
-      await MongoDB.Teams.removeByTeamId(firstTeam.teamid),
-      await MongoDB.Teams.removeByTeamId(secondTeam.teamid),
-      await MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
-    });
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(firstTeam.teamid),
+      MongoDB.Teams.removeByTeamId(secondTeam.teamid),
+      MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
+    ]));
+
   });
 
   describe('DELETE team when no members', () => {
@@ -1383,9 +1415,8 @@ describe('Teams resource', () => {
       assert.strictEqual(result, null);
     });
 
-    after(async () => {
-      await MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid);
-    });
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid));
+
   });
 
   describe('DELETE team when members', () => {
@@ -1432,13 +1463,12 @@ describe('Teams resource', () => {
       assert.notStrictEqual(result, null);
     });
 
-    after(async () => {
-      await Promise.all([
-        MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-        MongoDB.Teams.removeByTeamId(team.teamid),
-        MongoDB.Users.removeByUserId(user.userid),
-      ]);
-    });
+    after(() => Promise.all([
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Users.removeByUserId(user.userid)
+    ]));
+
   });
 
 });

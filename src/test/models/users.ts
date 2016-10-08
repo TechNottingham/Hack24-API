@@ -1,5 +1,3 @@
-"use strict";
-
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
@@ -12,7 +10,7 @@ export interface IUser {
 
 export class Users {
   private _collection: Collection;
-  
+
   public static Create(db: Db): Promise<Users> {
     return new Promise<Users>((resolve, reject) => {
       var users = new Users();
@@ -23,7 +21,7 @@ export class Users {
       });
     });
   }
-  
+
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteMany({}).then(() => {
@@ -33,7 +31,7 @@ export class Users {
       })
     });
   }
-  
+
   public removeByUserId(userid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ userid: userid}).then(() => {
@@ -43,17 +41,17 @@ export class Users {
       })
     });
   }
-  
+
   public createRandomUser(prefix?: string): IUser {
     prefix = prefix || '';
     let randomPart = Random.str(5);
-    return { 
+    return {
       userid: `U${prefix}${randomPart}`,
       name: `Random user ${prefix}${randomPart}`,
       modified: new Date
     };
   }
-  
+
   public insertUser(user: IUser): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(user).then((result) => {
@@ -63,7 +61,7 @@ export class Users {
       })
     });
   }
-  
+
   public insertRandomUser(prefix?: string): Promise<IUser> {
     let randomUser = this.createRandomUser(prefix);
     return new Promise<IUser>((resolve, reject) => {
@@ -75,7 +73,7 @@ export class Users {
       })
     });
   }
-  
+
   public findbyUserId(userid: string): Promise<IUser> {
     return new Promise<IUser>((resolve, reject) => {
       this._collection.find({ userid: userid }).limit(1).toArray().then((users: IUser[]) => {

@@ -1,5 +1,3 @@
-"use strict";
-
 import {fork, ChildProcess} from 'child_process';
 
 export class ApiServer {

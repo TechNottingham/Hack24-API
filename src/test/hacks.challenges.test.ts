@@ -1,14 +1,14 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
+import {IHack} from './models/hacks';
+import {IChallenge} from './models/challenges';
 import {IAttendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, TeamMembersRelationship, UserResource} from '../resources';
+import {JSONApi, HackChallengesRelationship, ChallengeResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
 
-describe('Team Members relationship', () => {
+describe('Hack Entries relationship', () => {
 
   let api: request.SuperTest;
 
@@ -16,7 +16,7 @@ describe('Team Members relationship', () => {
     api = request(`http://localhost:${ApiServer.Port}`);
   });
 
-  describe('OPTIONS team members', () => {
+  describe('OPTIONS hack challenges', () => {
 
     let statusCode: number;
     let contentType: string;
@@ -26,9 +26,9 @@ describe('Team Members relationship', () => {
     let response: string;
 
     before(async () => {
-      let team = MongoDB.Teams.createRandomTeam();
+      let hack = MongoDB.Hacks.createRandomHack();
 
-      const res = await api.options(`/teams/${team.teamid}/members`).end();
+      const res = await api.options(`/hacks/${hack.hackid}/challenges`).end();
 
       statusCode = res.status;
       contentType = res.header['content-type'];
@@ -58,27 +58,29 @@ describe('Team Members relationship', () => {
 
   });
 
-  describe('GET team members', () => {
+  describe('GET hack challenges', () => {
 
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let thirdUser: IUser;
-    let team: ITeam;
+    let firstChallenge: IChallenge;
+    let secondChallenge: IChallenge;
+    let thirdChallenge: IChallenge;
+    let hack: IHack;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
     let accessControlRequestMethod: string;
     let accessControlRequestHeaders: string;
-    let response: TeamMembersRelationship.TopLevelDocument;
+    let response: HackChallengesRelationship.TopLevelDocument;
 
     before(async () => {
-      firstUser = await MongoDB.Users.insertRandomUser('A');
-      secondUser = await MongoDB.Users.insertRandomUser('B');
-      thirdUser = await MongoDB.Users.insertRandomUser('C');
+      firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
 
-      team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id]);
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
+      await MongoDB.Hacks.insertHack(hack);
 
-      const res = await api.get(`/teams/${team.teamid}/members`).end();
+      const res = await api.get(`/hacks/${hack.hackid}/challenges`).end();
 
       statusCode = res.status;
       contentType = res.header['content-type'];
@@ -102,55 +104,54 @@ describe('Team Members relationship', () => {
       assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept');
     });
 
-    it('should return the team members self link', () => {
-      assert.strictEqual(response.links.self, `/teams/${team.teamid}/members`);
+    it('should return the hack challenges self link', () => {
+      assert.strictEqual(response.links.self, `/hacks/${hack.hackid}/challenges`);
     });
 
-    it('should return each member', () => {
-      assert.strictEqual(response.data[0].type, 'users');
-      assert.strictEqual(response.data[0].id, firstUser.userid);
+    it('should return each entry', () => {
+      assert.strictEqual(response.data[0].type, 'challenges');
+      assert.strictEqual(response.data[0].id, firstChallenge.challengeid);
 
-      assert.strictEqual(response.data[1].type, 'users');
-      assert.strictEqual(response.data[1].id, secondUser.userid);
+      assert.strictEqual(response.data[1].type, 'challenges');
+      assert.strictEqual(response.data[1].id, secondChallenge.challengeid);
 
-      assert.strictEqual(response.data[2].type, 'users');
-      assert.strictEqual(response.data[2].id, thirdUser.userid);
+      assert.strictEqual(response.data[2].type, 'challenges');
+      assert.strictEqual(response.data[2].id, thirdChallenge.challengeid);
     });
 
-    it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]>response.included;
+    it('should include each expected challenge', () => {
+      const challenges = <ChallengeResource.ResourceObject[]>response.included;
 
-      assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
-      assert.strictEqual(users[0].id, firstUser.userid);
-      assert.strictEqual(users[0].attributes.name, firstUser.name);
+      assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
+      assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
+      assert.strictEqual(challenges[0].attributes.name, firstChallenge.name);
 
-      assert.strictEqual(users[1].links.self, `/users/${secondUser.userid}`);
-      assert.strictEqual(users[1].id, secondUser.userid);
-      assert.strictEqual(users[1].attributes.name, secondUser.name);
+      assert.strictEqual(challenges[1].links.self, `/challenges/${secondChallenge.challengeid}`);
+      assert.strictEqual(challenges[1].id, secondChallenge.challengeid);
+      assert.strictEqual(challenges[1].attributes.name, secondChallenge.name);
 
-      assert.strictEqual(users[2].links.self, `/users/${thirdUser.userid}`);
-      assert.strictEqual(users[2].id, thirdUser.userid);
-      assert.strictEqual(users[2].attributes.name, thirdUser.name);
+      assert.strictEqual(challenges[2].links.self, `/challenges/${thirdChallenge.challengeid}`);
+      assert.strictEqual(challenges[2].id, thirdChallenge.challengeid);
+      assert.strictEqual(challenges[2].attributes.name, thirdChallenge.name);
     });
 
     after(() => Promise.all([
-      MongoDB.Users.removeByUserId(firstUser.userid),
-      MongoDB.Users.removeByUserId(secondUser.userid),
-      MongoDB.Users.removeByUserId(thirdUser.userid),
-
-      MongoDB.Teams.removeByTeamId(team.teamid)
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid)
     ]));
 
   });
 
-  describe('DELETE multiple team members', () => {
+  describe('DELETE multiple hack challenges', () => {
 
     let attendee: IAttendee;
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let thirdUser: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let firstChallenge: IChallenge;
+    let secondChallenge: IChallenge;
+    let thirdChallenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -159,25 +160,27 @@ describe('Team Members relationship', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
 
-      firstUser = await MongoDB.Users.insertRandomUser('A');
-      secondUser = await MongoDB.Users.insertRandomUser('B');
-      thirdUser = await MongoDB.Users.insertRandomUser('C');
+      firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      thirdChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
 
-      team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id]);
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id];
+      await MongoDB.Hacks.insertHack(hack);
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
-          type: 'users',
-          id: firstUser.userid
+          type: 'challenges',
+          id: firstChallenge.challengeid
         }, {
-            type: 'users',
-            id: thirdUser.userid
+            type: 'challenges',
+            id: thirdChallenge.challengeid
           }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      const res = await api.delete(`/teams/${team.teamid}/members`)
+      const res = await api.delete(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
@@ -187,7 +190,7 @@ describe('Team Members relationship', () => {
       contentType = res.header['content-type'];
       body = res.text;
 
-      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
       await pusherListener.waitForEvents(2);
     });
 
@@ -203,63 +206,63 @@ describe('Team Members relationship', () => {
       assert.strictEqual(body, '');
     });
 
-    it('should have removed the two users from the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 1);
-      assert.strictEqual(modifiedTeam.members[0].equals(secondUser._id), true);
+    it('should have removed the two challenges from the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(secondChallenge._id), true);
     });
 
-    it('should send two teams_update_members_delete events to Pusher', () => {
+    it('should send two hacks_update_challenges_delete events to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 2);
     });
 
-    it('should send a teams_update_members_delete event for the first team member', () => {
+    it('should send a hacks_update_challenges_delete event for the first hack entry', () => {
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'teams_update_members_delete');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.teamid, team.teamid);
-      assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.member.userid, firstUser.userid);
-      assert.strictEqual(data.member.name, firstUser.name);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, firstChallenge.challengeid);
+      assert.strictEqual(data.entry.name, firstChallenge.name);
     });
 
-    it('should send a teams_update_members_delete event for the third team member', () => {
+    it('should send a hacks_update_challenges_delete event for the third hack entry', () => {
       const event = pusherListener.events[1];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'teams_update_members_delete');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_delete');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.teamid, team.teamid);
-      assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.member.userid, thirdUser.userid);
-      assert.strictEqual(data.member.name, thirdUser.name);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, thirdChallenge.challengeid);
+      assert.strictEqual(data.entry.name, thirdChallenge.name);
     });
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      MongoDB.Users.removeByUserId(firstUser.userid),
-      MongoDB.Users.removeByUserId(secondUser.userid),
-      MongoDB.Users.removeByUserId(thirdUser.userid),
+      MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
 
-      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
 
       pusherListener.close()
     ]));
 
   });
 
-  describe("DELETE team members which don't exist", () => {
+  describe("DELETE hack challenges which don't exist", () => {
 
     let attendee: IAttendee;
-    let user: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let challenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -268,22 +271,24 @@ describe('Team Members relationship', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
 
-      user = await MongoDB.Users.insertRandomUser();
-      team = await MongoDB.Teams.insertRandomTeam([user._id]);
+      challenge = await MongoDB.Challenges.insertRandomChallenge();
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
-          type: 'users',
-          id: user.userid
+          type: 'challenges',
+          id: challenge.challengeid
         }, {
-            type: 'users',
+            type: 'challenges',
             id: 'does not exist'
           }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      const res = await api.delete(`/teams/${team.teamid}/members`)
+      const res = await api.delete(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
@@ -293,7 +298,7 @@ describe('Team Members relationship', () => {
       contentType = res.header['content-type'];
       response = res.body;
 
-      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
       await pusherListener.waitForEvent();
     });
 
@@ -311,9 +316,9 @@ describe('Team Members relationship', () => {
       assert.strictEqual(response.errors[0].title, 'Bad request.');
     });
 
-    it('should not modify the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 1);
-      assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
     });
 
     it('should not send any events to Pusher', () => {
@@ -322,22 +327,21 @@ describe('Team Members relationship', () => {
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-      MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Teams.removeByTeamId(team.teamid),
-
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
       pusherListener.close()
     ]));
 
   });
 
-  describe('POST team members', () => {
+  describe('POST hack challenges', () => {
 
     let attendee: IAttendee;
-    let user: IUser;
-    let firstNewUser: IUser;
-    let secondNewUser: IUser;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let challenge: IChallenge;
+    let firstNewChallenge: IChallenge;
+    let secondNewChallenge: IChallenge;
+    let hack: IHack;
+    let modifiedHack: IHack;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -346,25 +350,27 @@ describe('Team Members relationship', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
 
-      user = await MongoDB.Users.insertRandomUser('A');
-      firstNewUser = await MongoDB.Users.insertRandomUser('B');
-      secondNewUser = await MongoDB.Users.insertRandomUser('C');
+      challenge = await MongoDB.Challenges.insertRandomChallenge('A');
+      firstNewChallenge = await MongoDB.Challenges.insertRandomChallenge('B');
+      secondNewChallenge = await MongoDB.Challenges.insertRandomChallenge('C');
 
-      team = await MongoDB.Teams.insertRandomTeam([user._id]);
+      hack = MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
-          type: 'users',
-          id: firstNewUser.userid
+          type: 'challenges',
+          id: firstNewChallenge.challengeid
         }, {
-            type: 'users',
-            id: secondNewUser.userid
+            type: 'challenges',
+            id: secondNewChallenge.challengeid
           }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      const res = await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
@@ -374,7 +380,7 @@ describe('Team Members relationship', () => {
       contentType = res.header['content-type'];
       body = res.text;
 
-      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
       await pusherListener.waitForEvents(2);
     });
 
@@ -390,67 +396,67 @@ describe('Team Members relationship', () => {
       assert.strictEqual(body, '');
     });
 
-    it('should have added the new user to the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 3);
-      assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
-      assert.strictEqual(modifiedTeam.members[1].equals(firstNewUser._id), true);
-      assert.strictEqual(modifiedTeam.members[2].equals(secondNewUser._id), true);
+    it('should have added the new challenge to the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 3);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
+      assert.strictEqual(modifiedHack.challenges[1].equals(firstNewChallenge._id), true);
+      assert.strictEqual(modifiedHack.challenges[2].equals(secondNewChallenge._id), true);
     });
 
-    it('should send two teams_update_members_add events to Pusher', () => {
+    it('should send two hacks_update_challenges_add events to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 2);
     });
 
-    it('should send a teams_update_members_add event for the first new team member', () => {
+    it('should send a hacks_update_challenges_add event for the first new hack entry', () => {
       const event = pusherListener.events[0];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'teams_update_members_add');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.teamid, team.teamid);
-      assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.member.userid, firstNewUser.userid);
-      assert.strictEqual(data.member.name, firstNewUser.name);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, firstNewChallenge.challengeid);
+      assert.strictEqual(data.entry.name, firstNewChallenge.name);
     });
 
-    it('should send a teams_update_members_add event for the second new team member', () => {
+    it('should send a hacks_update_challenges_add event for the second new hack entry', () => {
       const event = pusherListener.events[1];
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
-      assert.strictEqual(event.payload.name, 'teams_update_members_add');
+      assert.strictEqual(event.payload.name, 'hacks_update_challenges_add');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.teamid, team.teamid);
-      assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.member.userid, secondNewUser.userid);
-      assert.strictEqual(data.member.name, secondNewUser.name);
+      assert.strictEqual(data.hackid, hack.hackid);
+      assert.strictEqual(data.name, hack.name);
+      assert.strictEqual(data.entry.challengeid, secondNewChallenge.challengeid);
+      assert.strictEqual(data.entry.name, secondNewChallenge.name);
     });
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Users.removeByUserId(firstNewUser.userid),
-      MongoDB.Users.removeByUserId(secondNewUser.userid),
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(firstNewChallenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(secondNewChallenge.challengeid),
 
-      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
 
       pusherListener.close()
     ]));
 
   });
 
-  describe('POST team members already in a team', () => {
+  describe('POST hack challenges already in a hack', () => {
 
     let attendee: IAttendee;
-    let user: IUser;
-    let otherUser: IUser;
-    let team: ITeam;
-    let otherTeam: ITeam;
-    let modifiedTeam: ITeam;
+    let challenge: IChallenge;
+    let otherChallenge: IChallenge;
+    let hack: IHack;
+    let otherHack: IHack;
+    let modifiedHack: IHack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -459,22 +465,26 @@ describe('Team Members relationship', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
 
-      user = await MongoDB.Users.insertRandomUser();
-      otherUser = await MongoDB.Users.insertRandomUser();
+      challenge = await MongoDB.Challenges.insertRandomChallenge();
+      otherChallenge = await MongoDB.Challenges.insertRandomChallenge();
 
-      team = await MongoDB.Teams.insertRandomTeam([user._id]);
-      otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id]);
+      hack = await MongoDB.Hacks.createRandomHack();
+      hack.challenges = [challenge._id];
+      await MongoDB.Hacks.insertHack(hack);
+      otherHack = await MongoDB.Hacks.createRandomHack();
+      otherHack.challenges = [otherChallenge._id];
+      await MongoDB.Hacks.insertHack(otherHack);
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
-          type: 'users',
-          id: otherUser.userid
+          type: 'challenges',
+          id: otherChallenge.challengeid
         }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      const res = await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
@@ -484,7 +494,7 @@ describe('Team Members relationship', () => {
       contentType = res.header['content-type'];
       response = res.body;
 
-      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
       await pusherListener.waitForEvent();
     });
 
@@ -499,12 +509,12 @@ describe('Team Members relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '400');
-      assert.strictEqual(response.errors[0].title, 'One or more of the specified users are already in a team.');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified challenges are already in a hack.');
     });
 
-    it('should not modify the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 1);
-      assert.strictEqual(modifiedTeam.members[0].equals(user._id), true);
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 1);
+      assert.strictEqual(modifiedHack.challenges[0].equals(challenge._id), true);
     });
 
     it('should not send any events to Pusher', () => {
@@ -514,22 +524,22 @@ describe('Team Members relationship', () => {
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
-      MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Users.removeByUserId(otherUser.userid),
+      MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
+      MongoDB.Challenges.removeByChallengeId(otherChallenge.challengeid),
 
-      MongoDB.Teams.removeByTeamId(team.teamid),
-      MongoDB.Teams.removeByTeamId(otherTeam.teamid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
+      MongoDB.Hacks.removeByHackId(otherHack.hackid),
 
       pusherListener.close()
     ]));
 
   });
 
-  describe('POST team members which do not exist', () => {
+  describe('POST hack challenges which do not exist', () => {
 
     let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let hack: IHack;
+    let modifiedHack: IHack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -538,18 +548,18 @@ describe('Team Members relationship', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
 
-      team = await MongoDB.Teams.insertRandomTeam();
+      hack = await MongoDB.Hacks.insertRandomHack();
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
-          type: 'users',
+          type: 'challenges',
           id: 'does not exist'
         }]
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
-      const res = await api.post(`/teams/${team.teamid}/members`)
+      const res = await api.post(`/hacks/${hack.hackid}/challenges`)
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(req)
@@ -559,7 +569,7 @@ describe('Team Members relationship', () => {
       contentType = res.header['content-type'];
       response = res.body;
 
-      modifiedTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      modifiedHack = await MongoDB.Hacks.findByHackId(hack.hackid);
       await pusherListener.waitForEvent();
     });
 
@@ -574,11 +584,11 @@ describe('Team Members relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1);
       assert.strictEqual(response.errors[0].status, '400');
-      assert.strictEqual(response.errors[0].title, 'One or more of the specified users could not be found.');
+      assert.strictEqual(response.errors[0].title, 'One or more of the specified challenges could not be found.');
     });
 
-    it('should not modify the team', () => {
-      assert.strictEqual(modifiedTeam.members.length, 0);
+    it('should not modify the hack', () => {
+      assert.strictEqual(modifiedHack.challenges.length, 0);
     });
 
     it('should not send any events to Pusher', () => {
@@ -587,7 +597,7 @@ describe('Team Members relationship', () => {
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Hacks.removeByHackId(hack.hackid),
 
       pusherListener.close()
     ]));

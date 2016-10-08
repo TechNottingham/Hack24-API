@@ -1,5 +1,3 @@
-"use strict";
-
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
@@ -7,11 +5,12 @@ export interface IHack {
   _id?: ObjectID;
   hackid: string;
   name: string;
+  challenges: ObjectID[];
 }
 
 export class Hacks {
   private _collection: Collection;
-  
+
   public static Create(db: Db): Promise<Hacks> {
     return new Promise<Hacks>((resolve, reject) => {
       var hacks = new Hacks();
@@ -22,7 +21,7 @@ export class Hacks {
       });
     });
   }
-  
+
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteMany({}).then(() => {
@@ -32,7 +31,7 @@ export class Hacks {
       })
     });
   }
-  
+
   public removeByName(name: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ name: name }).then(() => {
@@ -42,7 +41,7 @@ export class Hacks {
       })
     });
   }
-  
+
   public removeByHackId(hackid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._collection.deleteOne({ hackid: hackid }).then(() => {
@@ -52,16 +51,17 @@ export class Hacks {
       })
     });
   }
-  
+
   public createRandomHack(prefix?: string): IHack {
     prefix = prefix || '';
     let randomPart = Random.str(5);
-    return { 
+    return {
       hackid: `random-hack-${prefix}${randomPart}`,
-      name: `Random Hack ${prefix}${randomPart}`
+      name: `Random Hack ${prefix}${randomPart}`,
+      challenges: []
     };
   }
-  
+
   public insertHack(hack: IHack): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(hack).then(() => {
@@ -71,7 +71,7 @@ export class Hacks {
       })
     });
   }
-  
+
   public insertRandomHack(prefix?: string): Promise<IHack> {
     let randomHack = this.createRandomHack(prefix);
     return new Promise<IHack>((resolve, reject) => {
@@ -83,7 +83,7 @@ export class Hacks {
       })
     });
   }
-  
+
   public findbyName(name: string): Promise<IHack> {
     return new Promise<IHack>((resolve, reject) => {
       this._collection.find({ name: name }).limit(1).toArray().then((hacks: IHack[]) => {
@@ -93,7 +93,7 @@ export class Hacks {
       });
     });
   }
-  
+
   public findByHackId(hackid: string): Promise<IHack> {
     return new Promise<IHack>((resolve, reject) => {
       this._collection.find({ hackid: hackid }).limit(1).toArray().then((hacks: IHack[]) => {

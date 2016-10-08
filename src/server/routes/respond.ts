@@ -1,7 +1,5 @@
-"use strict";
-
 import {Response} from 'express'
-import {JSONApi} from '../resources'
+import {JSONApi} from '../../resources'
 
 export function Send200(res: Response, model: any) {
   res.status(200)
