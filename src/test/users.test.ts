@@ -1,11 +1,11 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
-import {IAttendee} from './models/attendees';
+import {User} from './models/users';
+import {Team} from './models/teams';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
-import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
+import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources';
 import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 
@@ -61,7 +61,7 @@ describe('Users resource', () => {
 
   describe('GET user by ID', () => {
 
-    let user: IUser;
+    let user: User;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -166,10 +166,10 @@ describe('Users resource', () => {
 
   describe('GET users in teams', () => {
 
-    let user: IUser;
-    let otherUser: IUser;
-    let team: ITeam;
-    let otherTeam: ITeam;
+    let user: User;
+    let otherUser: User;
+    let team: Team;
+    let otherTeam: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -238,7 +238,7 @@ describe('Users resource', () => {
     });
 
     it('should include the first team', () => {
-      let includedTeam = <TeamResource.ResourceObject>response.included[0];
+      let includedTeam = <TeamResource.ResourceObject> response.included[0];
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`);
       assert.strictEqual(includedTeam.id, team.teamid);
       assert.strictEqual(includedTeam.attributes.name, team.name);
@@ -250,7 +250,7 @@ describe('Users resource', () => {
     });
 
     it('should include the second team', () => {
-      let includedTeam = <TeamResource.ResourceObject>response.included[1];
+      let includedTeam = <TeamResource.ResourceObject> response.included[1];
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`);
       assert.strictEqual(includedTeam.id, otherTeam.teamid);
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name);
@@ -265,16 +265,16 @@ describe('Users resource', () => {
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Teams.removeByTeamId(otherTeam.teamid),
       MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Users.removeByUserId(otherUser.userid)
+      MongoDB.Users.removeByUserId(otherUser.userid),
     ]));
 
   });
 
   describe('GET user by ID in team', () => {
 
-    let user: IUser;
-    let otherUser: IUser;
-    let team: ITeam;
+    let user: User;
+    let otherUser: User;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -297,8 +297,8 @@ describe('Users resource', () => {
       accessControlRequestMethod = res.header['access-control-request-method'];
       accessControlRequestHeaders = res.header['access-control-request-headers'];
       response = res.body;
-      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
-      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
+      includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -376,16 +376,16 @@ describe('Users resource', () => {
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Users.removeByUserId(otherUser.userid)
+      MongoDB.Users.removeByUserId(otherUser.userid),
     ]));
 
   });
 
   describe('GET user by ID in team without a motto', () => {
 
-    let user: IUser;
-    let otherUser: IUser;
-    let team: ITeam;
+    let user: User;
+    let otherUser: User;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -411,8 +411,8 @@ describe('Users resource', () => {
       accessControlRequestMethod = res.header['access-control-request-method'];
       accessControlRequestHeaders = res.header['access-control-request-headers'];
       response = res.body;
-      includedTeam = <TeamResource.ResourceObject>response.included.find((include) => include.type === 'teams');
-      includedUser = <UserResource.ResourceObject>response.included.find((include) => include.type === 'users');
+      includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams');
+      includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users');
     });
 
     it('should respond with status code 200 OK', () => {
@@ -490,16 +490,16 @@ describe('Users resource', () => {
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Users.removeByUserId(user.userid),
-      MongoDB.Users.removeByUserId(otherUser.userid)
+      MongoDB.Users.removeByUserId(otherUser.userid),
     ]));
 
   });
 
   describe('POST new user', () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
-    let createdUser: IUser;
+    let attendee: Attendee;
+    let user: User;
+    let createdUser: User;
     let statusCode: number;
     let contentType: string;
     let response: UserResource.TopLevelDocument;
@@ -514,9 +514,9 @@ describe('Users resource', () => {
           type: 'users',
           id: user.userid,
           attributes: {
-            name: user.name
-          }
-        }
+            name: user.name,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -583,15 +583,15 @@ describe('Users resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Users.removeByUserId(user.userid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST user with existing ID', () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
+    let attendee: Attendee;
+    let user: User;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -605,9 +605,9 @@ describe('Users resource', () => {
           type: 'users',
           id: user.userid,
           attributes: {
-            name: user.name
-          }
-        }
+            name: user.name,
+          },
+        },
       };
 
       const res = await api.post('/users')
@@ -637,7 +637,7 @@ describe('Users resource', () => {
 
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-      MongoDB.Users.removeByUserId(user.userid)
+      MongoDB.Users.removeByUserId(user.userid),
     ]));
 
   });
@@ -687,7 +687,7 @@ describe('Users resource', () => {
   describe('POST new user without authentication', () => {
 
     let userId: string;
-    let createdUser: IUser;
+    let createdUser: User;
     let statusCode: number;
     let contentType: string;
     let authenticateHeader: string;
@@ -739,7 +739,7 @@ describe('Users resource', () => {
   describe('POST new user with incorrect authentication', () => {
 
     let userId: string;
-    let createdUser: IUser;
+    let createdUser: User;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;

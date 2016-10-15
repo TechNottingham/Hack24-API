@@ -7,7 +7,7 @@ export class Random {
    */
   public static num (min?: number, max?: number): number {
     const _min = min || 0;
-    const _max = max || Number.MAX_VALUE - 1
+    const _max = max || Number.MAX_VALUE - 1;
     return Math.random() * (_max - _min + 1) + _min;
   }
 
@@ -44,11 +44,10 @@ export class Random {
    * @returns The random string.
    */
   public static str (length?: number, min?: string, max?: string) {
-    const _length = length || 50;
     let result = "";
     for (let i = 0; i < length; i++) {
       result += this.char(min, max);
-    };
+    }
     return result;
   }
 }

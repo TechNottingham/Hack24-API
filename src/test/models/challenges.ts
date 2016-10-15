@@ -1,25 +1,28 @@
 import {Db, Collection, ObjectID} from 'mongodb';
 import {Random} from '../utils/random';
 
-export interface IChallenge {
+export interface Challenge {
   _id?: ObjectID;
   challengeid: string;
   name: string;
 }
 
 export class Challenges {
-  private _collection: Collection;
 
   public static Create(db: Db): Promise<Challenges> {
     return new Promise<Challenges>((resolve, reject) => {
-      var challenges = new Challenges();
+      let challenges = new Challenges();
       db.collection('challenges', (err, collection) => {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         challenges._collection = collection;
         resolve(challenges);
       });
     });
   }
+
+  private _collection: Collection;
 
   public removeAll(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -27,7 +30,7 @@ export class Challenges {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove all challenges: ' + err.message));
-      })
+      });
     });
   }
 
@@ -37,7 +40,7 @@ export class Challenges {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove challenge: ' + err.message));
-      })
+      });
     });
   }
 
@@ -47,44 +50,44 @@ export class Challenges {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not remove challenge: ' + err.message));
-      })
+      });
     });
   }
 
-  public createRandomChallenge(prefix?: string): IChallenge {
+  public createRandomChallenge(prefix?: string): Challenge {
     prefix = prefix || '';
     let randomPart = Random.str(5);
     return {
       challengeid: `random-challenge-${prefix}${randomPart}`,
-      name: `Random Challenge ${prefix}${randomPart}`
+      name: `Random Challenge ${prefix}${randomPart}`,
     };
   }
 
-  public insertChallenge(challenge: IChallenge): Promise<ObjectID> {
+  public insertChallenge(challenge: Challenge): Promise<ObjectID> {
     return new Promise<ObjectID>((resolve, reject) => {
       this._collection.insertOne(challenge).then(() => {
         resolve();
       }).catch((err) => {
         reject(new Error('Could not insert challenge: ' + err.message));
-      })
+      });
     });
   }
 
-  public insertRandomChallenge(prefix?: string): Promise<IChallenge> {
+  public insertRandomChallenge(prefix?: string): Promise<Challenge> {
     let randomChallenge = this.createRandomChallenge(prefix);
-    return new Promise<IChallenge>((resolve, reject) => {
+    return new Promise<Challenge>((resolve, reject) => {
       this._collection.insertOne(randomChallenge).then((result) => {
         randomChallenge._id = result.insertedId;
         resolve(randomChallenge);
       }).catch((err) => {
         reject(new Error('Could not insert random challenge: ' + err.message));
-      })
+      });
     });
   }
 
-  public findbyName(name: string): Promise<IChallenge> {
-    return new Promise<IChallenge>((resolve, reject) => {
-      this._collection.find({ name: name }).limit(1).toArray().then((challenges: IChallenge[]) => {
+  public findbyName(name: string): Promise<Challenge> {
+    return new Promise<Challenge>((resolve, reject) => {
+      this._collection.find({ name: name }).limit(1).toArray().then((challenges: Challenge[]) => {
         resolve(challenges.length > 0 ? challenges[0] : null);
       }).catch((err) => {
         reject(new Error('Error when finding challenge: ' + err.message));
@@ -92,9 +95,9 @@ export class Challenges {
     });
   }
 
-  public findByChallengeId(challengeid: string): Promise<IChallenge> {
-    return new Promise<IChallenge>((resolve, reject) => {
-      this._collection.find({ challengeid: challengeid }).limit(1).toArray().then((challenges: IChallenge[]) => {
+  public findByChallengeId(challengeid: string): Promise<Challenge> {
+    return new Promise<Challenge>((resolve, reject) => {
+      this._collection.find({ challengeid: challengeid }).limit(1).toArray().then((challenges: Challenge[]) => {
         resolve(challenges.length > 0 ? challenges[0] : null);
       }).catch((err) => {
         reject(new Error('Error when finding challenge: ' + err.message));

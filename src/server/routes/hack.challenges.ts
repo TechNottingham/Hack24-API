@@ -14,7 +14,7 @@ export class HackChallengesRoute {
     this._eventBroadcaster = eventBroadcaster;
   }
 
-  createRouter() {
+  public createRouter() {
     const asyncHandler = middleware.AsyncHandler.bind(this);
     const router = Router();
 
@@ -26,7 +26,7 @@ export class HackChallengesRoute {
     return router;
   }
 
-  async get(req: Request, res: Response) {
+  public async get(req: Request, res: Response) {
     const hackId = req.params.hackId;
 
     const hack = await HackModel
@@ -34,55 +34,62 @@ export class HackChallengesRoute {
       .populate('challenges', 'challengeid name')
       .exec();
 
-    if (hack === null)
+    if (hack === null) {
       return respond.Send404(res);
+    }
 
     const challenges = hack.challenges.map<JSONApi.ResourceIdentifierObject>((challenge) => ({
       type: 'challenges',
-      id: challenge.challengeid
+      id: challenge.challengeid,
     }));
 
     const includedChallenges = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
       links: { self: `/challenges/${challenge.challengeid}` },
       type: 'challenges',
       id: challenge.challengeid,
-      attributes: { name: challenge.name }
+      attributes: { name: challenge.name },
     }));
 
     const challengesResponse: HackChallengesRelationship.TopLevelDocument = {
       links: { self: `/hacks/${encodeURIComponent(hack.hackid)}/challenges` },
       data: challenges,
-      included: includedChallenges
+      included: includedChallenges,
     };
 
     respond.Send200(res, challengesResponse);
   };
 
-  async delete(req: Request, res: Response) {
+  public async delete(req: Request, res: Response) {
     const hackId = req.params.hackId;
     const requestDoc: HackChallengesRelationship.TopLevelDocument = req.body;
 
     if (!requestDoc
       || !requestDoc.data
-      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data))) {
       return respond.Send400(res);
+    }
 
     const errorCases = requestDoc.data.filter((challenge) => challenge.type !== 'challenges' || typeof challenge.id !== 'string');
-    if (errorCases.length > 0)
+    if (errorCases.length > 0) {
       return respond.Send400(res);
+    }
 
     const hack = await HackModel
       .findOne({ hackid: hackId }, 'hackid name challenges')
       .populate('challenges', 'challengeid name')
       .exec();
 
-    if (hack === null)
+    if (hack === null) {
       return respond.Send404(res);
+    }
 
-    const challengesToDelete = hack.challenges.filter((challenge) => requestDoc.data.some((challengeToDelete) => challenge.challengeid === challengeToDelete.id));
+    const challengesToDelete = hack.challenges.filter((challenge) => {
+      return requestDoc.data.some((challengeToDelete) => challenge.challengeid === challengeToDelete.id);
+    });
 
-    if (challengesToDelete.length < requestDoc.data.length)
+    if (challengesToDelete.length < requestDoc.data.length) {
       return respond.Send400(res);
+    }
 
     const challengeIdsToDelete = challengesToDelete.map((challenge) => challenge.challengeid);
     hack.challenges = hack.challenges.filter((challenge) => challengeIdsToDelete.indexOf(challenge.challengeid) === -1);
@@ -95,56 +102,64 @@ export class HackChallengesRoute {
         name: hack.name,
         entry: {
           challengeid: challenge.challengeid,
-          name: challenge.name
-        }
+          name: challenge.name,
+        },
       });
     });
 
     respond.Send204(res);
   };
 
-  async add(req: Request, res: Response) {
+  public async add(req: Request, res: Response) {
     const hackId = req.params.hackId;
     const requestDoc: HackChallengesRelationship.TopLevelDocument = req.body;
 
     if (!requestDoc
       || !requestDoc.data
-      || (requestDoc.data !== null && !Array.isArray(requestDoc.data)))
+      || (requestDoc.data !== null && !Array.isArray(requestDoc.data))) {
       return respond.Send400(res);
+    }
 
     const errorCases = requestDoc.data.filter((challenge) => challenge.type !== 'challenges' || typeof challenge.id !== 'string');
-    if (errorCases.length > 0)
+    if (errorCases.length > 0) {
       return respond.Send400(res);
+    }
 
     const hack = await HackModel
       .findOne({ hackid: hackId }, 'hackid name challenges')
       .populate('challenges', 'challengeid')
       .exec();
 
-    if (hack === null)
+    if (hack === null) {
       return respond.Send404(res);
+    }
 
     const challengeIdsToAdd = requestDoc.data.map((challenge) => challenge.id);
-    const existingChallengeIds = challengeIdsToAdd.filter((challengeIdToAdd) => hack.challenges.some((actualchallenge) => actualchallenge.challengeid === challengeIdToAdd));
+    const existingChallengeIds = challengeIdsToAdd.filter((challengeIdToAdd) => {
+      return hack.challenges.some((actualchallenge) => actualchallenge.challengeid === challengeIdToAdd);
+    });
 
-    if (existingChallengeIds.length > 0)
+    if (existingChallengeIds.length > 0) {
       return respond.Send400(res, 'One or more challenges are already challenges of this hack.');
+    }
 
     const challenges = await ChallengeModel
       .find({ challengeid: { $in: challengeIdsToAdd } }, 'challengeid name')
       .exec();
 
-    if (challenges.length !== challengeIdsToAdd.length)
+    if (challenges.length !== challengeIdsToAdd.length) {
       return respond.Send400(res, 'One or more of the specified challenges could not be found.');
+    }
 
     const challengeObjectIds = challenges.map((challenge) => challenge._id);
 
     const hacks = await HackModel
-      .find({ challenges: { $in: challengeObjectIds }}, 'hackid')
+      .find({ challenges: { $in: challengeObjectIds } }, 'hackid')
       .exec();
 
-    if (hacks.length > 0)
+    if (hacks.length > 0) {
       return respond.Send400(res, 'One or more of the specified challenges are already in a hack.');
+    }
 
     hack.challenges = hack.challenges.concat(challenges.map((challenge) => challenge._id));
 
@@ -156,8 +171,8 @@ export class HackChallengesRoute {
         name: hack.name,
         entry: {
           challengeid: challenge.challengeid,
-          name: challenge.name
-        }
+          name: challenge.name,
+        },
       });
     });
 

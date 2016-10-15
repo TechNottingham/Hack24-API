@@ -1,14 +1,13 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
-import {IHack} from './models/hacks';
-import {IChallenge} from './models/challenges';
-import {IAttendee} from './models/attendees';
+import {User} from './models/users';
+import {Team} from './models/teams';
+import {Hack} from './models/hacks';
+import {Challenge} from './models/challenges';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource, ChallengeResource} from '../resources';
-import {Random} from './utils/random';
 import {PusherListener} from './utils/pusherlistener';
 
 describe('Teams resource', () => {
@@ -21,9 +20,9 @@ describe('Teams resource', () => {
 
   describe('POST new team', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let createdTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let createdTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
@@ -38,9 +37,9 @@ describe('Teams resource', () => {
           type: 'teams',
           attributes: {
             name: team.name,
-            motto: team.motto
-          }
-        }
+            motto: team.motto,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -118,16 +117,16 @@ describe('Teams resource', () => {
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST new team without motto', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let createdTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let createdTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
@@ -143,9 +142,9 @@ describe('Teams resource', () => {
         data: {
           type: 'teams',
           attributes: {
-            name: team.name
-          }
-        }
+            name: team.name,
+          },
+        },
       };
 
       const res = await api.post('/teams')
@@ -201,18 +200,18 @@ describe('Teams resource', () => {
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(team.teamid),
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST new team with members and hacks', () => {
 
-    let attendee: IAttendee;
-    let user: IUser;
-    let hack: IHack;
-    let team: ITeam;
-    let createdTeam: ITeam;
+    let attendee: Attendee;
+    let user: User;
+    let hack: Hack;
+    let team: Team;
+    let createdTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: TeamResource.TopLevelDocument;
@@ -231,17 +230,17 @@ describe('Teams resource', () => {
           type: 'teams',
           attributes: {
             name: team.name,
-            motto: team.motto
+            motto: team.motto,
           },
           relationships: {
             members: {
-              data: [{ type: 'users', id: user.userid }]
+              data: [{ type: 'users', id: user.userid }],
             },
             entries: {
-              data: [{ type: 'hacks', id: hack.hackid }]
-            }
-          }
-        }
+              data: [{ type: 'hacks', id: hack.hackid }],
+            },
+          },
+        },
       };
 
       const res = await api.post('/teams')
@@ -331,15 +330,15 @@ describe('Teams resource', () => {
       MongoDB.Users.removeByUserId(user.userid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST team which already exists', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
+    let attendee: Attendee;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -353,9 +352,9 @@ describe('Teams resource', () => {
           type: 'teams',
           attributes: {
             name: team.name,
-            motto: team.motto
-          }
-        }
+            motto: team.motto,
+          },
+        },
       };
 
       const res = await api.post('/teams')
@@ -392,7 +391,7 @@ describe('Teams resource', () => {
 
   describe('POST team with incorrect authentication', () => {
 
-    let createdTeam: ITeam;
+    let createdTeam: Team;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -405,9 +404,9 @@ describe('Teams resource', () => {
           type: 'teams',
           attributes: {
             name: team.name,
-            motto: team.motto
-          }
-        }
+            motto: team.motto,
+          },
+        },
       };
 
       const res = await api.post('/teams')
@@ -486,16 +485,16 @@ describe('Teams resource', () => {
 
   describe('GET teams', () => {
 
-    let firstChallenge: IChallenge;
-    let secondChallenge: IChallenge;
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let thirdUser: IUser;
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let thirdHack: IHack;
-    let firstTeam: ITeam;
-    let secondTeam: ITeam;
+    let firstChallenge: Challenge;
+    let secondChallenge: Challenge;
+    let firstUser: User;
+    let secondUser: User;
+    let thirdUser: User;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let thirdHack: Hack;
+    let firstTeam: Team;
+    let secondTeam: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -608,7 +607,7 @@ describe('Teams resource', () => {
     });
 
     it('should include each expected users', () => {
-      const users = <UserResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'users');
+      const users = <UserResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'users');
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -624,7 +623,7 @@ describe('Teams resource', () => {
     });
 
     it('should include each expected hack', () => {
-      const hacks = <HackResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'hacks');
+      const hacks = <HackResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'hacks');
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -648,7 +647,7 @@ describe('Teams resource', () => {
     });
 
     it('should include each expected challenge from hacks', () => {
-      const challenges = <ChallengeResource.ResourceObject[]>response.included.filter((doc) => doc.type == 'challenges');
+      const challenges = <ChallengeResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'challenges');
 
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
@@ -672,7 +671,7 @@ describe('Teams resource', () => {
       MongoDB.Hacks.removeByHackId(thirdHack.hackid),
 
       MongoDB.Teams.removeByTeamId(firstTeam.teamid),
-      MongoDB.Teams.removeByTeamId(secondTeam.teamid)
+      MongoDB.Teams.removeByTeamId(secondTeam.teamid),
     ]));
 
   });
@@ -721,12 +720,12 @@ describe('Teams resource', () => {
 
   describe('GET team by slug (teamid)', () => {
 
-    let challenge: IChallenge;
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let team: ITeam;
+    let challenge: Challenge;
+    let firstUser: User;
+    let secondUser: User;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -808,7 +807,7 @@ describe('Teams resource', () => {
     it('should include the related members, entries and challenges', () => {
       assert.strictEqual(response.included.length, 5);
 
-      const users = <UserResource.ResourceObject[]>response.included.filter((o) => o.type === 'users');
+      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
       assert.strictEqual(users.length, 2);
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -817,7 +816,7 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
 
-      const hacks = <HackResource.ResourceObject[]>response.included.filter((o) => o.type === 'hacks');
+      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
       assert.strictEqual(hacks.length, 2);
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -827,7 +826,7 @@ describe('Teams resource', () => {
       assert.strictEqual(firstHackChallenges[0].id, challenge.challengeid);
       assert.strictEqual(firstHackChallenges[0].type, 'challenges');
 
-      const challenges = <ChallengeResource.ResourceObject[]>response.included.filter((o) => o.type === 'challenges');
+      const challenges = <ChallengeResource.ResourceObject[]> response.included.filter((o) => o.type === 'challenges');
       assert.strictEqual(challenges.length, 1);
       assert.strictEqual(challenges[0].links.self, `/challenges/${challenge.challengeid}`);
       assert.strictEqual(challenges[0].id, challenge.challengeid);
@@ -840,18 +839,18 @@ describe('Teams resource', () => {
       MongoDB.Users.removeByUserId(secondUser.userid),
       MongoDB.Hacks.removeByHackId(firstHack.hackid),
       MongoDB.Hacks.removeByHackId(secondHack.hackid),
-      MongoDB.Teams.removeByTeamId(team.teamid)
+      MongoDB.Teams.removeByTeamId(team.teamid),
     ]));
 
   });
 
   describe('GET team by slug (teamid) without a motto', () => {
 
-    let firstUser: IUser;
-    let secondUser: IUser;
-    let firstHack: IHack;
-    let secondHack: IHack;
-    let team: ITeam;
+    let firstUser: User;
+    let secondUser: User;
+    let firstHack: Hack;
+    let secondHack: Hack;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -926,7 +925,7 @@ describe('Teams resource', () => {
     it('should include the related members and entries', () => {
       assert.strictEqual(response.included.length, 4);
 
-      const users = <UserResource.ResourceObject[]>response.included.filter((o) => o.type === 'users');
+      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users');
       assert.strictEqual(users.length, 2);
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`);
       assert.strictEqual(users[0].id, firstUser.userid);
@@ -935,7 +934,7 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid);
       assert.strictEqual(users[1].attributes.name, secondUser.name);
 
-      const hacks = <HackResource.ResourceObject[]>response.included.filter((o) => o.type === 'hacks');
+      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks');
       assert.strictEqual(hacks.length, 2);
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`);
       assert.strictEqual(hacks[0].id, firstHack.hackid);
@@ -950,7 +949,7 @@ describe('Teams resource', () => {
       MongoDB.Users.removeByUserId(secondUser.userid),
       MongoDB.Hacks.removeByHackId(firstHack.hackid),
       MongoDB.Hacks.removeByHackId(secondHack.hackid),
-      MongoDB.Teams.removeByTeamId(team.teamid)
+      MongoDB.Teams.removeByTeamId(team.teamid),
     ]));
 
   });
@@ -1000,9 +999,9 @@ describe('Teams resource', () => {
 
   describe('PATCH existing team with name', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -1018,9 +1017,9 @@ describe('Teams resource', () => {
           type: 'teams',
           id: team.teamid,
           attributes: {
-            name: newTeam.name
-          }
-        }
+            name: newTeam.name,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -1066,16 +1065,16 @@ describe('Teams resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('PATCH existing team without any attributes', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -1088,8 +1087,8 @@ describe('Teams resource', () => {
       const teamRequest: TeamResource.TopLevelDocument = {
         data: {
           type: 'teams',
-          id: team.teamid
-        }
+          id: team.teamid,
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -1135,17 +1134,17 @@ describe('Teams resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('PATCH existing team with motto', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let newTeam: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let newTeam: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -1161,9 +1160,9 @@ describe('Teams resource', () => {
           type: 'teams',
           id: team.teamid,
           attributes: {
-            motto: newTeam.motto
-          }
-        }
+            motto: newTeam.motto,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -1221,16 +1220,16 @@ describe('Teams resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('PATCH existing team with same motto', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let modifiedTeam: ITeam;
+    let attendee: Attendee;
+    let team: Team;
+    let modifiedTeam: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -1245,9 +1244,9 @@ describe('Teams resource', () => {
           type: 'teams',
           id: team.teamid,
           attributes: {
-            motto: team.motto
-          }
-        }
+            motto: team.motto,
+          },
+        },
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -1293,16 +1292,16 @@ describe('Teams resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('GET teams by filter', () => {
 
-    let firstTeam: ITeam;
-    let secondTeam: ITeam;
-    let thirdTeam: ITeam;
+    let firstTeam: Team;
+    let secondTeam: Team;
+    let thirdTeam: Team;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -1370,15 +1369,15 @@ describe('Teams resource', () => {
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(firstTeam.teamid),
       MongoDB.Teams.removeByTeamId(secondTeam.teamid),
-      MongoDB.Teams.removeByTeamId(thirdTeam.teamid)
+      MongoDB.Teams.removeByTeamId(thirdTeam.teamid),
     ]));
 
   });
 
   describe('DELETE team when no members', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
+    let attendee: Attendee;
+    let team: Team;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -1421,9 +1420,9 @@ describe('Teams resource', () => {
 
   describe('DELETE team when members', () => {
 
-    let attendee: IAttendee;
-    let team: ITeam;
-    let user: IUser;
+    let attendee: Attendee;
+    let team: Team;
+    let user: User;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -1466,7 +1465,7 @@ describe('Teams resource', () => {
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
-      MongoDB.Users.removeByUserId(user.userid)
+      MongoDB.Users.removeByUserId(user.userid),
     ]));
 
   });

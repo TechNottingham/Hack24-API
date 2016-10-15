@@ -1,13 +1,9 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IUser} from './models/users';
-import {ITeam} from './models/teams';
-import {IChallenge} from './models/challenges';
+import {Challenge} from './models/challenges';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, ChallengesResource, ChallengeResource} from '../resources';
-import {Random} from './utils/random';
-import {PusherListener} from './utils/pusherlistener';
 
 describe('Challenges resource', () => {
 
@@ -19,8 +15,8 @@ describe('Challenges resource', () => {
 
   describe('POST new challenge', () => {
 
-    let challenge: IChallenge;
-    let createdChallenge: IChallenge;
+    let challenge: Challenge;
+    let createdChallenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let response: ChallengeResource.TopLevelDocument;
@@ -32,9 +28,9 @@ describe('Challenges resource', () => {
         data: {
           type: 'challenges',
           attributes: {
-            name: challenge.name
-          }
-        }
+            name: challenge.name,
+          },
+        },
       };
 
       const res = await api.post('/challenges')
@@ -86,7 +82,7 @@ describe('Challenges resource', () => {
 
   describe('POST challenge which already exists', () => {
 
-    let challenge: IChallenge;
+    let challenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -98,9 +94,9 @@ describe('Challenges resource', () => {
         data: {
           type: 'challenges',
           attributes: {
-            name: challenge.name
-          }
-        }
+            name: challenge.name,
+          },
+        },
       };
 
       const res = await api.post('/challenges')
@@ -134,7 +130,7 @@ describe('Challenges resource', () => {
 
   describe('POST challenge with incorrect authentication', () => {
 
-    let createdChallenge: IChallenge;
+    let createdChallenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -146,9 +142,9 @@ describe('Challenges resource', () => {
         data: {
           type: 'challenges',
           attributes: {
-            name: challenge.name
-          }
-        }
+            name: challenge.name,
+          },
+        },
       };
 
       const res = await api.post('/challenges')
@@ -227,8 +223,8 @@ describe('Challenges resource', () => {
 
   describe('GET challenges', () => {
 
-    let firstChallenge: IChallenge;
-    let secondChallenge: IChallenge;
+    let firstChallenge: Challenge;
+    let secondChallenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -288,7 +284,7 @@ describe('Challenges resource', () => {
 
     after(() => Promise.all([
       MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
-      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid)
+      MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
     ]));
 
   });
@@ -337,7 +333,7 @@ describe('Challenges resource', () => {
 
   describe('GET challenge by slug (challengeid)', () => {
 
-    let challenge: IChallenge;
+    let challenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -433,9 +429,9 @@ describe('Challenges resource', () => {
 
   describe('GET challenges by filter', () => {
 
-    let firstChallenge: IChallenge;
-    let secondChallenge: IChallenge;
-    let thirdChallenge: IChallenge;
+    let firstChallenge: Challenge;
+    let secondChallenge: Challenge;
+    let thirdChallenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -501,15 +497,15 @@ describe('Challenges resource', () => {
     after(() => Promise.all([
       MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
       MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
-      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid)
+      MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
     ]));
 
   });
 
   describe('DELETE challenge', () => {
 
-    let challenge: IChallenge;
-    let deletedChallenge: IChallenge;
+    let challenge: Challenge;
+    let deletedChallenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -582,7 +578,7 @@ describe('Challenges resource', () => {
 
   describe('DELETE challenge with incorrect auth', () => {
 
-    let challenge: IChallenge;
+    let challenge: Challenge;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;

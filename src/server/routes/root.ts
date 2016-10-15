@@ -6,26 +6,26 @@ import {Root} from '../../resources';
 export function Get(req: Request, res: Response) {
   const rootResponse: Root.TopLevelDocument = {
     jsonapi: {
-      version: '1.0'
+      version: '1.0',
     },
     links: {
       self: '/',
       teams: {
-        href: '/teams'
+        href: '/teams',
       },
       users: {
-        href: '/users'
+        href: '/users',
       },
       attendees: {
-        href: '/attendees'
+        href: '/attendees',
       },
       hacks: {
-        href: '/hacks'
+        href: '/hacks',
       },
       challenges: {
-        href: '/challenges'
-      }
-    }
-  }
+        href: '/challenges',
+      },
+    },
+  };
   respond.Send200(res, rootResponse);
 }

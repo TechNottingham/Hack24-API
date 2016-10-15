@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import {MongoDB} from './utils/mongodb';
-import {IHack} from './models/hacks';
-import {IChallenge} from './models/challenges';
-import {IAttendee} from './models/attendees';
+import {Hack} from './models/hacks';
+import {Challenge} from './models/challenges';
+import {Attendee} from './models/attendees';
 import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, HackChallengesRelationship, ChallengeResource} from '../resources';
@@ -60,10 +60,10 @@ describe('Hack Entries relationship', () => {
 
   describe('GET hack challenges', () => {
 
-    let firstChallenge: IChallenge;
-    let secondChallenge: IChallenge;
-    let thirdChallenge: IChallenge;
-    let hack: IHack;
+    let firstChallenge: Challenge;
+    let secondChallenge: Challenge;
+    let thirdChallenge: Challenge;
+    let hack: Hack;
     let statusCode: number;
     let contentType: string;
     let accessControlAllowOrigin: string;
@@ -120,7 +120,7 @@ describe('Hack Entries relationship', () => {
     });
 
     it('should include each expected challenge', () => {
-      const challenges = <ChallengeResource.ResourceObject[]>response.included;
+      const challenges = <ChallengeResource.ResourceObject[]> response.included;
 
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`);
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid);
@@ -139,19 +139,19 @@ describe('Hack Entries relationship', () => {
       MongoDB.Challenges.removeByChallengeId(firstChallenge.challengeid),
       MongoDB.Challenges.removeByChallengeId(secondChallenge.challengeid),
       MongoDB.Challenges.removeByChallengeId(thirdChallenge.challengeid),
-      MongoDB.Hacks.removeByHackId(hack.hackid)
+      MongoDB.Hacks.removeByHackId(hack.hackid),
     ]));
 
   });
 
   describe('DELETE multiple hack challenges', () => {
 
-    let attendee: IAttendee;
-    let firstChallenge: IChallenge;
-    let secondChallenge: IChallenge;
-    let thirdChallenge: IChallenge;
-    let hack: IHack;
-    let modifiedHack: IHack;
+    let attendee: Attendee;
+    let firstChallenge: Challenge;
+    let secondChallenge: Challenge;
+    let thirdChallenge: Challenge;
+    let hack: Hack;
+    let modifiedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -171,11 +171,11 @@ describe('Hack Entries relationship', () => {
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
-          id: firstChallenge.challengeid
+          id: firstChallenge.challengeid,
         }, {
             type: 'challenges',
-            id: thirdChallenge.challengeid
-          }]
+            id: thirdChallenge.challengeid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -252,17 +252,17 @@ describe('Hack Entries relationship', () => {
 
       MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe("DELETE hack challenges which don't exist", () => {
 
-    let attendee: IAttendee;
-    let challenge: IChallenge;
-    let hack: IHack;
-    let modifiedHack: IHack;
+    let attendee: Attendee;
+    let challenge: Challenge;
+    let hack: Hack;
+    let modifiedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -279,11 +279,11 @@ describe('Hack Entries relationship', () => {
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
-          id: challenge.challengeid
+          id: challenge.challengeid,
         }, {
             type: 'challenges',
-            id: 'does not exist'
-          }]
+            id: 'does not exist',
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -329,19 +329,19 @@ describe('Hack Entries relationship', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Challenges.removeByChallengeId(challenge.challengeid),
       MongoDB.Hacks.removeByHackId(hack.hackid),
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST hack challenges', () => {
 
-    let attendee: IAttendee;
-    let challenge: IChallenge;
-    let firstNewChallenge: IChallenge;
-    let secondNewChallenge: IChallenge;
-    let hack: IHack;
-    let modifiedHack: IHack;
+    let attendee: Attendee;
+    let challenge: Challenge;
+    let firstNewChallenge: Challenge;
+    let secondNewChallenge: Challenge;
+    let hack: Hack;
+    let modifiedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let body: string;
@@ -361,11 +361,11 @@ describe('Hack Entries relationship', () => {
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
-          id: firstNewChallenge.challengeid
+          id: firstNewChallenge.challengeid,
         }, {
             type: 'challenges',
-            id: secondNewChallenge.challengeid
-          }]
+            id: secondNewChallenge.challengeid,
+          }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -444,19 +444,19 @@ describe('Hack Entries relationship', () => {
 
       MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST hack challenges already in a hack', () => {
 
-    let attendee: IAttendee;
-    let challenge: IChallenge;
-    let otherChallenge: IChallenge;
-    let hack: IHack;
-    let otherHack: IHack;
-    let modifiedHack: IHack;
+    let attendee: Attendee;
+    let challenge: Challenge;
+    let otherChallenge: Challenge;
+    let hack: Hack;
+    let otherHack: Hack;
+    let modifiedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -478,8 +478,8 @@ describe('Hack Entries relationship', () => {
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
-          id: otherChallenge.challengeid
-        }]
+          id: otherChallenge.challengeid,
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -530,16 +530,16 @@ describe('Hack Entries relationship', () => {
       MongoDB.Hacks.removeByHackId(hack.hackid),
       MongoDB.Hacks.removeByHackId(otherHack.hackid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });
 
   describe('POST hack challenges which do not exist', () => {
 
-    let attendee: IAttendee;
-    let hack: IHack;
-    let modifiedHack: IHack;
+    let attendee: Attendee;
+    let hack: Hack;
+    let modifiedHack: Hack;
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
@@ -553,8 +553,8 @@ describe('Hack Entries relationship', () => {
       let req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
-          id: 'does not exist'
-        }]
+          id: 'does not exist',
+        }],
       };
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
@@ -599,7 +599,7 @@ describe('Hack Entries relationship', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Hacks.removeByHackId(hack.hackid),
 
-      pusherListener.close()
+      pusherListener.close(),
     ]));
 
   });

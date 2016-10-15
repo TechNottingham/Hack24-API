@@ -1,6 +1,61 @@
 import {fork, ChildProcess} from 'child_process';
 
 export class ApiServer {
+
+  public static start() {
+
+    return new Promise<void>((resolve, reject) => {
+
+      let env: any = {
+        PORT: this._port,
+        HACKBOT_PASSWORD: this._hackbotPassword,
+        ADMIN_USERNAME: this._adminUsername,
+        ADMIN_PASSWORD: this._adminPassword,
+        PUSHER_URL: `http://${this._pusherKey}:${this._pusherSecret}@${this._pusherHost}:${this._pusherPort}/apps/${this._pusherAppId}`,
+      };
+
+      if ('MONGODB_URL' in process.env) {
+        env.MONGODB_URL = process.env.MONGODB_URL;
+      }
+
+      this._api = fork('bin/server.js', [], {
+        cwd: process.cwd(),
+        env: env,
+        silent: true,
+      });
+
+      this._api.once('message', () => {
+        resolve();
+      });
+
+      this._api.stderr.on('data', (data: Buffer) => {
+        console.log(`!> ${data.toString('utf8')}`); // tslint:disable-line:no-console
+      });
+
+      this._api.stdout.on('data', (data: Buffer) => {
+        console.log(`#> ${data.toString('utf8')}`); // tslint:disable-line:no-console
+      });
+
+      this._api.once('close', function (code) {
+        if (code !== null && code !== 0) {
+          return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
+        }
+      });
+
+      this._api.on('error', (err) => {
+        reject(new Error('Unable to start API: ' + err.message));
+      });
+
+    });
+  }
+
+  public static stop(): void {
+    if (!this._api) {
+      return;
+    }
+    this._api.kill('SIGINT');
+  }
+
   private static _api: ChildProcess;
   private static _port: number = 12123;
   private static _pusherHost: string = 'localhost';
@@ -46,55 +101,5 @@ export class ApiServer {
 
   public static get AdminPassword(): string {
     return this._adminPassword;
-  }
-
-  static start() {
-
-    return new Promise<void>((resolve, reject) => {
-
-      let env: any = {
-        PORT: this._port,
-        HACKBOT_PASSWORD: this._hackbotPassword,
-        ADMIN_USERNAME: this._adminUsername,
-        ADMIN_PASSWORD: this._adminPassword,
-        PUSHER_URL: `http://${this._pusherKey}:${this._pusherSecret}@${this._pusherHost}:${this._pusherPort}/apps/${this._pusherAppId}`,
-      };
-
-      if ('MONGODB_URL' in process.env) {
-        env.MONGODB_URL = process.env.MONGODB_URL;
-      }
-
-      this._api = fork('../bin/server.js', [], {
-        cwd: process.cwd(),
-        env: env,
-        silent: true
-      });
-
-      this._api.once('message', () => {
-        resolve();
-      })
-
-      this._api.stderr.on('data', (data: Buffer) => {
-        console.log(`!> ${data.toString('utf8')}`);
-      });
-
-      this._api.stdout.on('data', (data: Buffer) => {
-        console.log(`#> ${data.toString('utf8')}`);
-      });
-
-      this._api.once('close', function (code) {
-        if (code !== null && code !== 0) return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
-      });
-
-      this._api.on('error', (err) => {
-        reject(new Error('Unable to start API: ' + err.message))
-      });
-
-    });
-  }
-
-  static stop(): void {
-    if (!this._api) return;
-    this._api.kill('SIGINT');
   }
 }
