@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import {UsersInfoResponse} from '@slack/client';
 import {MongoDB} from './utils/mongodb';
 import {Team} from './models/teams';
 import {Hack} from './models/hacks';
