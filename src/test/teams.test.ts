@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import {UsersInfoResponse} from '@slack/client';
 import {MongoDB} from './utils/mongodb';
 import {User} from './models/users';
 import {Team} from './models/teams';
@@ -9,6 +10,7 @@ import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource, ChallengeResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
+import {SlackApi} from './utils/slackapi';
 
 describe('Teams resource', () => {
 
@@ -29,7 +31,7 @@ describe('Teams resource', () => {
     let pusherListener: PusherListener;
 
     before(async () => {
-      attendee = await MongoDB.Attendees.insertRandomAttendee();
+      attendee = await MongoDB.Attendees.insertRandomAttendee('', true);
       team = MongoDB.Teams.createRandomTeam();
 
       const teamRequest: TeamResource.TopLevelDocument = {
@@ -45,7 +47,7 @@ describe('Teams resource', () => {
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       const res = await api.post('/teams')
-        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
+        .auth(attendee.slackid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
         .end();
@@ -114,9 +116,137 @@ describe('Teams resource', () => {
 
     after(() => Promise.all([
       MongoDB.Teams.removeByTeamId(team.teamid),
-      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
       pusherListener.close(),
+    ]));
+
+  });
+
+  describe('POST new team with unknown slackid', () => {
+
+    let attendee: Attendee;
+    let team: Team;
+    let createdTeam: Team;
+    let statusCode: number;
+    let contentType: string;
+    let response: TeamResource.TopLevelDocument;
+    let slackApi: SlackApi;
+
+    before(async () => {
+      attendee = MongoDB.Attendees.createRandomAttendee('', true);
+      const slackid = attendee.slackid;
+      attendee.slackid = undefined;
+      await MongoDB.Attendees.insertAttendee(attendee);
+      team = MongoDB.Teams.createRandomTeam();
+
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name,
+            motto: team.motto,
+          },
+        },
+      };
+
+      slackApi = await SlackApi.Create(ApiServer.SlackApiPort, ApiServer.SlackApiBasePath);
+      slackApi.UsersList = <UsersInfoResponse> {
+        ok: true,
+        user: {
+          id: slackid,
+          profile: {
+            email: attendee.attendeeid,
+          },
+        },
+      };
+
+      const res = await api.post('/teams')
+        .auth(slackid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+    });
+
+    it('should respond with status code 201 Created', () => {
+      assert.strictEqual(statusCode, 201);
+    });
+
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+
+      slackApi.close(),
+    ]));
+
+  });
+
+  describe('POST new team with slackid for unregistered attendee', () => {
+
+    let attendee: Attendee;
+    let team: Team;
+    let createdTeam: Team;
+    let statusCode: number;
+    let contentType: string;
+    let response: TeamResource.TopLevelDocument;
+    let slackApi: SlackApi;
+
+    before(async () => {
+      attendee = MongoDB.Attendees.createRandomAttendee('', true);
+      const slackid = attendee.slackid;
+      attendee.slackid = undefined;
+      await MongoDB.Attendees.insertAttendee(attendee);
+      team = MongoDB.Teams.createRandomTeam();
+
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name,
+            motto: team.motto,
+          },
+        },
+      };
+
+      slackApi = await SlackApi.Create(ApiServer.SlackApiPort, ApiServer.SlackApiBasePath);
+      slackApi.UsersList = <UsersInfoResponse> {
+        ok: true,
+        user: {
+          id: slackid,
+          profile: {
+            email: 'some@unregistered.attendee.email',
+          },
+        },
+      };
+
+      const res = await api.post('/teams')
+        .auth(slackid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end();
+
+      statusCode = res.status;
+      contentType = res.header['content-type'];
+      response = res.body;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+    });
+
+    it('should respond with status code 403 Forbidden', () => {
+      assert.strictEqual(statusCode, 403);
+    });
+
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+
+      slackApi.close(),
     ]));
 
   });

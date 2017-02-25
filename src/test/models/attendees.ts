@@ -4,6 +4,7 @@ import {Random} from '../utils/random';
 export interface Attendee {
   _id?: ObjectID;
   attendeeid: string;
+  slackid: string;
 }
 
 export class Attendees {
@@ -43,11 +44,12 @@ export class Attendees {
     });
   }
 
-  public createRandomAttendee(prefix?: string): Attendee {
+  public createRandomAttendee(prefix?: string, withSlackId: boolean = false): Attendee {
     prefix = prefix || '';
     let randomPart = Random.str(5);
     return {
       attendeeid: `testattendee+${prefix}${randomPart}@hack24.co.uk`,
+      slackid: withSlackId ? `U${prefix}${randomPart}` : undefined,
     };
   }
 
@@ -61,8 +63,8 @@ export class Attendees {
     });
   }
 
-  public insertRandomAttendee(prefix?: string): Promise<Attendee> {
-    let randomAttendee = this.createRandomAttendee(prefix);
+  public insertRandomAttendee(prefix?: string, withSlackId: boolean = false): Promise<Attendee> {
+    let randomAttendee = this.createRandomAttendee(prefix, withSlackId);
     return new Promise<Attendee>((resolve, reject) => {
       this._collection.insertOne(randomAttendee).then((result) => {
         randomAttendee._id = result.insertedId;

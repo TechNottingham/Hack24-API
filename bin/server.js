@@ -16,7 +16,8 @@ ensureEnvironment([
   'HACKBOT_PASSWORD',
   'ADMIN_USERNAME',
   'ADMIN_PASSWORD',
-  'PUSHER_URL'
+  'PUSHER_URL',
+  'SLACK_API_TOKEN'
 ]);
 
 var Server = require('../build/server/server.js').Server;

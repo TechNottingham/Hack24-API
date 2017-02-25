@@ -12,6 +12,8 @@ export class ApiServer {
         ADMIN_USERNAME: this._adminUsername,
         ADMIN_PASSWORD: this._adminPassword,
         PUSHER_URL: `http://${this._pusherKey}:${this._pusherSecret}@${this._pusherHost}:${this._pusherPort}/apps/${this._pusherAppId}`,
+        SLACK_API_TOKEN: this._slackApiToken,
+        SLACK_API_URL: `http://localhost:${this._slackApiPort}${this._slackApiBasePath}/`,
       };
 
       if ('MONGODB_URL' in process.env) {
@@ -66,6 +68,9 @@ export class ApiServer {
   private static _hackbotPassword: string = 'password123456789';
   private static _adminUsername: string = 'admin_user123456789';
   private static _adminPassword: string = 'admin_pass123456789';
+  private static _slackApiToken: string = 'slack-api-token';
+  private static _slackApiPort: number = 12125;
+  private static _slackApiBasePath: string = '/api';
 
   public static get Port(): number {
     return this._port;
@@ -101,5 +106,17 @@ export class ApiServer {
 
   public static get AdminPassword(): string {
     return this._adminPassword;
+  }
+
+  public static get SlackApiToken(): string {
+    return this._slackApiToken;
+  }
+
+  public static get SlackApiPort(): number {
+    return this._slackApiPort;
+  }
+
+  public static get SlackApiBasePath(): string {
+    return this._slackApiBasePath;
   }
 }
