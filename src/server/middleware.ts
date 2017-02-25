@@ -21,9 +21,9 @@ interface UnauthorisedRequest {
   };
 }
 
-const slack = new WebClient(process.env.SLACK_API_TOKEN, {
+const slack = new WebClient(process.env.SLACK_API_TOKEN, process.env.SLACK_API_URL ? {
   slackAPIUrl: process.env.SLACK_API_URL,
-});
+} : undefined);
 
 export function requiresUser(req: Request & UnauthorisedRequest, res: Response, next: NextFunction) {
   if (req.headers['authorization'] === undefined) {
