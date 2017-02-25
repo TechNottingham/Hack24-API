@@ -1,48 +1,48 @@
-import * as respond from './respond';
-import * as middleware from '../middleware';
+import * as respond from './respond'
+import * as middleware from '../middleware'
 
-import {UserModel, TeamModel} from '../models';
-import {Request, Response, Router} from 'express';
-import {MongoDBErrors} from '../models';
-import {UserResource, UsersResource, TeamResource} from '../../resources';
-import {EventBroadcaster} from '../eventbroadcaster';
-import {JsonApiParser} from '../parsers';
+import {UserModel, TeamModel} from '../models'
+import {Request, Response, Router} from 'express'
+import {MongoDBErrors} from '../models'
+import {UserResource, UsersResource, TeamResource} from '../../resources'
+import {EventBroadcaster} from '../eventbroadcaster'
+import {JsonApiParser} from '../parsers'
 
 export class UsersRoute {
-  private _eventBroadcaster: EventBroadcaster;
+  private _eventBroadcaster: EventBroadcaster
 
   constructor(eventBroadcaster: EventBroadcaster) {
-    this._eventBroadcaster = eventBroadcaster;
+    this._eventBroadcaster = eventBroadcaster
   }
 
   public createRouter() {
-    const asyncHandler = middleware.AsyncHandler.bind(this);
-    const router = Router();
+    const asyncHandler = middleware.AsyncHandler.bind(this)
+    const router = Router()
 
-    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll));
-    router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
-    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create));
-    router.get('/:userId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get));
-    router.options('/:userId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res));
+    router.get('/', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.getAll))
+    router.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res))
+    router.post('/', middleware.requiresUser, middleware.requiresAttendeeUser, JsonApiParser, asyncHandler(this.create))
+    router.get('/:userId', middleware.allowAllOriginsWithGetAndHeaders, asyncHandler(this.get))
+    router.options('/:userId', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res))
 
-    return router;
+    return router
   }
 
   public async getAll(_: Request, res: Response) {
     const users = await UserModel
       .find({}, 'userid name')
       .sort({ userid: 1 })
-      .exec();
+      .exec()
 
-    const userObjectIds = users.map((user) => user._id);
+    const userObjectIds = users.map((user) => user._id)
 
     const teams = await TeamModel
       .find({ members: { $in: userObjectIds } }, 'teamid name motto members')
       .populate('members', 'userid')
-      .exec();
+      .exec()
 
     const userResponses = users.map((user) => {
-      const usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid));
+      const usersTeam = teams.find((team) => team.members.some((member) => member.userid === user.userid))
       const userResponse: UserResource.ResourceObject = {
         links: { self: `/users/${encodeURIComponent(user.userid)}` },
         type: 'users',
@@ -54,9 +54,9 @@ export class UsersRoute {
             data: usersTeam ? { type: 'teams', id: usersTeam.teamid } : null,
           },
         },
-      };
-      return userResponse;
-    });
+      }
+      return userResponse
+    })
 
     const includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
       links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
@@ -76,34 +76,34 @@ export class UsersRoute {
           data: null,
         },
       },
-    }));
+    }))
 
     const usersResponse = <UsersResource.TopLevelDocument> {
       links: { self: '/users' },
       data: userResponses,
       included: includedTeams,
-    };
+    }
 
-    respond.Send200(res, usersResponse);
+    respond.Send200(res, usersResponse)
   }
 
   public async get(req: Request, res: Response) {
     if (req.params.userId === undefined || typeof req.params.userId !== 'string') {
-      return respond.Send400(res);
+      return respond.Send400(res)
     }
 
     const user = await UserModel
       .findOne({ userid: req.params.userId }, 'userid name')
-      .exec();
+      .exec()
 
     if (!user) {
-      return respond.Send404(res);
+      return respond.Send404(res)
     }
 
     const team = await TeamModel
       .findOne({ members: { $in: [user._id] } }, 'teamid name members motto')
       .populate('members', 'userid name')
-      .exec();
+      .exec()
 
     const userResponse = <UserResource.TopLevelDocument> {
       links: { self: `/users/${encodeURIComponent(user.userid)}` },
@@ -118,10 +118,10 @@ export class UsersRoute {
           },
         },
       },
-    };
+    }
 
     if (team) {
-      userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid };
+      userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid }
 
       const includedTeam = <TeamResource.ResourceObject> {
         links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
@@ -141,7 +141,7 @@ export class UsersRoute {
             data: null,
           },
         },
-      };
+      }
 
       const includedUsers = team.members
         .filter((member) => member.userid !== user.userid)
@@ -156,16 +156,16 @@ export class UsersRoute {
               data: { type: 'teams', id: team.teamid },
             },
           },
-        }));
+        }))
 
-      userResponse.included = [includedTeam, ...includedUsers];
+      userResponse.included = [includedTeam, ...includedUsers]
     }
 
-    res.status(200).contentType('application/vnd.api+json').send(userResponse);
+    res.status(200).contentType('application/vnd.api+json').send(userResponse)
   }
 
   public async create(req: Request, res: Response) {
-    const requestDoc: UserResource.TopLevelDocument = req.body;
+    const requestDoc: UserResource.TopLevelDocument = req.body
 
     if (!requestDoc
       || !requestDoc.data
@@ -176,21 +176,21 @@ export class UsersRoute {
       || !requestDoc.data.attributes
       || !requestDoc.data.attributes.name
       || typeof requestDoc.data.attributes.name !== 'string') {
-      return respond.Send400(res);
+      return respond.Send400(res)
       }
 
     const user = new UserModel({
       userid: requestDoc.data.id,
       name: requestDoc.data.attributes.name,
-    });
+    })
 
     try {
-      await user.save();
+      await user.save()
     } catch (err) {
       if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY) {
-        return respond.Send409(res);
+        return respond.Send409(res)
       }
-      throw err;
+      throw err
     }
 
     const userResponse = <UserResource.TopLevelDocument> {
@@ -212,14 +212,14 @@ export class UsersRoute {
           },
         },
       },
-    };
+    }
 
     this._eventBroadcaster.trigger('users_add', {
       userid: user.userid,
       name: user.name,
-    });
+    })
 
-    respond.Send201(res, userResponse);
+    respond.Send201(res, userResponse)
   }
 
 }

@@ -6,9 +6,9 @@ export class Random {
    * @returns The random number.
    */
   public static num (min?: number, max?: number): number {
-    const _min = min || 0;
-    const _max = max || Number.MAX_VALUE - 1;
-    return Math.random() * (_max - _min + 1) + _min;
+    const _min = min || 0
+    const _max = max || Number.MAX_VALUE - 1
+    return Math.random() * (_max - _min + 1) + _min
   }
 
   /**
@@ -18,9 +18,9 @@ export class Random {
    * @returns The random integer.
    */
   public static int (min?: number, max?: number): number {
-    const _min = min || 0;
-    const _max = max || 4294967296;
-    return Math.floor(this.num(_min, _max));
+    const _min = min || 0
+    const _max = max || 4294967296
+    return Math.floor(this.num(_min, _max))
   }
 
   /**
@@ -30,10 +30,10 @@ export class Random {
    * @returns The random single-character string.
    */
   public static char (min?: string, max?: string): string {
-    const _min = min || 'a';
-    const _max = max || 'z';
-    const n = this.int(_min.charCodeAt(0), _max.charCodeAt(0));
-    return String.fromCharCode(n);
+    const _min = min || 'a'
+    const _max = max || 'z'
+    const n = this.int(_min.charCodeAt(0), _max.charCodeAt(0))
+    return String.fromCharCode(n)
   }
 
   /**
@@ -44,10 +44,10 @@ export class Random {
    * @returns The random string.
    */
   public static str (length?: number, min?: string, max?: string) {
-    let result = "";
+    let result = ''
     for (let i = 0; i < length; i++) {
-      result += this.char(min, max);
+      result += this.char(min, max)
     }
-    return result;
+    return result
   }
 }

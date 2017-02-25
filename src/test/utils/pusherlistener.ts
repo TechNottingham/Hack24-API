@@ -1,49 +1,49 @@
-import * as express from 'express';
-import {json as jsonBodyParser} from 'body-parser';
-import {Server} from 'http';
-import {EventEmitter} from 'events';
+import * as express from 'express'
+import {json as jsonBodyParser} from 'body-parser'
+import {Server} from 'http'
+import {EventEmitter} from 'events'
 
-const bodyParser = jsonBodyParser();
+const bodyParser = jsonBodyParser()
 
 interface PusherEventPayload {
-  name: string;
-  data: any;
-  channels: string[];
+  name: string
+  data: any
+  channels: string[]
 }
 
 export interface PusherEvent {
-  appId: string;
-  contentType: string;
-  payload: PusherEventPayload;
-  data: any;
+  appId: string
+  contentType: string
+  payload: PusherEventPayload
+  data: any
 }
 
 export class PusherListener {
 
   public static Create(port: number) {
-    return new PusherListener().listen(port);
+    return new PusherListener().listen(port)
   }
 
-  private _server: Server;
-  private _events: PusherEvent[];
-  private _monitor: EventEmitter;
+  private _server: Server
+  private _events: PusherEvent[]
+  private _monitor: EventEmitter
 
   public get events(): PusherEvent[] {
-    return this._events;
+    return this._events
   }
 
   constructor() {
-    this._events = [];
-    this._monitor = new EventEmitter();
+    this._events = []
+    this._monitor = new EventEmitter()
   }
 
   public getEvent(filterFn: (event: PusherEvent) => boolean): PusherEvent {
     for (let ev of this._events) {
       if (filterFn(ev)) {
-        return ev;
+        return ev
       }
     }
-    return null;
+    return null
   }
 
   public async listen(port: number) {
@@ -51,57 +51,57 @@ export class PusherListener {
       this._server = express()
         .use(bodyParser)
         .post('/apps/:appId/events', (req, res) => {
-          const data = JSON.parse(req.body.data);
+          const data = JSON.parse(req.body.data)
           this._events.push({
             appId: req.params.appId,
             contentType: req.header('content-type'),
             payload: req.body,
             data,
-          });
-          res.status(200).send({});
-          this._monitor.emit('event');
+          })
+          res.status(200).send({})
+          this._monitor.emit('event')
         })
         .listen(port, () => {
-          resolve(this);
-        });
-    });
+          resolve(this)
+        })
+    })
   }
 
   public async waitForEvent() {
-    return this.waitForEvents(1);
+    return this.waitForEvents(1)
   }
 
   public async waitForEvents(count: number, timeout: number = 1000) {
     return new Promise<void>((resolve) => {
-      let resolved = false;
+      let resolved = false
 
       setTimeout(() => {
         if (resolved) {
-          return;
+          return
         }
-        resolved = true;
-        resolve();
-      }, timeout);
+        resolved = true
+        resolve()
+      }, timeout)
 
       const tryResolve = () => {
         if (resolved) {
-          return;
+          return
         }
         if (this._events.length >= count) {
-          resolved = true;
-          resolve();
-          return;
+          resolved = true
+          resolve()
+          return
         }
-        this._monitor.once('event', tryResolve);
-      };
+        this._monitor.once('event', tryResolve)
+      }
 
-      tryResolve();
-    });
+      tryResolve()
+    })
   }
 
   public async close() {
     return new Promise((resolve) => {
-      this._server.close(resolve);
-    });
+      this._server.close(resolve)
+    })
   }
 }
