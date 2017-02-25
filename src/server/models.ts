@@ -77,5 +77,5 @@ export const AttendeeSchema = new Schema({
 export const AttendeeModel = model<AttendeeModel>('Attendee', AttendeeSchema);
 
 export enum MongoDBErrors {
-  E11000_DUPLICATE_KEY = 11000
+  E11000_DUPLICATE_KEY = 11000,
 }

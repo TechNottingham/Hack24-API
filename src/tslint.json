@@ -6,9 +6,6 @@
       "avoid-escape"
     ],
     "no-conditional-assignment": false,
-    "no-unused-variable": [
-      true
-    ],
     "no-var-requires": false,
     "variable-name": [
       true,
@@ -20,15 +17,11 @@
     ],
     "object-literal-sort-keys": false,
     "switch-default": false,
-    "max-line-length": [
-      true,
-      160
-    ],
+    "max-line-length": [true, 160],
     "no-string-literal": false,
-    "interface-name": [
-      true,
-      "never-prefix"
-    ]
+    "interface-name": [true, "never-prefix"],
+    "ordered-imports": [false],
+    "object-literal-shorthand": false
   },
   "rulesDirectory": []
 }

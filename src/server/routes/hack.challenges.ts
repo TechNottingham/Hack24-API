@@ -165,7 +165,7 @@ export class HackChallengesRoute {
 
     await hack.save();
 
-    challenges.forEach(challenge => {
+    challenges.forEach((challenge) => {
       this._eventBroadcaster.trigger('hacks_update_challenges_add', {
         hackid: hack.hackid,
         name: hack.name,

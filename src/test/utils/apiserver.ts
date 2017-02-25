@@ -36,7 +36,7 @@ export class ApiServer {
         console.log(`#> ${data.toString('utf8')}`); // tslint:disable-line:no-console
       });
 
-      this._api.once('close', function (code) {
+      this._api.once('close', (code) => {
         if (code !== null && code !== 0) {
           return console.error(new Error('API closed with non-zero exit code (' + code + ')'));
         }

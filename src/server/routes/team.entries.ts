@@ -161,7 +161,7 @@ export class TeamEntriesRoute {
 
     await team.save();
 
-    hacks.forEach(hack => {
+    hacks.forEach((hack) => {
       this._eventBroadcaster.trigger('teams_update_entries_add', {
         teamid: team.teamid,
         name: team.name,

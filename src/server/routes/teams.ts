@@ -340,9 +340,9 @@ export class TeamsRoute {
 
     const newMotto = requestDoc.data.attributes.motto.toString();
     const projection = {
-      teamid: true,
-      name: true,
-      motto: true,
+      "teamid": true,
+      "name": true,
+      "motto": true,
       'members.userid': true,
       'members.name': true,
     };

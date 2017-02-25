@@ -161,7 +161,7 @@ export class TeamMembersRoute {
 
     await team.save();
 
-    users.forEach(user => {
+    users.forEach((user) => {
       this._eventBroadcaster.trigger('teams_update_members_add', {
         teamid: team.teamid,
         name: team.name,

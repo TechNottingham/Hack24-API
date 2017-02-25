@@ -58,6 +58,7 @@ export class Server {
 
   public listen(): Promise<ServerInfo> {
     return new Promise<ServerInfo>((resolve, reject) => {
+      (<any> mongoose).Promise = global.Promise;
       mongoose.connect(process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost/hack24db');
 
       let db = mongoose.connection;
@@ -70,7 +71,7 @@ export class Server {
       db.once('open', () => {
         const port = process.env.PORT || 5000;
 
-        this._server = this._app.listen(port, function(err) {
+        this._server = this._app.listen(port, (err) => {
           if (err) {
             return reject(err);
           }
