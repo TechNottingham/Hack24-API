@@ -70,7 +70,7 @@ export function requiresAttendeeUser(req: Request & UnauthorisedRequest, res: Re
     }, respond.Send500.bind(null, res));
 }
 
-export function allowAllOriginsWithGetAndHeaders(req: Request & UnauthorisedRequest, res: Response, next: Function) {
+export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedRequest, res: Response, next: Function) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Request-Method', 'GET');
   res.header('Access-Control-Request-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

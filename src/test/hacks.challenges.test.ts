@@ -216,7 +216,7 @@ describe('Hack Entries relationship', () => {
     });
 
     it('should send a hacks_update_challenges_delete event for the first hack entry', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.challengeid === firstChallenge.challengeid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -225,12 +225,11 @@ describe('Hack Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
-      assert.strictEqual(data.entry.challengeid, firstChallenge.challengeid);
       assert.strictEqual(data.entry.name, firstChallenge.name);
     });
 
     it('should send a hacks_update_challenges_delete event for the third hack entry', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.challengeid === thirdChallenge.challengeid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -239,7 +238,6 @@ describe('Hack Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
-      assert.strictEqual(data.entry.challengeid, thirdChallenge.challengeid);
       assert.strictEqual(data.entry.name, thirdChallenge.name);
     });
 
@@ -408,7 +406,7 @@ describe('Hack Entries relationship', () => {
     });
 
     it('should send a hacks_update_challenges_add event for the first new hack entry', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.challengeid === firstNewChallenge.challengeid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -417,12 +415,11 @@ describe('Hack Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
-      assert.strictEqual(data.entry.challengeid, firstNewChallenge.challengeid);
       assert.strictEqual(data.entry.name, firstNewChallenge.name);
     });
 
     it('should send a hacks_update_challenges_add event for the second new hack entry', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.challengeid === secondNewChallenge.challengeid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -431,7 +428,6 @@ describe('Hack Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
-      assert.strictEqual(data.entry.challengeid, secondNewChallenge.challengeid);
       assert.strictEqual(data.entry.name, secondNewChallenge.name);
     });
 

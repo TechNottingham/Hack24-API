@@ -88,14 +88,13 @@ describe('Hacks resource', () => {
     it('should send a hacks_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
 
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.hackid === hack.hackid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'hacks_add');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.hackid, hack.hackid);
       assert.strictEqual(data.name, hack.name);
     });
 

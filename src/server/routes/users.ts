@@ -28,7 +28,7 @@ export class UsersRoute {
     return router;
   }
 
-  public async getAll(req: Request, res: Response) {
+  public async getAll(_: Request, res: Response) {
     const users = await UserModel
       .find({}, 'userid name')
       .sort({ userid: 1 })

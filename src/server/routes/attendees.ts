@@ -51,7 +51,7 @@ export class AttendeesRoute {
     res.status(200).contentType('application/vnd.api+json').send(attendeeResponse);
   }
 
-  public async getAll(req: Request, res: Response) {
+  public async getAll(_: Request, res: Response) {
 
     const attendees = await AttendeeModel
       .find({}, 'attendeeid')

@@ -213,7 +213,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should send a teams_update_members_delete event for the first team member', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.member.userid === firstUser.userid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -227,7 +227,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should send a teams_update_members_delete event for the third team member', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.member.userid === thirdUser.userid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -402,7 +402,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should send a teams_update_members_add event for the first new team member', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.member.userid === firstNewUser.userid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -416,7 +416,7 @@ describe('Team Members relationship', () => {
     });
 
     it('should send a teams_update_members_add event for the second new team member', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.member.userid === secondNewUser.userid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -425,7 +425,6 @@ describe('Team Members relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.member.userid, secondNewUser.userid);
       assert.strictEqual(data.member.name, secondNewUser.name);
     });
 

@@ -568,14 +568,13 @@ describe('Users resource', () => {
     it('should send a users_add event to Pusher', () => {
       assert.strictEqual(pusherListener.events.length, 1);
 
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.userid === user.userid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
       assert.strictEqual(event.payload.name, 'users_add');
 
       const data = JSON.parse(event.payload.data);
-      assert.strictEqual(data.userid, user.userid);
       assert.strictEqual(data.name, user.name);
     });
 

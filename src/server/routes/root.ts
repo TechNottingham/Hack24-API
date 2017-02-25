@@ -3,7 +3,7 @@ import * as respond from './respond';
 import {Request, Response} from 'express';
 import {Root} from '../../resources';
 
-export function Get(req: Request, res: Response) {
+export function Get(_: Request, res: Response) {
   const rootResponse: Root.TopLevelDocument = {
     jsonapi: {
       version: '1.0',

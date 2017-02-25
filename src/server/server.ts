@@ -83,7 +83,7 @@ export class Server {
   }
 
   public close(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       this._server.close(() => {
         resolve();
       });

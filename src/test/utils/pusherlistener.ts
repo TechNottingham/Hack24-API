@@ -15,6 +15,7 @@ export interface PusherEvent {
   appId: string;
   contentType: string;
   payload: PusherEventPayload;
+  data: any;
 }
 
 export class PusherListener {
@@ -36,15 +37,26 @@ export class PusherListener {
     this._monitor = new EventEmitter();
   }
 
+  public getEvent(filterFn: (event: PusherEvent) => boolean): PusherEvent {
+    for (let ev of this._events) {
+      if (filterFn(ev)) {
+        return ev;
+      }
+    }
+    return null;
+  }
+
   public async listen(port: number) {
-    return new Promise<PusherListener>((resolve, reject) => {
+    return new Promise<PusherListener>((resolve) => {
       this._server = express()
         .use(bodyParser)
         .post('/apps/:appId/events', (req, res) => {
+          const data = JSON.parse(req.body.data);
           this._events.push({
             appId: req.params.appId,
             contentType: req.header('content-type'),
             payload: req.body,
+            data,
           });
           res.status(200).send({});
           this._monitor.emit('event');
@@ -59,7 +71,7 @@ export class PusherListener {
     return this.waitForEvents(1);
   }
 
-  public async waitForEvents(count: number) {
+  public async waitForEvents(count: number, timeout: number = 500) {
     return new Promise<void>((resolve) => {
       let resolved = false;
 
@@ -69,7 +81,7 @@ export class PusherListener {
         }
         resolved = true;
         resolve();
-      }, 500);
+      }, timeout);
 
       const tryResolve = () => {
         if (resolved) {

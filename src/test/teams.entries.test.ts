@@ -217,7 +217,7 @@ describe('Team Entries relationship', () => {
     });
 
     it('should send a teams_update_entries_delete event for the first team entry', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.hackid === firstHack.hackid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -226,12 +226,11 @@ describe('Team Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.entry.hackid, firstHack.hackid);
       assert.strictEqual(data.entry.name, firstHack.name);
     });
 
     it('should send a teams_update_entries_delete event for the third team entry', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.hackid === thirdHack.hackid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -240,7 +239,6 @@ describe('Team Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.entry.hackid, thirdHack.hackid);
       assert.strictEqual(data.entry.name, thirdHack.name);
     });
 
@@ -410,7 +408,7 @@ describe('Team Entries relationship', () => {
     });
 
     it('should send a teams_update_entries_add event for the first new team entry', () => {
-      const event = pusherListener.events[0];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.hackid === firstNewHack.hackid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
@@ -419,12 +417,11 @@ describe('Team Entries relationship', () => {
       const data = JSON.parse(event.payload.data);
       assert.strictEqual(data.teamid, team.teamid);
       assert.strictEqual(data.name, team.name);
-      assert.strictEqual(data.entry.hackid, firstNewHack.hackid);
       assert.strictEqual(data.entry.name, firstNewHack.name);
     });
 
     it('should send a teams_update_entries_add event for the second new team entry', () => {
-      const event = pusherListener.events[1];
+      const event = pusherListener.getEvent((ev) => ev.data.entry.hackid === secondNewHack.hackid);
       assert.strictEqual(event.appId, ApiServer.PusherAppId);
       assert.strictEqual(event.contentType, 'application/json');
       assert.strictEqual(event.payload.channels[0], 'api_events');
