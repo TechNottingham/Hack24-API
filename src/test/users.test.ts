@@ -11,7 +11,7 @@ import {PusherListener} from './utils/pusherlistener';
 
 describe('Users resource', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);

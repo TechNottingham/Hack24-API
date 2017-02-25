@@ -10,7 +10,7 @@ import {PusherListener} from './utils/pusherlistener';
 
 describe('Hacks resource', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);

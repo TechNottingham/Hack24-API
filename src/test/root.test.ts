@@ -5,7 +5,7 @@ import {Root} from '../resources';
 
 describe('API Root', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);

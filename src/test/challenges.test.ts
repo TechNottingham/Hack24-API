@@ -7,7 +7,7 @@ import {JSONApi, ChallengesResource, ChallengeResource} from '../resources';
 
 describe('Challenges resource', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);

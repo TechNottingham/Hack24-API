@@ -7,7 +7,7 @@ import {JSONApi, AttendeeResource, AttendeesResource} from '../resources';
 
 describe('Attendees resource', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);

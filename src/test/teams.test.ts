@@ -12,7 +12,7 @@ import {PusherListener} from './utils/pusherlistener';
 
 describe('Teams resource', () => {
 
-  let api: request.SuperTest;
+  let api: request.SuperTest<request.Test>;
 
   before(() => {
     api = request(`http://localhost:${ApiServer.Port}`);
