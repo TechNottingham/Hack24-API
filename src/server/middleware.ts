@@ -1,4 +1,4 @@
-import { WebClient } from '@slack/client';
+import { WebClient, UsersInfoResponse } from '@slack/client';
 import * as respond from './routes/respond';
 import { Request, Response, NextFunction } from 'express';
 import { AttendeeModel } from './models';
@@ -66,9 +66,12 @@ async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res
     return respond.Send403(res);
   }
 
-  if (req.AuthParts.Username.indexOf('@') > -1) {
+  const username = req.AuthParts.Username;
+
+  if (username.indexOf('@') > -1) {
+    // Username is an attendee email address
     const attendees = await AttendeeModel
-      .find({ attendeeid: req.AuthParts.Username }, '_id')
+      .find({ attendeeid: username }, '_id')
       .limit(1)
       .exec();
 
@@ -79,8 +82,13 @@ async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res
     return next();
   }
 
+  if (!/U[A-Z0-9]{8}/.test(username)) {
+    return respond.Send403(res);
+  }
+
+  // Username is a Slack user ID
   const attendees = await AttendeeModel
-    .find({ slackid: req.AuthParts.Username }, '_id')
+    .find({ slackid: username }, '_id')
     .limit(1)
     .exec();
 
@@ -88,14 +96,20 @@ async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res
     return next();
   }
 
-  const response = await slack.users.info(req.AuthParts.Username);
+  Log.info(`Looking up Slack profile for "${username}"...`);
 
-  if (!response.ok) {
+  let slackUser: UsersInfoResponse;
+  try {
+    slackUser = await slack.users.info(username);
+    Log.info(`Found "${username}" to be "${slackUser.user.profile.email}"`);
+  } catch (err) {
+    Log.error(`Could not look-up user "${username}" on Slack API:`, err.message);
     return respond.Send403(res);
   }
 
   const updateResponse = await AttendeeModel
-    .findOneAndUpdate({ attendeeid: response.user.profile.email }, { slackid: response.user.id }, '_id')
+    .findOneAndUpdate({ attendeeid: slackUser.user.profile.email }, { slackid: slackUser.user.id })
+    .select('_id')
     .exec();
 
   if (updateResponse === null) {

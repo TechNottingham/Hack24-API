@@ -46,7 +46,7 @@ export class Attendees {
 
   public createRandomAttendee(prefix?: string, withSlackId: boolean = false): Attendee {
     prefix = prefix || '';
-    let randomPart = Random.str(5);
+    let randomPart = Random.str(8 - prefix.length).toUpperCase();
     return {
       attendeeid: `testattendee+${prefix}${randomPart}@hack24.co.uk`,
       slackid: withSlackId ? `U${prefix}${randomPart}` : undefined,

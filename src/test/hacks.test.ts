@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import {UsersInfoResponse} from '@slack/client';
 import {MongoDB} from './utils/mongodb';
 import {Team} from './models/teams';
 import {Hack} from './models/hacks';
@@ -7,6 +8,7 @@ import {ApiServer} from './utils/apiserver';
 import * as request from 'supertest';
 import {JSONApi, HacksResource, HackResource} from '../resources';
 import {PusherListener} from './utils/pusherlistener';
+import {SlackApi} from './utils/slackapi';
 
 describe('Hacks resource', () => {
 
@@ -166,6 +168,7 @@ describe('Hacks resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
+    let slackApi: SlackApi;
 
     before(async () => {
       const hack = MongoDB.Hacks.createRandomHack();
@@ -179,8 +182,14 @@ describe('Hacks resource', () => {
         },
       };
 
+      slackApi = await SlackApi.Create(ApiServer.SlackApiPort, ApiServer.SlackApiBasePath);
+      slackApi.UsersList = {
+        ok: false,
+        error: 'user_not_found',
+      };
+
       const res = await api.post('/hacks')
-        .auth('not a user', ApiServer.HackbotPassword)
+        .auth('U12345678', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(hackRequest)
         .end();
@@ -210,6 +219,8 @@ describe('Hacks resource', () => {
     it('should not create the hack document', () => {
       assert.strictEqual(createdHack, null);
     });
+
+    after(() => slackApi.close());
 
   });
 

@@ -148,7 +148,7 @@ describe('Challenges resource', () => {
       };
 
       const res = await api.post('/challenges')
-        .auth('not a user', ApiServer.AdminPassword)
+        .auth('not@user.com', ApiServer.AdminPassword)
         .type('application/vnd.api+json')
         .send(challengeRequest)
         .end();

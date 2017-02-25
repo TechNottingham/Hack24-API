@@ -71,7 +71,7 @@ export class PusherListener {
     return this.waitForEvents(1);
   }
 
-  public async waitForEvents(count: number, timeout: number = 500) {
+  public async waitForEvents(count: number, timeout: number = 1000) {
     return new Promise<void>((resolve) => {
       let resolved = false;
 

@@ -31,7 +31,7 @@ describe('Teams resource', () => {
     let pusherListener: PusherListener;
 
     before(async () => {
-      attendee = await MongoDB.Attendees.insertRandomAttendee('', true);
+      attendee = await MongoDB.Attendees.insertRandomAttendee();
       team = MongoDB.Teams.createRandomTeam();
 
       const teamRequest: TeamResource.TopLevelDocument = {
@@ -47,7 +47,7 @@ describe('Teams resource', () => {
       pusherListener = await PusherListener.Create(ApiServer.PusherPort);
 
       const res = await api.post('/teams')
-        .auth(attendee.slackid, ApiServer.HackbotPassword)
+        .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
         .end();
@@ -123,15 +123,63 @@ describe('Teams resource', () => {
 
   });
 
+  describe('POST new team with slackid', () => {
+
+    let attendee: Attendee;
+    let team: Team;
+    let createdTeam: Team;
+    let statusCode: number;
+    let pusherListener: PusherListener;
+
+    before(async () => {
+      attendee = await MongoDB.Attendees.insertRandomAttendee('', true);
+      team = MongoDB.Teams.createRandomTeam();
+
+      const teamRequest: TeamResource.TopLevelDocument = {
+        data: {
+          type: 'teams',
+          attributes: {
+            name: team.name,
+            motto: team.motto,
+          },
+        },
+      };
+
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
+      const res = await api.post('/teams')
+        .auth(attendee.slackid, ApiServer.HackbotPassword)
+        .type('application/vnd.api+json')
+        .send(teamRequest)
+        .end();
+
+      statusCode = res.status;
+
+      createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
+    });
+
+    it('should respond with status code 201 Created', () => {
+      assert.strictEqual(statusCode, 201);
+    });
+
+    after(() => Promise.all([
+      MongoDB.Teams.removeByTeamId(team.teamid),
+      MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
+
+      pusherListener.close(),
+    ]));
+
+  });
+
   describe('POST new team with unknown slackid', () => {
 
     let attendee: Attendee;
     let team: Team;
     let createdTeam: Team;
     let statusCode: number;
-    let contentType: string;
-    let response: TeamResource.TopLevelDocument;
     let slackApi: SlackApi;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee('', true);
@@ -161,6 +209,8 @@ describe('Teams resource', () => {
         },
       };
 
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
       const res = await api.post('/teams')
         .auth(slackid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -168,8 +218,6 @@ describe('Teams resource', () => {
         .end();
 
       statusCode = res.status;
-      contentType = res.header['content-type'];
-      response = res.body;
 
       createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
     });
@@ -183,6 +231,7 @@ describe('Teams resource', () => {
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
 
       slackApi.close(),
+      pusherListener.close(),
     ]));
 
   });
@@ -193,8 +242,6 @@ describe('Teams resource', () => {
     let team: Team;
     let createdTeam: Team;
     let statusCode: number;
-    let contentType: string;
-    let response: TeamResource.TopLevelDocument;
     let slackApi: SlackApi;
 
     before(async () => {
@@ -232,8 +279,6 @@ describe('Teams resource', () => {
         .end();
 
       statusCode = res.status;
-      contentType = res.header['content-type'];
-      response = res.body;
 
       createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
     });
@@ -469,6 +514,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee();
@@ -484,6 +530,8 @@ describe('Teams resource', () => {
         },
       };
 
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
       const res = await api.post('/teams')
         .auth(attendee.attendeeid, ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -493,6 +541,8 @@ describe('Teams resource', () => {
       statusCode = res.status;
       contentType = res.header['content-type'];
       response = res.body;
+
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 409 Conflict', () => {
@@ -509,9 +559,14 @@ describe('Teams resource', () => {
       assert.strictEqual(response.errors[0].title, 'Resource ID already exists.');
     });
 
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
     after(() => Promise.all([
       MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid),
       MongoDB.Teams.removeByTeamId(team.teamid),
+      pusherListener.close(),
     ]));
 
   });
@@ -522,6 +577,7 @@ describe('Teams resource', () => {
     let statusCode: number;
     let contentType: string;
     let response: JSONApi.TopLevelDocument;
+    let pusherListener: PusherListener;
 
     before(async () => {
       const team = MongoDB.Teams.createRandomTeam();
@@ -536,8 +592,10 @@ describe('Teams resource', () => {
         },
       };
 
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort);
+
       const res = await api.post('/teams')
-        .auth('not a user', ApiServer.HackbotPassword)
+        .auth('not@user.com', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
         .send(teamRequest)
         .end();
@@ -547,6 +605,7 @@ describe('Teams resource', () => {
       response = res.body;
 
       createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid);
+      await pusherListener.waitForEvent();
     });
 
     it('should respond with status code 403 Forbidden', () => {
@@ -567,6 +626,12 @@ describe('Teams resource', () => {
     it('should not create the team document', () => {
       assert.strictEqual(createdTeam, null);
     });
+
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0);
+    });
+
+    after(() => pusherListener.close());
 
   });
 

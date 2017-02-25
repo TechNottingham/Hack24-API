@@ -73,7 +73,7 @@ export interface AttendeeModel extends Attendee, Document { }
 
 export const AttendeeSchema = new Schema({
   attendeeid: { type: String, unique: true, required: true },
-  slackid: { type: String, unique: true },
+  slackid: { type: String },
 });
 export const AttendeeModel = model<AttendeeModel>('Attendee', AttendeeSchema);
 
