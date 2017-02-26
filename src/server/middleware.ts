@@ -128,7 +128,8 @@ export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedReques
 
 export function AsyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) {
   return (req: Request, res: Response, next: NextFunction) => {
-    fn.call(this, req, res, next).catch((err) => {
+    const promise: Promise<void> = fn.call(this, req, res, next)
+    promise.catch((err) => {
       Log.error('AsyncHandler caught an unhandled error -', err)
       respond.Send500(res)
     })

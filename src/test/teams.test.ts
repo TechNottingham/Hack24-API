@@ -821,7 +821,7 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[0].id, firstHack.hackid)
       assert.strictEqual(hacks[0].attributes.name, firstHack.name)
 
-      const firstHackChallenges = hacks[0].relationships['challenges'].data
+      const firstHackChallenges = (hacks[0].relationships['challenges'] as JSONApi.ToManyRelationshipsObject).data
       assert.strictEqual(firstHackChallenges[0].id, firstChallenge.challengeid)
       assert.strictEqual(firstHackChallenges[0].type, 'challenges')
 
@@ -833,7 +833,7 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[2].id, thirdHack.hackid)
       assert.strictEqual(hacks[2].attributes.name, thirdHack.name)
 
-      const secondHackChallenges = hacks[2].relationships['challenges'].data
+      const secondHackChallenges = (hacks[2].relationships['challenges'] as JSONApi.ToManyRelationshipsObject).data
       assert.strictEqual(secondHackChallenges[0].id, secondChallenge.challengeid)
       assert.strictEqual(secondHackChallenges[0].type, 'challenges')
     })
@@ -1014,7 +1014,7 @@ describe('Teams resource', () => {
       assert.strictEqual(hacks[0].id, firstHack.hackid)
       assert.strictEqual(hacks[0].attributes.name, firstHack.name)
 
-      const firstHackChallenges = hacks[0].relationships['challenges'].data
+      const firstHackChallenges = (hacks[0].relationships['challenges'] as JSONApi.ToManyRelationshipsObject).data
       assert.strictEqual(firstHackChallenges[0].id, challenge.challengeid)
       assert.strictEqual(firstHackChallenges[0].type, 'challenges')
 

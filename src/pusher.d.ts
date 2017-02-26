@@ -5,8 +5,8 @@ declare module "pusher" {
       forURL(url: string): Pusher;
     }
     interface Pusher {
-      trigger(channel: string, event: string, data: any, socketId: string, callback: Function);
-      trigger(channels: string[], event: string, data: any, socketId: string, callback: Function)
+      trigger(channel: string, event: string, data: any, socketId: string, callback: Function): void;
+      trigger(channels: string[], event: string, data: any, socketId: string, callback: Function): void;
     }
     interface Config {
       appId: string;

@@ -5,6 +5,7 @@
     "removeComments": true,
     "outDir": "../build",
     "sourceMap": true,
+    "noImplicitAny": true,
     "noUnusedParameters": true,
     "noUnusedLocals": true
   },

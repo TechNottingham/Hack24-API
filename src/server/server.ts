@@ -63,7 +63,7 @@ export class Server {
       mongoose.connect(process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost/hack24db')
 
       let db = mongoose.connection
-      db.on('error', (err) => {
+      db.on('error', (err: Error) => {
         db.removeAllListeners('open')
         err.message = `Unable to connect to MongoDB - ${err.message}`
         reject(err)
@@ -72,7 +72,7 @@ export class Server {
       db.once('open', () => {
         const port = process.env.PORT || 5000
 
-        this._server = this._app.listen(port, (err) => {
+        this._server = this._app.listen(port, (err: Error) => {
           if (err) {
             return reject(err)
           }
