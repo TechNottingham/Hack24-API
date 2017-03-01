@@ -4,7 +4,10 @@
     "module": "commonjs",
     "removeComments": true,
     "outDir": "../build",
-    "sourceMap": true
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true
   },
   "exclude": [
     "typings/browser.d.ts",

@@ -1,32 +1,40 @@
 {
-    "name": "Hack24-API",
-    "description": "A API for hacking",
-    "repository": "https://github.com/TechNottingham/Hack24-API",
-    "keywords": ["node", "api"],
-    "env": {
-        "ADMIN_PASSWORD": {
-            "description": "API admin password"
-        },
-        "ADMIN_USERNAME": {
-            "description": "API admin username"
-        },
-        "HACKBOT_PASSWORD": {
-            "description": "Hackbot API password"
-        },
-        "PUSHER_URL": {
-            "description": "Pusher URL",
-            "value": "https://KEY:SECRET@api-eu.pusher.com/apps/APP_ID"
-        }
+  "name": "Hack24-API",
+  "description": "A API for hacking",
+  "repository": "https://github.com/TechNottingham/Hack24-API",
+  "keywords": [
+    "node",
+    "api",
+    "hackbot"
+  ],
+  "env": {
+    "ADMIN_PASSWORD": {
+      "description": "API admin password"
     },
-    "addons": [
-        {
-            "plan": "mongolab:sandbox",
-            "as": "MONGO"
-        }
-    ],
-    "buildpacks": [
-        {
-            "url": "heroku/nodejs"
-        }
-    ]
+    "ADMIN_USERNAME": {
+      "description": "API admin username"
+    },
+    "HACKBOT_PASSWORD": {
+      "description": "Hackbot API password"
+    },
+    "PUSHER_URL": {
+      "description": "Pusher URL",
+      "value": "https://KEY:SECRET@api-eu.pusher.com/apps/APP_ID"
+    },
+    "SLACK_API_TOKEN": {
+      "description": "Slack API Token",
+      "value": "xoxo-XXXXXXXX"
+    }
+  },
+  "addons": [
+    {
+      "plan": "mongolab:sandbox",
+      "as": "MONGO"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
 }

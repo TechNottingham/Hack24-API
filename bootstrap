@@ -1,8 +1,0 @@
-#!/bin/bash
-
-export HACKBOT_PASSWORD=hackbot_password
-export ADMIN_USERNAME=admin_user
-export ADMIN_PASSWORD=admin_password
-export PUSHER_URL=https://ab3012cb643ea1541144:secret@api-eu.pusher.com/apps/187312
-
-node ./bin/server.js
