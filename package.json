@@ -11,8 +11,8 @@
     "build": "tsc -p src/",
     "start": "node bin/server.js",
     "test": "mocha --timeout 5000 -R dot --require source-map-support/register --recursive build",
-    "heroku-prebuild": "npm i cross-env && cross-env NODE_ENV=development npm install",
-    "heroku-postbuild": "cross-env NODE_ENV=development npm run build && npm prune --production",
+    "heroku-prebuild": "npm i cross-env && cross-env NODE_ENV=development npm install && cross-env NODE_ENV=development npm run build",
+    "heroku-postbuild": "npm prune --production",
     "db": "docker-compose up -d",
     "db-stop": "docker-compose down"
   },
