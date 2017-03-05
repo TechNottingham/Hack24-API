@@ -5,8 +5,14 @@ node_js:
 
 services: mongodb
 
-before_script:
-  - npm run build
+install:
+  - npm run heroku-prebuild
+
+script:
+  - npm test
+
+after_script:
+  - npm run heroku-postbuild
 
 cache:
   directories:
