@@ -22,7 +22,7 @@
     "mongoose": "^4.8.4",
     "morgan": "^1.8.1",
     "pusher": "^1.5.1",
-    "rimraf": "^2.5.4",,
+    "rimraf": "^2.5.4",
     "slug": "^0.9.1",
     "source-map-support": "^0.4.11",
     "typescript": "^2.2.1",
