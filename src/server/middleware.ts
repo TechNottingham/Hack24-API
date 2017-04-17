@@ -1,6 +1,7 @@
-import { WebClient, UsersInfoResponse } from '@slack/client'
 import * as respond from './routes/respond'
+import { WebClient, UsersInfoResponse } from '@slack/client'
 import { Request, Response, NextFunction } from 'express'
+
 import { AttendeeModel } from './models'
 import { Log } from './logger'
 import Config from './config'
