@@ -59,9 +59,11 @@ docker stop hack24-api-db
 Since this is a TypeScript project, the `.ts` files will need to be _transcompiled_ into JavaScript `.js` files before the test suite can be run. To simplify this, there are two `npm` scripts which will handle the compilation and testing cycles for you.
 
 1. `npm run build -- -w`
-This will run `tsc` with the `--watch|w` flag to trigger a recompile whenever any files change within the `src` path (the `.ts` files). Start this in a separate terminal window and leave running while you work.
+
+   This will run `tsc` with the `--watch|w` flag to trigger a recompile whenever any files change within the `src` path (the `.ts` files). Start this in a separate terminal window and leave running while you work.
 2. `npm run test -- -w`
-This will run `mocha` with the `--watch|w` flag to trigger a run through all tests if it sees the contents of the `build` path change (the compiled `.js` files). Also start this process in a new terminal window if you would like a smooth experience.
+
+   This will run `mocha` with the `--watch|w` flag to trigger a run through all tests if it sees the contents of the `build` path change (the compiled `.js` files). Also start this process in a new terminal window if you would like a smooth experience.
 
 It's worth deleting the `build` path and restarting the `npm run build -- -w` script - this is due to the command being unable to remove any scripts that you may have deleted in the source path, and will eventually become cluttered with deleted files.
 

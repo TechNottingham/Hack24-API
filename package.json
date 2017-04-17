@@ -9,7 +9,7 @@
     "lint": "tslint -c src/tslint.json -e \"src/**/*.d.ts\" \"src/**/*.ts\"",
     "prebuild": "npm run lint && npm run clean",
     "build": "tsc -p src/",
-    "start": "node ./bin/server.js",
+    "start": "node .",
     "test": "mocha --timeout 5000 -R dot --require source-map-support/register --recursive build",
     "heroku-postbuild": "npm run build && npm prune --production",
     "db": "docker-compose up -d",
