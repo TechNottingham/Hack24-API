@@ -11,9 +11,7 @@
     "build": "tsc -p src/",
     "start": "node .",
     "test": "mocha --timeout 5000 -R dot --require source-map-support/register --recursive build",
-    "heroku-postbuild": "npm run build && npm prune --production",
-    "db": "docker-compose up -d",
-    "db-stop": "docker-compose down"
+    "heroku-postbuild": "npm run build && npm prune --production"
   },
   "dependencies": {
     "@slack/client": "^3.8.1",
