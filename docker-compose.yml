@@ -1,6 +1,16 @@
 version: "2"
+
 services:
   mongo:
-    image: mongo:3.0
+    image: mongo:3.4.3
     ports:
       - 27017:27017
+    command: --smallfiles
+  api:
+    build: .
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/local?connectTimeoutMS=30000
+    ports:
+      - 5000:5000
