@@ -38,7 +38,7 @@ export class PusherListener {
   }
 
   public getEvent(filterFn: (event: PusherEvent) => boolean): PusherEvent {
-    for (let ev of this._events) {
+    for (const ev of this._events) {
       if (filterFn(ev)) {
         return ev
       }

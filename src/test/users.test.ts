@@ -27,7 +27,7 @@ describe('Users resource', () => {
     let response: string
 
     before(async () => {
-      let user = MongoDB.Users.createRandomUser()
+      const user = MongoDB.Users.createRandomUser()
 
       const res = await api.options(`/users/${user.userid}`).end()
 
@@ -218,7 +218,7 @@ describe('Users resource', () => {
     })
 
     it('should return the first user', () => {
-      let thisUser = response.data[0]
+      const thisUser = response.data[0]
       assert.strictEqual(thisUser.type, 'users')
       assert.strictEqual(thisUser.id, user.userid)
       assert.strictEqual(thisUser.attributes.name, user.name)
@@ -228,7 +228,7 @@ describe('Users resource', () => {
     })
 
     it('should return the second user', () => {
-      let thisUser = response.data[1]
+      const thisUser = response.data[1]
       assert.strictEqual(thisUser.type, 'users')
       assert.strictEqual(thisUser.id, otherUser.userid)
       assert.strictEqual(thisUser.attributes.name, otherUser.name)
@@ -238,7 +238,7 @@ describe('Users resource', () => {
     })
 
     it('should include the first team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[0]
+      const includedTeam = response.included[0] as TeamResource.ResourceObject
       assert.strictEqual(includedTeam.links.self, `/teams/${team.teamid}`)
       assert.strictEqual(includedTeam.id, team.teamid)
       assert.strictEqual(includedTeam.attributes.name, team.name)
@@ -250,7 +250,7 @@ describe('Users resource', () => {
     })
 
     it('should include the second team', () => {
-      let includedTeam = <TeamResource.ResourceObject> response.included[1]
+      const includedTeam = response.included[1] as TeamResource.ResourceObject
       assert.strictEqual(includedTeam.links.self, `/teams/${otherTeam.teamid}`)
       assert.strictEqual(includedTeam.id, otherTeam.teamid)
       assert.strictEqual(includedTeam.attributes.name, otherTeam.name)
@@ -297,8 +297,8 @@ describe('Users resource', () => {
       accessControlRequestMethod = res.header['access-control-request-method']
       accessControlRequestHeaders = res.header['access-control-request-headers']
       response = res.body
-      includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams')
-      includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users')
+      includedTeam = response.included.find((include) => include.type === 'teams') as TeamResource.ResourceObject
+      includedUser = response.included.find((include) => include.type === 'users') as UserResource.ResourceObject
     })
 
     it('should respond with status code 200 OK', () => {
@@ -352,11 +352,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`)
       assert.strictEqual(includedTeam.relationships.members.data.length, 2)
 
-      let relatedUser = includedTeam.relationships.members.data[0]
+      const relatedUser = includedTeam.relationships.members.data[0]
       assert.strictEqual(relatedUser.type, 'users')
       assert.strictEqual(relatedUser.id, user.userid)
 
-      let relatedOtherUser = includedTeam.relationships.members.data[1]
+      const relatedOtherUser = includedTeam.relationships.members.data[1]
       assert.strictEqual(relatedOtherUser.type, 'users')
       assert.strictEqual(relatedOtherUser.id, otherUser.userid)
     })
@@ -411,8 +411,8 @@ describe('Users resource', () => {
       accessControlRequestMethod = res.header['access-control-request-method']
       accessControlRequestHeaders = res.header['access-control-request-headers']
       response = res.body
-      includedTeam = <TeamResource.ResourceObject> response.included.find((include) => include.type === 'teams')
-      includedUser = <UserResource.ResourceObject> response.included.find((include) => include.type === 'users')
+      includedTeam = response.included.find((include) => include.type === 'teams') as TeamResource.ResourceObject
+      includedUser = response.included.find((include) => include.type === 'users') as UserResource.ResourceObject
     })
 
     it('should respond with status code 200 OK', () => {
@@ -466,11 +466,11 @@ describe('Users resource', () => {
       assert.strictEqual(includedTeam.relationships.members.links.self, `/teams/${team.teamid}/members`)
       assert.strictEqual(includedTeam.relationships.members.data.length, 2)
 
-      let relatedUser = includedTeam.relationships.members.data[0]
+      const relatedUser = includedTeam.relationships.members.data[0]
       assert.strictEqual(relatedUser.type, 'users')
       assert.strictEqual(relatedUser.id, user.userid)
 
-      let relatedOtherUser = includedTeam.relationships.members.data[1]
+      const relatedOtherUser = includedTeam.relationships.members.data[1]
       assert.strictEqual(relatedOtherUser.type, 'users')
       assert.strictEqual(relatedOtherUser.id, otherUser.userid)
     })
@@ -599,7 +599,7 @@ describe('Users resource', () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee()
       user = await MongoDB.Users.insertRandomUser()
 
-      let requestDoc: UserResource.TopLevelDocument = {
+      const requestDoc: UserResource.TopLevelDocument = {
         data: {
           type: 'users',
           id: user.userid,

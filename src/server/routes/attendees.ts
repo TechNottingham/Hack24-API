@@ -40,13 +40,13 @@ export class AttendeesRoute {
       return respond.Send404(res)
     }
 
-    const attendeeResponse = <AttendeeResource.TopLevelDocument> {
+    const attendeeResponse = {
       links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
       data: {
         type: 'attendees',
         id: attendee.attendeeid,
       },
-    }
+    } as AttendeeResource.TopLevelDocument
 
     res.status(200).contentType('application/vnd.api+json').send(attendeeResponse)
   }
@@ -64,12 +64,12 @@ export class AttendeesRoute {
       id: attendee.attendeeid,
     }))
 
-    const attendeesResponse = <AttendeesResource.TopLevelDocument> {
+    const attendeesResponse = {
       links: {
         self: '/attendees',
       },
       data: attendeesData,
-    }
+    } as AttendeesResource.TopLevelDocument
 
     respond.Send200(res, attendeesResponse)
   }
@@ -99,13 +99,13 @@ export class AttendeesRoute {
       throw err
     }
 
-    const attendeeResponse = <AttendeeResource.TopLevelDocument> {
+    const attendeeResponse = {
       links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
       data: {
         type: 'attendees',
         id: attendee.attendeeid,
       },
-    }
+    } as AttendeeResource.TopLevelDocument
 
     respond.Send201(res, attendeeResponse)
   }

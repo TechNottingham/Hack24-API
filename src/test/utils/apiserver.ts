@@ -6,7 +6,7 @@ export class ApiServer {
 
     return new Promise<void>((resolve, reject) => {
 
-      let env: any = {
+      const env: any = {
         PORT: this._port,
         HACKBOT_PASSWORD: this._hackbotPassword,
         ADMIN_USERNAME: this._adminUsername,

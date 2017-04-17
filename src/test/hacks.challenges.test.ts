@@ -26,7 +26,7 @@ describe('Hack Entries relationship', () => {
     let response: string
 
     before(async () => {
-      let hack = MongoDB.Hacks.createRandomHack()
+      const hack = MongoDB.Hacks.createRandomHack()
 
       const res = await api.options(`/hacks/${hack.hackid}/challenges`).end()
 
@@ -120,7 +120,7 @@ describe('Hack Entries relationship', () => {
     })
 
     it('should include each expected challenge', () => {
-      const challenges = <ChallengeResource.ResourceObject[]> response.included
+      const challenges = response.included as ChallengeResource.ResourceObject[]
 
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`)
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid)
@@ -168,7 +168,7 @@ describe('Hack Entries relationship', () => {
       hack.challenges = [firstChallenge._id, secondChallenge._id, thirdChallenge._id]
       await MongoDB.Hacks.insertHack(hack)
 
-      let req: HackChallengesRelationship.TopLevelDocument = {
+      const req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: firstChallenge.challengeid,
@@ -274,7 +274,7 @@ describe('Hack Entries relationship', () => {
       hack.challenges = [challenge._id]
       await MongoDB.Hacks.insertHack(hack)
 
-      let req: HackChallengesRelationship.TopLevelDocument = {
+      const req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: challenge.challengeid,
@@ -356,7 +356,7 @@ describe('Hack Entries relationship', () => {
       hack.challenges = [challenge._id]
       await MongoDB.Hacks.insertHack(hack)
 
-      let req: HackChallengesRelationship.TopLevelDocument = {
+      const req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: firstNewChallenge.challengeid,
@@ -471,7 +471,7 @@ describe('Hack Entries relationship', () => {
       otherHack.challenges = [otherChallenge._id]
       await MongoDB.Hacks.insertHack(otherHack)
 
-      let req: HackChallengesRelationship.TopLevelDocument = {
+      const req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: otherChallenge.challengeid,
@@ -546,7 +546,7 @@ describe('Hack Entries relationship', () => {
 
       hack = await MongoDB.Hacks.insertRandomHack()
 
-      let req: HackChallengesRelationship.TopLevelDocument = {
+      const req: HackChallengesRelationship.TopLevelDocument = {
         data: [{
           type: 'challenges',
           id: 'does not exist',

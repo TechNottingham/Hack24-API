@@ -299,7 +299,7 @@ describe('Challenges resource', () => {
     let response: string
 
     before(async () => {
-      let challenge = MongoDB.Challenges.createRandomChallenge()
+      const challenge = MongoDB.Challenges.createRandomChallenge()
 
       const res = await api.options(`/challenges/${challenge.challengeid}`).end()
 

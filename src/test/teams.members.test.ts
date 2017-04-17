@@ -26,7 +26,7 @@ describe('Team Members relationship', () => {
     let response: string
 
     before(async () => {
-      let team = MongoDB.Teams.createRandomTeam()
+      const team = MongoDB.Teams.createRandomTeam()
 
       const res = await api.options(`/teams/${team.teamid}/members`).end()
 
@@ -118,7 +118,7 @@ describe('Team Members relationship', () => {
     })
 
     it('should include each expected user', () => {
-      let users = <UserResource.ResourceObject[]> response.included
+      const users = response.included as UserResource.ResourceObject[]
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`)
       assert.strictEqual(users[0].id, firstUser.userid)
@@ -165,7 +165,7 @@ describe('Team Members relationship', () => {
 
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id])
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      const req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: firstUser.userid,
@@ -271,7 +271,7 @@ describe('Team Members relationship', () => {
       user = await MongoDB.Users.insertRandomUser()
       team = await MongoDB.Teams.insertRandomTeam([user._id])
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      const req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: user.userid,
@@ -352,7 +352,7 @@ describe('Team Members relationship', () => {
 
       team = await MongoDB.Teams.insertRandomTeam([user._id])
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      const req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: firstNewUser.userid,
@@ -464,7 +464,7 @@ describe('Team Members relationship', () => {
       team = await MongoDB.Teams.insertRandomTeam([user._id])
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id])
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      const req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: otherUser.userid,
@@ -539,7 +539,7 @@ describe('Team Members relationship', () => {
 
       team = await MongoDB.Teams.insertRandomTeam()
 
-      let req: TeamMembersRelationship.TopLevelDocument = {
+      const req: TeamMembersRelationship.TopLevelDocument = {
         data: [{
           type: 'users',
           id: 'does not exist',

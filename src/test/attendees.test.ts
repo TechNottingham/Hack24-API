@@ -105,7 +105,7 @@ describe('Attendees resource', () => {
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee()
 
-      let requestDoc: AttendeeResource.TopLevelDocument = {
+      const requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
           id: attendee.attendeeid,
@@ -160,7 +160,7 @@ describe('Attendees resource', () => {
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee()
 
-      let requestDoc: AttendeeResource.TopLevelDocument = {
+      const requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
           id: attendee.attendeeid,
@@ -212,7 +212,7 @@ describe('Attendees resource', () => {
     before(async () => {
       attendee = await MongoDB.Attendees.insertRandomAttendee()
 
-      let requestDoc: AttendeeResource.TopLevelDocument = {
+      const requestDoc: AttendeeResource.TopLevelDocument = {
         data: {
           type: 'attendees',
           id: attendee.attendeeid,
@@ -284,14 +284,14 @@ describe('Attendees resource', () => {
     })
 
     it('should return the first attendee', () => {
-      let thisAttendee = response.data[0]
+      const thisAttendee = response.data[0]
       assert.strictEqual(thisAttendee.type, 'attendees')
       assert.strictEqual(thisAttendee.id, attendee.attendeeid)
       assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(attendee.attendeeid)}`)
     })
 
     it('should return the second attendee', () => {
-      let thisAttendee = response.data[1]
+      const thisAttendee = response.data[1]
       assert.strictEqual(thisAttendee.type, 'attendees')
       assert.strictEqual(thisAttendee.id, otherAttendee.attendeeid)
       assert.strictEqual(thisAttendee.links.self, `/attendees/${encodeURIComponent(otherAttendee.attendeeid)}`)

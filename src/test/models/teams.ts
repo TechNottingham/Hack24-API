@@ -14,7 +14,7 @@ export class Teams {
 
   public static Create(db: Db): Promise<Teams> {
     return new Promise<Teams>((resolve, reject) => {
-      let teams = new Teams()
+      const teams = new Teams()
       db.collection('teams', (err, collection) => {
         if (err) {
           return reject(err)
@@ -59,7 +59,7 @@ export class Teams {
 
   public createRandomTeam(prefix?: string): Team {
     prefix = prefix || ''
-    let randomPart = Random.str(5)
+    const randomPart = Random.str(5)
     return {
       teamid: `random-team-${prefix}${randomPart}`,
       name: `Random Team ${prefix}${randomPart}`,

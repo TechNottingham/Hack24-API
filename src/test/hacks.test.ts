@@ -341,7 +341,7 @@ describe('Hacks resource', () => {
     let response: string
 
     before(async () => {
-      let hack = MongoDB.Hacks.createRandomHack()
+      const hack = MongoDB.Hacks.createRandomHack()
 
       const res = await api.options(`/hacks/${hack.hackid}`).end()
 

@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose'
 import {Log} from './logger'
 
 // see: http://mongoosejs.com/docs/promises.html#plugging-in-your-own-promises-library
-(<any> mongoose).Promise = global.Promise
+(mongoose as any).Promise = global.Promise
 
 const RECONNECT_DELAY = 1000
 const MAX_RECONNECT_ATTEMPTS = 5

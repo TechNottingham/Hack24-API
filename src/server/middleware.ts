@@ -51,7 +51,7 @@ export function requiresUser(req: Request & UnauthorisedRequest, res: Response, 
   next()
 }
 
-export function requiresAdminUser(req: Request & UnauthorisedRequest, res: Response, next: Function) {
+export function requiresAdminUser(req: Request & UnauthorisedRequest, res: Response, next: () => void) {
   if (req.AuthParts.Username !== AuthorisedUsers.admin.username || req.AuthParts.Password !== AuthorisedUsers.admin.password) {
     return respond.Send403(res)
   }
@@ -121,7 +121,7 @@ async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res
   next()
 }
 
-export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedRequest, res: Response, next: Function) {
+export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedRequest, res: Response, next: () => void) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Request-Method', 'GET')
   res.header('Access-Control-Request-Headers', 'Origin, X-Requested-With, Content-Type, Accept')

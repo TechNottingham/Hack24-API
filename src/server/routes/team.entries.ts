@@ -57,7 +57,7 @@ export class TeamEntriesRoute {
     }
 
     respond.Send200(res, entriesResponse)
-  };
+  }
 
   public async delete(req: Request, res: Response) {
     const teamId = req.params.teamId
@@ -106,7 +106,7 @@ export class TeamEntriesRoute {
     })
 
     respond.Send204(res)
-  };
+  }
 
   public async add(req: Request, res: Response) {
     const teamId = req.params.teamId

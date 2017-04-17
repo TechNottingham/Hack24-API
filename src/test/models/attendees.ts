@@ -11,7 +11,7 @@ export class Attendees {
 
   public static Create(db: Db): Promise<Attendees> {
     return new Promise<Attendees>((resolve, reject) => {
-      let attendees = new Attendees()
+      const attendees = new Attendees()
       db.collection('attendees', (err, collection) => {
         if (err) {
           return reject(err)
@@ -46,7 +46,7 @@ export class Attendees {
 
   public createRandomAttendee(prefix?: string, withSlackId: boolean = false): Attendee {
     prefix = prefix || ''
-    let randomPart = Random.str(8 - prefix.length).toUpperCase()
+    const randomPart = Random.str(8 - prefix.length).toUpperCase()
     return {
       attendeeid: `testattendee+${prefix}${randomPart}@hack24.co.uk`,
       slackid: withSlackId ? `U${prefix}${randomPart}` : undefined,
@@ -64,7 +64,7 @@ export class Attendees {
   }
 
   public insertRandomAttendee(prefix?: string, withSlackId: boolean = false): Promise<Attendee> {
-    let randomAttendee = this.createRandomAttendee(prefix, withSlackId)
+    const randomAttendee = this.createRandomAttendee(prefix, withSlackId)
     return new Promise<Attendee>((resolve, reject) => {
       this._collection.insertOne(randomAttendee).then((result) => {
         randomAttendee._id = result.insertedId
