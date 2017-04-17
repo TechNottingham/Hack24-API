@@ -1,7 +1,7 @@
 const config = {
   server: {
     host: process.env.HOST || undefined,
-    port: process.env.PORT || 5000,
+    port: Number(process.env.PORT || 5000),
   },
   mongo: {
     url: process.env.MONGODB_URL || process.env.MONGODB_URI || 'mongodb://localhost/hack24db',
@@ -11,7 +11,7 @@ const config = {
     password: process.env.ADMIN_PASSWORD || 'password',
   },
   hackbot: {
-    password: 'password',
+    password: process.env.HACKBOT_PASSWORD || 'password',
   },
   slack: {
     token: process.env.SLACK_API_TOKEN || undefined,
