@@ -1,9 +1,9 @@
 import * as respond from './routes/respond'
-import { WebClient, UsersInfoResponse } from '@slack/client'
-import { Request, Response, NextFunction } from 'express'
+import {WebClient, UsersInfoResponse} from '@slack/client'
+import {Request, Response, NextFunction} from 'express'
 
-import { AttendeeModel } from './models'
-import { Log } from './logger'
+import {AttendeeModel} from './models'
+import {Logger} from 'pino'
 import Config from './config'
 
 const AuthorisedUsers = {

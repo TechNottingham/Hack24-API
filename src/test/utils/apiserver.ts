@@ -1,4 +1,5 @@
 import {fork, ChildProcess} from 'child_process'
+import * as path from 'path'
 
 export class ApiServer {
 
@@ -7,6 +8,7 @@ export class ApiServer {
     return new Promise<void>((resolve, reject) => {
 
       const env: any = {
+        NODE_ENV: 'test',
         PORT: this._port,
         HACKBOT_PASSWORD: this._hackbotPassword,
         ADMIN_USERNAME: this._adminUsername,
@@ -20,7 +22,7 @@ export class ApiServer {
         env.MONGODB_URL = process.env.MONGODB_URL
       }
 
-      this._api = fork('bin/server.js', [], {
+      this._api = fork(path.join(__dirname, '..', '..', '..'), [], {
         cwd: process.cwd(),
         env: env,
         silent: true,

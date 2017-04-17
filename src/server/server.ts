@@ -1,81 +1,120 @@
+import * as Hapi from 'hapi'
+import * as HapiPino from 'hapi-pino'
+import {Logger} from 'pino'
+
 import * as respond from './routes/respond'
-import * as express from 'express'
 import * as Root from './routes/root'
 import * as middleware from './middleware'
+import * as HapiAsyncHandler from './plugins/hapi-async-handler'
+import * as BasicAuthScheme from './plugins/basic-auth-scheme'
+import * as AdminAuthStrategy from './plugins/admin-auth-strategy'
+import * as OverrideResponseType from './plugins/override-response-type'
 
-import {Server as HttpServer} from 'http'
+import * as AttendeesRoute from './routes/attendees'
 import {UsersRoute} from './routes/users'
 import {TeamsRoute} from './routes/teams'
 import {HacksRoute} from './routes/hacks'
 import {ChallengesRoute} from './routes/challenges'
-import {AttendeesRoute} from './routes/attendees'
 import {TeamMembersRoute} from './routes/team.members'
 import {TeamEntriesRoute} from './routes/team.entries'
 import {HackChallengesRoute} from './routes/hack.challenges'
-import {ExpressLogger} from './logger'
 import {EventBroadcaster} from './eventbroadcaster'
 import Config from './config'
 import connectDatabase from './database'
+import { PluginRegister } from '../hapi.types'
 
 export interface ServerInfo {
   IP: string
   Port: number
 }
 
+interface PluginRegisterDefinition {
+  register: PluginRegister,
+  options: any
+}
+
 export default class Server {
-  private _app: express.Application
-  private _server: HttpServer
+  private _server: Hapi.Server
+  private _eventBroadcaster: EventBroadcaster
+  private _plugins: Array<(PluginRegister | PluginRegisterDefinition)>
+  private _routes: Array<(PluginRegister | PluginRegisterDefinition)>
 
-  constructor() {
-    const eventBroadcaster = new EventBroadcaster(Config.pusher.url)
+  constructor(private pino: Logger) {
+    this._eventBroadcaster = new EventBroadcaster(Config.pusher.url, this.pino)
 
-    const usersRouter = new UsersRoute(eventBroadcaster).createRouter()
-    const teamsRouter = new TeamsRoute(eventBroadcaster).createRouter()
-    const teamMembersRouter = new TeamMembersRoute(eventBroadcaster).createRouter()
-    const teamEntriesRouter = new TeamEntriesRoute(eventBroadcaster).createRouter()
-    const hacksRouter = new HacksRoute(eventBroadcaster).createRouter()
-    const hackChallengesRouter = new HackChallengesRoute(eventBroadcaster).createRouter()
-    const challengesRouter = new ChallengesRoute(eventBroadcaster).createRouter()
-    const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter()
+    // const usersRouter = new UsersRoute(eventBroadcaster).createRouter()
+    // const teamsRouter = new TeamsRoute(eventBroadcaster).createRouter()
+    // const teamMembersRouter = new TeamMembersRoute(eventBroadcaster).createRouter()
+    // const teamEntriesRouter = new TeamEntriesRoute(eventBroadcaster).createRouter()
+    // const hacksRouter = new HacksRoute(eventBroadcaster).createRouter()
+    // const hackChallengesRouter = new HackChallengesRoute(eventBroadcaster).createRouter()
+    // const challengesRouter = new ChallengesRoute(eventBroadcaster).createRouter()
+    // const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter()
 
-    this._app = express()
+    this._server = new Hapi.Server()
 
-    this._app.use(ExpressLogger)
+    this._plugins = [
+      {
+        register: OverrideResponseType,
+        options: {
+          type: 'application/vnd.api+json; charset=utf-8',
+        },
+      },
+      BasicAuthScheme,
+      {
+        register: AdminAuthStrategy,
+        options: {
+          username: Config.admin.username,
+          password: Config.admin.password,
+        },
+      },
+      HapiAsyncHandler,
+      {
+        register: HapiPino,
+        options: {
+          prettyPrint: Config.node_env === 'dev',
+          instance: this.pino,
+        },
+      },
+    ]
+    this._routes = [
+      { register: AttendeesRoute, options: { eventBroadcaster: this._eventBroadcaster } },
+    ]
 
-    this._app.use('/attendees', attendeesRouter)
-    this._app.use('/users', usersRouter)
-    this._app.use('/teams', teamMembersRouter)
-    this._app.use('/teams', teamEntriesRouter)
-    this._app.use('/teams', teamsRouter)
-    this._app.use('/hacks', hacksRouter)
-    this._app.use('/hacks', hackChallengesRouter)
-    this._app.use('/challenges', challengesRouter)
+    // this._server.use(ExpressLogger)
 
-    this._app.get('/api', (_, res) => res.send('Hack24 API is running'))
+    // this._server.use('/attendees', attendeesRouter)
+    // this._server.use('/users', usersRouter)
+    // this._server.use('/teams', teamMembersRouter)
+    // this._server.use('/teams', teamEntriesRouter)
+    // this._server.use('/teams', teamsRouter)
+    // this._server.use('/hacks', hacksRouter)
+    // this._server.use('/hacks', hackChallengesRouter)
+    // this._server.use('/challenges', challengesRouter)
 
-    this._app.get('/', middleware.allowAllOriginsWithGetAndHeaders, Root.Get)
-    this._app.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res))
+    // this._server.get('/api', (_, res) => res.send('Hack24 API is running'))
+
+    // this._server.get('/', middleware.allowAllOriginsWithGetAndHeaders, Root.Get)
+    // this._server.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res))
   }
 
-  public async listen(): Promise<ServerInfo> {
-    await connectDatabase(Config.mongo.url)
+  public async start() {
+    await connectDatabase(Config.mongo.url, this.pino)
 
-    return new Promise<ServerInfo>((resolve, reject) => {
-      const port = Config.server.port
-      this._server = this._app.listen(port, (err: Error) => {
-        if (err) {
-          return reject(err)
-        }
-        resolve({ IP: '0.0.0.0', Port: port })
-      })
-    })
+    const port = Config.server.port
+    this._server.connection({ port })
+
+    await this._server.register([
+      ...this._plugins,
+      ...this._routes,
+    ])
+
+    await this._server.start()
+
+    return { IP: this._server.info.address, Port: this._server.info.port } as ServerInfo
   }
 
-  public close(): Promise<void> {
-    return new Promise<void>((resolve) => {
-      this._server.close(() => {
-        resolve()
-      })
-    })
+  public stop() {
+    return this._server.stop()
   }
 }

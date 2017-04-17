@@ -1,9 +1,14 @@
-import {Log} from './logger'
+import * as Pino from 'pino'
 import Server from './server'
+import Config from './config'
+
+const pino = Pino({
+  prettyPrint: ['dev', 'test'].indexOf(Config.node_env) > -1,
+})
 
 function warnEnvironment(vars: string[]) {
   const missing = vars.filter((val) => process.env[val] === undefined)
-  missing.forEach((name) => Log.warn(`Environment variable ${name} is not set`))
+  missing.forEach((name) => pino.warn(`Environment variable ${name} is not set`))
 }
 
 warnEnvironment([
@@ -14,14 +19,14 @@ warnEnvironment([
   'SLACK_API_TOKEN',
 ])
 
-const server = new Server()
-server.listen().then((info) => {
-  Log.info(`Server started on port ${info.Port}`)
+const server = new Server(pino)
+server.start().then((info) => {
+  pino.info(`Server started on port ${info.Port}`)
   if (process.send !== undefined) {
     process.send('started')
   }
 }).catch((err) => {
-  Log.error('Server could not be started')
-  Log.error(err)
+  pino.error('Server could not be started')
+  pino.error(err)
   process.exit(1)
 })
