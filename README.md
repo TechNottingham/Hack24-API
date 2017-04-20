@@ -39,7 +39,13 @@ You will need installations of the following available:
 The repository includes a `Dockerfile` and `docker-compose.yml` file for use with [`docker-compose`]. You get started very quickly by simply starting the compose file from the repository path:
 
 ```bash
-docker-compose up
+docker-compose up -d
+```
+
+When you're done, destroy it all with:
+
+```bash
+docker-compose down
 ```
 
 If you are developing locally, and would prefer to use docker for MongoDB only, use the following command to run a local version of MongoDB for use with the API:
