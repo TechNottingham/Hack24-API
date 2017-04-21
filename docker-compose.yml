@@ -3,8 +3,6 @@ version: "2"
 services:
   mongo:
     image: mongo:3.4.3
-    ports:
-      - 27017:27017
     command: --smallfiles
   api:
     build: .
