@@ -1,16 +1,18 @@
-import { WebClient, UsersInfoResponse } from '@slack/client'
 import * as respond from './routes/respond'
+import { WebClient, UsersInfoResponse } from '@slack/client'
 import { Request, Response, NextFunction } from 'express'
+
 import { AttendeeModel } from './models'
 import { Log } from './logger'
+import Config from './config'
 
 const AuthorisedUsers = {
-  Hackbot: {
-    Password: process.env.HACKBOT_PASSWORD,
+  hackbot: {
+    password: Config.hackbot.password,
   },
-  Admin: {
-    Username: process.env.ADMIN_USERNAME,
-    Password: process.env.ADMIN_PASSWORD,
+  admin: {
+    username: Config.admin.username,
+    password: Config.admin.password,
   },
 }
 
@@ -21,8 +23,8 @@ interface UnauthorisedRequest {
   }
 }
 
-const slack = new WebClient(process.env.SLACK_API_TOKEN, process.env.SLACK_API_URL ? {
-  slackAPIUrl: process.env.SLACK_API_URL,
+const slack = new WebClient(Config.slack.token, Config.slack.apiUrl ? {
+  slackAPIUrl: Config.slack.apiUrl,
 } : undefined)
 
 export function requiresUser(req: Request & UnauthorisedRequest, res: Response, next: NextFunction) {
@@ -49,8 +51,8 @@ export function requiresUser(req: Request & UnauthorisedRequest, res: Response, 
   next()
 }
 
-export function requiresAdminUser(req: Request & UnauthorisedRequest, res: Response, next: Function) {
-  if (req.AuthParts.Username !== AuthorisedUsers.Admin.Username || req.AuthParts.Password !== AuthorisedUsers.Admin.Password) {
+export function requiresAdminUser(req: Request & UnauthorisedRequest, res: Response, next: () => void) {
+  if (req.AuthParts.Username !== AuthorisedUsers.admin.username || req.AuthParts.Password !== AuthorisedUsers.admin.password) {
     return respond.Send403(res)
   }
 
@@ -62,7 +64,7 @@ export function requiresAttendeeUser(req: Request & UnauthorisedRequest, res: Re
 }
 
 async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res: Response, next: NextFunction) {
-  if (req.AuthParts.Password !== AuthorisedUsers.Hackbot.Password) {
+  if (req.AuthParts.Password !== AuthorisedUsers.hackbot.password) {
     return respond.Send403(res)
   }
 
@@ -119,7 +121,7 @@ async function requiresAttendeeUserAsync(req: Request & UnauthorisedRequest, res
   next()
 }
 
-export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedRequest, res: Response, next: Function) {
+export function allowAllOriginsWithGetAndHeaders(_: Request & UnauthorisedRequest, res: Response, next: () => void) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Request-Method', 'GET')
   res.header('Access-Control-Request-Headers', 'Origin, X-Requested-With, Content-Type, Accept')

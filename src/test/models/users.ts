@@ -12,7 +12,7 @@ export class Users {
 
   public static Create(db: Db): Promise<Users> {
     return new Promise<Users>((resolve, reject) => {
-      let users = new Users()
+      const users = new Users()
       db.collection('users', (err, collection) => {
         if (err) {
           return reject(err)
@@ -47,7 +47,7 @@ export class Users {
 
   public createRandomUser(prefix?: string): User {
     prefix = prefix || ''
-    let randomPart = Random.str(5)
+    const randomPart = Random.str(5)
     return {
       userid: `U${prefix}${randomPart}`,
       name: `Random user ${prefix}${randomPart}`,
@@ -66,7 +66,7 @@ export class Users {
   }
 
   public insertRandomUser(prefix?: string): Promise<User> {
-    let randomUser = this.createRandomUser(prefix)
+    const randomUser = this.createRandomUser(prefix)
     return new Promise<User>((resolve, reject) => {
       this._collection.insertOne(randomUser).then((result) => {
         randomUser._id = result.insertedId

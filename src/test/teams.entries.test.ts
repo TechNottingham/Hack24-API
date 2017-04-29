@@ -26,7 +26,7 @@ describe('Team Entries relationship', () => {
     let response: string
 
     before(async () => {
-      let team = MongoDB.Teams.createRandomTeam()
+      const team = MongoDB.Teams.createRandomTeam()
 
       const res = await api.options(`/teams/${team.teamid}/entries`).end()
 
@@ -120,7 +120,7 @@ describe('Team Entries relationship', () => {
     })
 
     it('should include each expected hack', () => {
-      const hacks = <HackResource.ResourceObject[]> response.included
+      const hacks = response.included as HackResource.ResourceObject[]
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`)
       assert.strictEqual(hacks[0].id, firstHack.hackid)
@@ -169,7 +169,7 @@ describe('Team Entries relationship', () => {
       team.entries = [firstHack._id, secondHack._id, thirdHack._id]
       await MongoDB.Teams.insertTeam(team)
 
-      let req: TeamEntriesRelationship.TopLevelDocument = {
+      const req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: firstHack.hackid,
@@ -275,7 +275,7 @@ describe('Team Entries relationship', () => {
       team.entries = [hack._id]
       await MongoDB.Teams.insertTeam(team)
 
-      let req: TeamEntriesRelationship.TopLevelDocument = {
+      const req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: hack.hackid,
@@ -358,7 +358,7 @@ describe('Team Entries relationship', () => {
       team.entries = [hack._id]
       await MongoDB.Teams.insertTeam(team)
 
-      let req: TeamEntriesRelationship.TopLevelDocument = {
+      const req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: firstNewHack.hackid,
@@ -474,7 +474,7 @@ describe('Team Entries relationship', () => {
       otherTeam.entries = [otherHack._id]
       await MongoDB.Teams.insertTeam(otherTeam)
 
-      let req: TeamEntriesRelationship.TopLevelDocument = {
+      const req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: otherHack.hackid,
@@ -549,7 +549,7 @@ describe('Team Entries relationship', () => {
 
       team = await MongoDB.Teams.insertRandomTeam()
 
-      let req: TeamEntriesRelationship.TopLevelDocument = {
+      const req: TeamEntriesRelationship.TopLevelDocument = {
         data: [{
           type: 'hacks',
           id: 'does not exist',

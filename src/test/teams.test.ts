@@ -199,7 +199,7 @@ describe('Teams resource', () => {
       }
 
       slackApi = await SlackApi.Create(ApiServer.SlackApiPort, ApiServer.SlackApiBasePath)
-      slackApi.UsersList = <UsersInfoResponse> {
+      slackApi.UsersList = {
         ok: true,
         user: {
           id: slackid,
@@ -207,7 +207,7 @@ describe('Teams resource', () => {
             email: attendee.attendeeid,
           },
         },
-      }
+      } as UsersInfoResponse
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort)
 
@@ -262,7 +262,7 @@ describe('Teams resource', () => {
       }
 
       slackApi = await SlackApi.Create(ApiServer.SlackApiPort, ApiServer.SlackApiBasePath)
-      slackApi.UsersList = <UsersInfoResponse> {
+      slackApi.UsersList = {
         ok: true,
         user: {
           id: slackid,
@@ -270,7 +270,7 @@ describe('Teams resource', () => {
             email: 'some@unregistered.attendee.email',
           },
         },
-      }
+      } as UsersInfoResponse
 
       const res = await api.post('/teams')
         .auth(slackid, ApiServer.HackbotPassword)
@@ -799,7 +799,7 @@ describe('Teams resource', () => {
     })
 
     it('should include each expected users', () => {
-      const users = <UserResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'users')
+      const users = response.included.filter((doc) => doc.type === 'users') as UserResource.ResourceObject[]
 
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`)
       assert.strictEqual(users[0].id, firstUser.userid)
@@ -815,7 +815,7 @@ describe('Teams resource', () => {
     })
 
     it('should include each expected hack', () => {
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'hacks')
+      const hacks = response.included.filter((doc) => doc.type === 'hacks') as HackResource.ResourceObject[]
 
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`)
       assert.strictEqual(hacks[0].id, firstHack.hackid)
@@ -839,7 +839,7 @@ describe('Teams resource', () => {
     })
 
     it('should include each expected challenge from hacks', () => {
-      const challenges = <ChallengeResource.ResourceObject[]> response.included.filter((doc) => doc.type === 'challenges')
+      const challenges = response.included.filter((doc) => doc.type === 'challenges') as ChallengeResource.ResourceObject[]
 
       assert.strictEqual(challenges[0].links.self, `/challenges/${firstChallenge.challengeid}`)
       assert.strictEqual(challenges[0].id, firstChallenge.challengeid)
@@ -878,7 +878,7 @@ describe('Teams resource', () => {
     let response: string
 
     before(async () => {
-      let team = MongoDB.Teams.createRandomTeam()
+      const team = MongoDB.Teams.createRandomTeam()
 
       const res = await api.options(`/teams/${team.teamid}`).end()
 
@@ -999,7 +999,7 @@ describe('Teams resource', () => {
     it('should include the related members, entries and challenges', () => {
       assert.strictEqual(response.included.length, 5)
 
-      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users')
+      const users = response.included.filter((o) => o.type === 'users') as UserResource.ResourceObject[]
       assert.strictEqual(users.length, 2)
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`)
       assert.strictEqual(users[0].id, firstUser.userid)
@@ -1008,7 +1008,7 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid)
       assert.strictEqual(users[1].attributes.name, secondUser.name)
 
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks')
+      const hacks = response.included.filter((o) => o.type === 'hacks') as HackResource.ResourceObject[]
       assert.strictEqual(hacks.length, 2)
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`)
       assert.strictEqual(hacks[0].id, firstHack.hackid)
@@ -1018,7 +1018,7 @@ describe('Teams resource', () => {
       assert.strictEqual(firstHackChallenges[0].id, challenge.challengeid)
       assert.strictEqual(firstHackChallenges[0].type, 'challenges')
 
-      const challenges = <ChallengeResource.ResourceObject[]> response.included.filter((o) => o.type === 'challenges')
+      const challenges = response.included.filter((o) => o.type === 'challenges') as ChallengeResource.ResourceObject[]
       assert.strictEqual(challenges.length, 1)
       assert.strictEqual(challenges[0].links.self, `/challenges/${challenge.challengeid}`)
       assert.strictEqual(challenges[0].id, challenge.challengeid)
@@ -1117,7 +1117,7 @@ describe('Teams resource', () => {
     it('should include the related members and entries', () => {
       assert.strictEqual(response.included.length, 4)
 
-      const users = <UserResource.ResourceObject[]> response.included.filter((o) => o.type === 'users')
+      const users = response.included.filter((o) => o.type === 'users') as UserResource.ResourceObject[]
       assert.strictEqual(users.length, 2)
       assert.strictEqual(users[0].links.self, `/users/${firstUser.userid}`)
       assert.strictEqual(users[0].id, firstUser.userid)
@@ -1126,7 +1126,7 @@ describe('Teams resource', () => {
       assert.strictEqual(users[1].id, secondUser.userid)
       assert.strictEqual(users[1].attributes.name, secondUser.name)
 
-      const hacks = <HackResource.ResourceObject[]> response.included.filter((o) => o.type === 'hacks')
+      const hacks = response.included.filter((o) => o.type === 'hacks') as HackResource.ResourceObject[]
       assert.strictEqual(hacks.length, 2)
       assert.strictEqual(hacks[0].links.self, `/hacks/${firstHack.hackid}`)
       assert.strictEqual(hacks[0].id, firstHack.hackid)

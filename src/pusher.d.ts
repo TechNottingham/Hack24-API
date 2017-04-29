@@ -1,12 +1,12 @@
 declare module "pusher" {
-  
+
   namespace pusher {
     interface PusherStatic {
-      forURL(url: string): Pusher;
+      forURL(url: string): PusherClient;
     }
-    interface Pusher {
-      trigger(channel: string, event: string, data: any, socketId: string, callback: Function): void;
-      trigger(channels: string[], event: string, data: any, socketId: string, callback: Function): void;
+    interface PusherClient {
+      trigger(channel: string, event: string, data: any, socketId: string, callback: (err: Error) => void): void;
+      trigger(channels: string[], event: string, data: any, socketId: string, callback: (err: Error) => void): void;
     }
     interface Config {
       appId: string;

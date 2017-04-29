@@ -78,11 +78,11 @@ export class UsersRoute {
       },
     }))
 
-    const usersResponse = <UsersResource.TopLevelDocument> {
+    const usersResponse = {
       links: { self: '/users' },
       data: userResponses,
       included: includedTeams,
-    }
+    } as UsersResource.TopLevelDocument
 
     respond.Send200(res, usersResponse)
   }
@@ -105,7 +105,7 @@ export class UsersRoute {
       .populate('members', 'userid name')
       .exec()
 
-    const userResponse = <UserResource.TopLevelDocument> {
+    const userResponse = {
       links: { self: `/users/${encodeURIComponent(user.userid)}` },
       data: {
         type: 'users',
@@ -118,12 +118,12 @@ export class UsersRoute {
           },
         },
       },
-    }
+    } as UserResource.TopLevelDocument
 
     if (team) {
       userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid }
 
-      const includedTeam = <TeamResource.ResourceObject> {
+      const includedTeam = {
         links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
         type: 'teams',
         id: team.teamid,
@@ -141,7 +141,7 @@ export class UsersRoute {
             data: null,
           },
         },
-      }
+      } as TeamResource.ResourceObject
 
       const includedUsers = team.members
         .filter((member) => member.userid !== user.userid)
@@ -193,7 +193,7 @@ export class UsersRoute {
       throw err
     }
 
-    const userResponse = <UserResource.TopLevelDocument> {
+    const userResponse = {
       links: {
         self: `/users/${encodeURIComponent(user.userid)}`,
       },
@@ -212,7 +212,7 @@ export class UsersRoute {
           },
         },
       },
-    }
+    } as UserResource.TopLevelDocument
 
     this._eventBroadcaster.trigger('users_add', {
       userid: user.userid,

@@ -57,7 +57,7 @@ export class HackChallengesRoute {
     }
 
     respond.Send200(res, challengesResponse)
-  };
+  }
 
   public async delete(req: Request, res: Response) {
     const hackId = req.params.hackId
@@ -108,7 +108,7 @@ export class HackChallengesRoute {
     })
 
     respond.Send204(res)
-  };
+  }
 
   public async add(req: Request, res: Response) {
     const hackId = req.params.hackId

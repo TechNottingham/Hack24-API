@@ -21,9 +21,9 @@ const stream: morgan.StreamOptions = {
   },
 }
 
-const options = <morgan.Options> {
+const options = {
   stream: stream,
-}
+} as morgan.Options
 
 export const ExpressLogger = morgan('dev', options)
 export const Log = logger

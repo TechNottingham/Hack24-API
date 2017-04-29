@@ -11,7 +11,7 @@ export class Challenges {
 
   public static Create(db: Db): Promise<Challenges> {
     return new Promise<Challenges>((resolve, reject) => {
-      let challenges = new Challenges()
+      const challenges = new Challenges()
       db.collection('challenges', (err, collection) => {
         if (err) {
           return reject(err)
@@ -56,7 +56,7 @@ export class Challenges {
 
   public createRandomChallenge(prefix?: string): Challenge {
     prefix = prefix || ''
-    let randomPart = Random.str(5)
+    const randomPart = Random.str(5)
     return {
       challengeid: `random-challenge-${prefix}${randomPart}`,
       name: `Random Challenge ${prefix}${randomPart}`,
@@ -74,7 +74,7 @@ export class Challenges {
   }
 
   public insertRandomChallenge(prefix?: string): Promise<Challenge> {
-    let randomChallenge = this.createRandomChallenge(prefix)
+    const randomChallenge = this.createRandomChallenge(prefix)
     return new Promise<Challenge>((resolve, reject) => {
       this._collection.insertOne(randomChallenge).then((result) => {
         randomChallenge._id = result.insertedId

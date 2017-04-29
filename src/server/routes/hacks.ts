@@ -39,7 +39,7 @@ export class HacksRoute {
   }
 
   public async getAll(req: Request, res: Response) {
-    let query: any = {}
+    const query: any = {}
 
     if (req.query.filter && req.query.filter.name) {
       query.name = new RegExp(escapeForRegex(req.query.filter.name), 'i')

@@ -12,7 +12,7 @@ export class Hacks {
 
   public static Create(db: Db): Promise<Hacks> {
     return new Promise<Hacks>((resolve, reject) => {
-      let hacks = new Hacks()
+      const hacks = new Hacks()
       db.collection('hacks', (err, collection) => {
         if (err) {
           return reject(err)
@@ -57,7 +57,7 @@ export class Hacks {
 
   public createRandomHack(prefix?: string): Hack {
     prefix = prefix || ''
-    let randomPart = Random.str(5)
+    const randomPart = Random.str(5)
     return {
       hackid: `random-hack-${prefix}${randomPart}`,
       name: `Random Hack ${prefix}${randomPart}`,
@@ -76,7 +76,7 @@ export class Hacks {
   }
 
   public insertRandomHack(prefix?: string): Promise<Hack> {
-    let randomHack = this.createRandomHack(prefix)
+    const randomHack = this.createRandomHack(prefix)
     return new Promise<Hack>((resolve, reject) => {
       this._collection.insertOne(randomHack).then((result) => {
         randomHack._id = result.insertedId
