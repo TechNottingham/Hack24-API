@@ -1,0 +1,67 @@
+import { Request, IReply } from 'hapi'
+import { UserModel } from '../../models'
+import { MongoDBErrors } from '../../models'
+import { UserResource } from '../../../resources'
+import EventBroadcaster from '../../eventbroadcaster'
+import * as Boom from '../../boom'
+
+export default async function handler(req: Request, reply: IReply) {
+  const requestDoc: UserResource.TopLevelDocument = req.payload
+
+  if (!requestDoc
+    || !requestDoc.data
+    || !requestDoc.data.id
+    || typeof requestDoc.data.id !== 'string'
+    || !requestDoc.data.type
+    || requestDoc.data.type !== 'users'
+    || !requestDoc.data.attributes
+    || !requestDoc.data.attributes.name
+    || typeof requestDoc.data.attributes.name !== 'string') {
+    reply(Boom.badRequest())
+    return
+  }
+
+  const user = new UserModel({
+    userid: requestDoc.data.id,
+    name: requestDoc.data.attributes.name,
+  })
+
+  try {
+    await user.save()
+  } catch (err) {
+    if (err.code === MongoDBErrors.E11000_DUPLICATE_KEY) {
+      reply(Boom.conflict('User already exists'))
+      return
+    }
+    throw err
+  }
+
+  const userResponse = {
+    links: {
+      self: `/users/${encodeURIComponent(user.userid)}`,
+    },
+    data: {
+      type: 'users',
+      id: user.userid,
+      attributes: {
+        name: user.name,
+      },
+      relationships: {
+        team: {
+          links: {
+            self: `/users/${encodeURIComponent(user.userid)}/team`,
+          },
+          data: null,
+        },
+      },
+    },
+  } as UserResource.TopLevelDocument
+
+  const eventBroadcaster: EventBroadcaster = req.server.app.eventBroadcaster
+  eventBroadcaster.trigger('users_add', {
+    userid: user.userid,
+    name: user.name,
+  })
+
+  reply(userResponse).code(201)
+}

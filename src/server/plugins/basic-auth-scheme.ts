@@ -20,13 +20,13 @@ function scheme(_: Server, settings: PluginSettings): IServerAuthScheme {
       const req = request.raw.req
       const authorization = req.headers.authorization
       if (!authorization) {
-        return reply(Boom.unauthorized('Admin credentials required.', 'Basic', { realm }))
+        return reply(Boom.unauthorized('Credentials required', 'Basic', { realm }))
       }
 
       const parts = authorization.split(/\s+/)
 
       if (parts[0].toLowerCase() !== 'basic') {
-        return reply(Boom.unauthorized('Admin credentials required.', 'Basic', { realm }))
+        return reply(Boom.unauthorized('Credentials required', 'Basic', { realm }))
       }
 
       if (parts.length !== 2) {
