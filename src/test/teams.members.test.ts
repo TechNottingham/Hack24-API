@@ -1,14 +1,15 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {User} from './models/users'
-import {Team} from './models/teams'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { User } from './models/users'
+import { Team } from './models/teams'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, TeamMembersRelationship, UserResource} from '../resources'
-import {PusherListener} from './utils/pusherlistener'
+import { JSONApi, TeamMembersRelationship, UserResource } from '../resources'
+import { PusherListener } from './utils/pusherlistener'
+import { Random } from './utils/random'
 
-describe.skip('Team Members relationship', () => {
+describe('Team Members relationship', () => {
 
   let api: request.SuperTest<request.Test>
 
@@ -18,23 +19,33 @@ describe.skip('Team Members relationship', () => {
 
   describe('OPTIONS team members', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
+      origin = Random.str()
+
       const team = MongoDB.Teams.createRandomTeam()
 
-      const res = await api.options(`/teams/${team.teamid}/members`).end()
+      const res = await api.options(`/teams/${team.teamid}/members`)
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -46,10 +57,12 @@ describe.skip('Team Members relationship', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -60,6 +73,7 @@ describe.skip('Team Members relationship', () => {
 
   describe('GET team members', () => {
 
+    let origin: string
     let firstUser: User
     let secondUser: User
     let thirdUser: User
@@ -67,24 +81,26 @@ describe.skip('Team Members relationship', () => {
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: TeamMembersRelationship.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       firstUser = await MongoDB.Users.insertRandomUser('A')
       secondUser = await MongoDB.Users.insertRandomUser('B')
       thirdUser = await MongoDB.Users.insertRandomUser('C')
 
       team = await MongoDB.Teams.insertRandomTeam([firstUser._id, secondUser._id, thirdUser._id])
 
-      const res = await api.get(`/teams/${team.teamid}/members`).end()
+      const res = await api.get(`/teams/${team.teamid}/members`)
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -96,10 +112,9 @@ describe.skip('Team Members relationship', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the team members self link', () => {
@@ -170,9 +185,9 @@ describe.skip('Team Members relationship', () => {
           type: 'users',
           id: firstUser.userid,
         }, {
-            type: 'users',
-            id: thirdUser.userid,
-          }],
+          type: 'users',
+          id: thirdUser.userid,
+        }],
       }
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort)
@@ -276,9 +291,9 @@ describe.skip('Team Members relationship', () => {
           type: 'users',
           id: user.userid,
         }, {
-            type: 'users',
-            id: 'does not exist',
-          }],
+          type: 'users',
+          id: 'does not exist',
+        }],
       }
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort)
@@ -308,7 +323,7 @@ describe.skip('Team Members relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request.')
+      assert.strictEqual(response.errors[0].title, 'Bad request')
     })
 
     it('should not modify the team', () => {
@@ -357,9 +372,9 @@ describe.skip('Team Members relationship', () => {
           type: 'users',
           id: firstNewUser.userid,
         }, {
-            type: 'users',
-            id: secondNewUser.userid,
-          }],
+          type: 'users',
+          id: secondNewUser.userid,
+        }],
       }
 
       pusherListener = await PusherListener.Create(ApiServer.PusherPort)
@@ -498,7 +513,8 @@ describe.skip('Team Members relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'One or more of the specified users are already in a team.')
+      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].detail, 'One or more of the specified users are already in a team')
     })
 
     it('should not modify the team', () => {
@@ -573,7 +589,8 @@ describe.skip('Team Members relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'One or more of the specified users could not be found.')
+      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].detail, 'One or more of the specified users could not be found')
     })
 
     it('should not modify the team', () => {

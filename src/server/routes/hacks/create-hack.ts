@@ -58,7 +58,7 @@ export default async function handler(req: Request, reply: IReply) {
   eventBroadcaster.trigger('hacks_add', {
     hackid: hack.hackid,
     name: hack.name,
-  })
+  }, req.logger)
 
   reply(hackResponse).code(201)
 }
