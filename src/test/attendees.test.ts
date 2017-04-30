@@ -433,13 +433,14 @@ describe('Attendees resource', () => {
   describe('DELETE attendee with incorrect auth', () => {
 
     let attendee: Attendee
+    let deletedAttendee: Attendee
     let statusCode: number
     let contentType: string
     let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
 
     before(async () => {
-      attendee = MongoDB.Attendees.createRandomAttendee()
+      attendee = await MongoDB.Attendees.insertRandomAttendee()
 
       const res = await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('sack', 'boy')
@@ -449,6 +450,8 @@ describe('Attendees resource', () => {
       contentType = res.header['content-type']
       authenticateHeader = res.header['www-authenticate']
       response = res.body
+
+      deletedAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid)
     })
 
     it('should respond with status code 401 Unauthorised', () => {
@@ -469,6 +472,12 @@ describe('Attendees resource', () => {
       assert.strictEqual(response.errors[0].title, 'Unauthorized')
       assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
+
+    it('should not delete the attendee', () => {
+      assert.strictEqual(deletedAttendee.attendeeid, attendee.attendeeid)
+    })
+
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid))
 
   })
 

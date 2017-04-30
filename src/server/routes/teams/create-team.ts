@@ -1,9 +1,9 @@
 import { Request, IReply } from 'hapi'
-import * as Boom from '../../boom'
 import * as slug from 'slug'
 import { UserModel, TeamModel, HackModel, MongoDBErrors } from '../../models'
 import { JSONApi, TeamResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
+import * as Boom from '../../boom'
 
 function slugify(name: string): string {
   return slug(name, { lower: true })
