@@ -1,5 +1,5 @@
 import * as Pusher from 'pusher'
-import {Logger} from 'pino'
+import { Logger } from 'pino'
 
 export class EventBroadcaster {
   private _pusher: Pusher.PusherClient
@@ -12,14 +12,15 @@ export class EventBroadcaster {
     this._pusher = Pusher.forURL(url)
   }
 
-  public trigger(event: string, data: any) {
+  public trigger(event: string, data: any, log?: Logger) {
+    const logger = log ? log : this.log
     if (!this._pusher) {
-      return this.log.info(`Suppressing Pusher event "${event}" for channel "api_events"`, data)
+      return logger.info(`Suppressing Pusher event "${event}" for channel "api_events"`, data)
     }
-    this.log.info(`Sending Pusher event "${event}" to channel "api_events"`)
+    logger.info(`Sending Pusher event "${event}" to channel "api_events"`)
     this._pusher.trigger('api_events', event, data, null, (err) => {
       if (err) {
-        this.log.error(`Unable to send event to pusher: ${err.message}`)
+        logger.error(`Unable to send event to pusher: ${err.message}`)
       }
     })
   }

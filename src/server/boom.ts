@@ -3,7 +3,7 @@ import { JSONApi } from '../resources'
 
 const apiJsonContentType = 'application/vnd.api+json; charset=utf-8'
 
-export function badRequest(message: string) {
+export function badRequest(message?: string) {
   const title = 'Bad request'
   const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
@@ -36,7 +36,7 @@ export function unauthorized(message: any, scheme: string, attributes: { realm: 
   return boom
 }
 
-export function notFound(message: any) {
+export function notFound(message?: any) {
   const title = 'Not Found'
   const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{
@@ -52,7 +52,7 @@ export function notFound(message: any) {
   return boom
 }
 
-export function conflict(message: any) {
+export function conflict(message?: any) {
   const title = 'Conflict'
   const errorResponse: JSONApi.TopLevelDocument = {
     errors: [{

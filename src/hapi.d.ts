@@ -1,4 +1,5 @@
 import { Request, IReply } from 'hapi'
+import { Logger } from 'pino'
 
 declare module 'hapi' {
   interface IRouteHandlerConfig {
@@ -6,5 +7,8 @@ declare module 'hapi' {
   }
   interface IReply {
     (): Response
+  }
+  interface Request {
+    logger: Logger
   }
 }

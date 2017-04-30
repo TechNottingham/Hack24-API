@@ -10,7 +10,7 @@
     "prebuild": "npm run lint && npm run clean",
     "build": "tsc -p src/",
     "start": "node .",
-    "test": "mocha --timeout 500000 -R dot --require source-map-support/register --recursive build/test",
+    "test": "mocha --timeout 5000 -R dot --require source-map-support/register --recursive build/test",
     "heroku-postbuild": "npm run build && npm prune --production"
   },
   "dependencies": {

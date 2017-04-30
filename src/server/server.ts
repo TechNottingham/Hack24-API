@@ -1,6 +1,7 @@
 import * as Hapi from 'hapi'
 import * as HapiPino from 'hapi-pino'
-import {Logger} from 'pino'
+import { Logger } from 'pino'
+import { WebClient } from '@slack/client'
 
 import * as respond from './routes/respond'
 import * as Root from './routes/root'
@@ -8,17 +9,18 @@ import * as middleware from './middleware'
 import * as HapiAsyncHandler from './plugins/hapi-async-handler'
 import * as BasicAuthScheme from './plugins/basic-auth-scheme'
 import * as AdminAuthStrategy from './plugins/admin-auth-strategy'
+import * as AttendeeAuthStrategy from './plugins/attendee-auth-strategy'
 import * as OverrideResponseType from './plugins/override-response-type'
 
 import * as AttendeesRoute from './routes/attendees'
-import {UsersRoute} from './routes/users'
-import {TeamsRoute} from './routes/teams'
-import {HacksRoute} from './routes/hacks'
-import {ChallengesRoute} from './routes/challenges'
-import {TeamMembersRoute} from './routes/team.members'
-import {TeamEntriesRoute} from './routes/team.entries'
-import {HackChallengesRoute} from './routes/hack.challenges'
-import {EventBroadcaster} from './eventbroadcaster'
+import * as TeamsRoute from './routes/teams'
+import { UsersRoute } from './routes/users'
+import { HacksRoute } from './routes/hacks'
+import { ChallengesRoute } from './routes/challenges'
+import { TeamMembersRoute } from './routes/team.members'
+import { TeamEntriesRoute } from './routes/team.entries'
+import { HackChallengesRoute } from './routes/hack.challenges'
+import { EventBroadcaster } from './eventbroadcaster'
 import Config from './config'
 import connectDatabase from './database'
 import { PluginRegister } from '../hapi.types'
@@ -34,13 +36,14 @@ interface PluginRegisterDefinition {
 }
 
 export default class Server {
-  private _server: Hapi.Server
-  private _eventBroadcaster: EventBroadcaster
-  private _plugins: Array<(PluginRegister | PluginRegisterDefinition)>
-  private _routes: Array<(PluginRegister | PluginRegisterDefinition)>
+  private server: Hapi.Server
+  private eventBroadcaster: EventBroadcaster
+  private plugins: Array<(PluginRegister | PluginRegisterDefinition)>
+  private routes: any[]
+  private slack: WebClient
 
   constructor(private pino: Logger) {
-    this._eventBroadcaster = new EventBroadcaster(Config.pusher.url, this.pino)
+    this.eventBroadcaster = new EventBroadcaster(Config.pusher.url, this.pino)
 
     // const usersRouter = new UsersRoute(eventBroadcaster).createRouter()
     // const teamsRouter = new TeamsRoute(eventBroadcaster).createRouter()
@@ -51,9 +54,14 @@ export default class Server {
     // const challengesRouter = new ChallengesRoute(eventBroadcaster).createRouter()
     // const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter()
 
-    this._server = new Hapi.Server()
+    this.slack = new WebClient(Config.slack.token, Config.slack.apiUrl ? {
+      slackAPIUrl: Config.slack.apiUrl,
+    } : undefined)
 
-    this._plugins = [
+    this.server = new Hapi.Server()
+    this.server.app.eventBroadcaster = this.eventBroadcaster
+
+    this.plugins = [
       {
         register: OverrideResponseType,
         options: {
@@ -68,6 +76,13 @@ export default class Server {
           password: Config.admin.password,
         },
       },
+      {
+        register: AttendeeAuthStrategy,
+        options: {
+          slack: this.slack,
+          password: Config.hackbot.password,
+        },
+      },
       HapiAsyncHandler,
       {
         register: HapiPino,
@@ -77,8 +92,9 @@ export default class Server {
         },
       },
     ]
-    this._routes = [
-      { register: AttendeesRoute, options: { eventBroadcaster: this._eventBroadcaster } },
+    this.routes = [
+      AttendeesRoute,
+      TeamsRoute,
     ]
 
     // this._server.use(ExpressLogger)
@@ -102,19 +118,19 @@ export default class Server {
     await connectDatabase(Config.mongo.url, this.pino)
 
     const port = Config.server.port
-    this._server.connection({ port })
+    this.server.connection({ port })
 
-    await this._server.register([
-      ...this._plugins,
-      ...this._routes,
+    await this.server.register([
+      ...this.plugins,
+      ...this.routes,
     ])
 
-    await this._server.start()
+    await this.server.start()
 
-    return { IP: this._server.info.address, Port: this._server.info.port } as ServerInfo
+    return { IP: this.server.info.address, Port: this.server.info.port } as ServerInfo
   }
 
   public stop() {
-    return this._server.stop()
+    return this.server.stop()
   }
 }
