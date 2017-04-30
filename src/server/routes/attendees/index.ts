@@ -54,4 +54,4 @@ register.attributes = {
   version: '0.0.0',
 }
 
-export = register
+export default register

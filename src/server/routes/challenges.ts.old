@@ -2,12 +2,12 @@ import * as respond from './respond'
 import * as slug from 'slug'
 import * as middleware from '../middleware'
 
-import {ChallengeModel} from '../models'
-import {Request, Response, Router} from 'express'
-import {MongoDBErrors} from '../models'
-import {ChallengeResource, ChallengesResource} from '../../resources'
-import {EventBroadcaster} from '../eventbroadcaster'
-import {JsonApiParser} from '../parsers'
+import { ChallengeModel } from '../models'
+import { Request, Response, Router } from 'express'
+import { MongoDBErrors } from '../models'
+import { ChallengeResource, ChallengesResource } from '../../resources'
+import EventBroadcaster from '../eventbroadcaster'
+import { JsonApiParser } from '../parsers'
 
 function slugify(name: string): string {
   return slug(name, { lower: true })

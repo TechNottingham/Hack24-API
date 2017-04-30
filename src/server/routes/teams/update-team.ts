@@ -2,7 +2,7 @@ import { Request, IReply } from 'hapi'
 import * as Boom from '../../boom'
 import { TeamModel } from '../../models'
 import { TeamResource } from '../../../resources'
-import { EventBroadcaster } from '../../eventbroadcaster'
+import EventBroadcaster from '../../eventbroadcaster'
 
 export default async function handler(req: Request, reply: IReply) {
   const teamId = req.params.teamId

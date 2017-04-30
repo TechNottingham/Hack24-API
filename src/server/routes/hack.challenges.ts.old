@@ -1,11 +1,11 @@
 import * as respond from './respond'
 import * as middleware from '../middleware'
 
-import {ChallengeModel, HackModel} from '../models'
-import {Request, Response, Router} from 'express'
-import {JSONApi, HackChallengesRelationship, ChallengeResource} from '../../resources'
-import {EventBroadcaster} from '../eventbroadcaster'
-import {JsonApiParser} from '../parsers'
+import { ChallengeModel, HackModel } from '../models'
+import { Request, Response, Router } from 'express'
+import { JSONApi, HackChallengesRelationship, ChallengeResource } from '../../resources'
+import EventBroadcaster from '../eventbroadcaster'
+import { JsonApiParser } from '../parsers'
 
 export class HackChallengesRoute {
   private _eventBroadcaster: EventBroadcaster

@@ -1,7 +1,7 @@
 import * as Pusher from 'pusher'
 import { Logger } from 'pino'
 
-export class EventBroadcaster {
+export default class EventBroadcaster {
   private _pusher: Pusher.PusherClient
 
   constructor(url: string, private log: Logger) {
