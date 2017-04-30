@@ -1,9 +1,9 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
+import { JSONApi, AttendeeResource, AttendeesResource } from '../resources'
 
 describe('Attendees resource', () => {
 

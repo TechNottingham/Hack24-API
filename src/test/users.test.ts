@@ -1,13 +1,13 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {User} from './models/users'
-import {Team} from './models/teams'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { User } from './models/users'
+import { Team } from './models/teams'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
-import {Random} from './utils/random'
-import {PusherListener} from './utils/pusherlistener'
+import { JSONApi, UserResource, UsersResource, TeamResource } from '../resources'
+import { Random } from './utils/random'
+import { PusherListener } from './utils/pusherlistener'
 
 describe('Users resource', () => {
 

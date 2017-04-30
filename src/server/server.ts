@@ -12,6 +12,8 @@ import OverrideResponseType from './plugins/override-response-type'
 import AttendeesRoute from './routes/attendees'
 import TeamsRoute from './routes/teams'
 import UsersRoute from './routes/users'
+import RootRoute from './routes/root'
+
 import EventBroadcaster from './eventbroadcaster'
 import Config from './config'
 import connectDatabase from './database'
@@ -88,6 +90,7 @@ export default class Server {
       AttendeesRoute,
       TeamsRoute,
       UsersRoute,
+      RootRoute,
     ]
 
     // this._server.use(ExpressLogger)
