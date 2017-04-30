@@ -13,7 +13,7 @@ import { PusherListener } from './utils/pusherlistener'
 import { SlackApi } from './utils/slackapi'
 import { Random } from './utils/random'
 
-describe.only('Teams resource', () => {
+describe('Teams resource', () => {
 
   let api: request.SuperTest<request.Test>
 

@@ -5,7 +5,7 @@ import {ApiServer} from './utils/apiserver'
 import * as request from 'supertest'
 import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
 
-describe.only('Attendees resource', () => {
+describe('Attendees resource', () => {
 
   let api: request.SuperTest<request.Test>
 

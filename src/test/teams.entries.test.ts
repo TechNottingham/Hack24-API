@@ -8,7 +8,7 @@ import * as request from 'supertest'
 import {JSONApi, TeamEntriesRelationship, HackResource} from '../resources'
 import {PusherListener} from './utils/pusherlistener'
 
-describe('Team Entries relationship', () => {
+describe.skip('Team Entries relationship', () => {
 
   let api: request.SuperTest<request.Test>
 

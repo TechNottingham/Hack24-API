@@ -3,7 +3,7 @@ import {ApiServer} from './utils/apiserver'
 import * as request from 'supertest'
 import {Root} from '../resources'
 
-describe('API Root', () => {
+describe.skip('API Root', () => {
 
   let api: request.SuperTest<request.Test>
 

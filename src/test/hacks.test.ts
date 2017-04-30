@@ -9,7 +9,7 @@ import {JSONApi, HacksResource, HackResource} from '../resources'
 import {PusherListener} from './utils/pusherlistener'
 import {SlackApi} from './utils/slackapi'
 
-describe('Hacks resource', () => {
+describe.skip('Hacks resource', () => {
 
   let api: request.SuperTest<request.Test>
 

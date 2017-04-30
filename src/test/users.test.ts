@@ -9,7 +9,7 @@ import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
 import {Random} from './utils/random'
 import {PusherListener} from './utils/pusherlistener'
 
-describe.only('Users resource', () => {
+describe('Users resource', () => {
 
   let api: request.SuperTest<request.Test>
 
