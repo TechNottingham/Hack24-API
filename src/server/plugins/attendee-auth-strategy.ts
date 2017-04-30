@@ -52,7 +52,7 @@ async function validateAttendeeUser(username: string, slack: WebClient, log: Log
     slackUser = await slack.users.info(username)
   } catch (err) {
     log.error(`Could not look-up user "${username}" on Slack API: ${err.message}`)
-    throw err
+    return null
   }
 
   log.info(`Found "${username}" to be "${slackUser.user.profile.email}"`)

@@ -14,6 +14,7 @@ import TeamsRoute from './routes/teams'
 import UsersRoute from './routes/users'
 import RootRoute from './routes/root'
 import ChallengesRoute from './routes/challenges'
+import HacksRoute from './routes/hacks'
 
 import EventBroadcaster from './eventbroadcaster'
 import Config from './config'
@@ -87,12 +88,14 @@ export default class Server {
         },
       },
     ]
+
     this.routes = [
       AttendeesRoute,
       TeamsRoute,
       UsersRoute,
       RootRoute,
       ChallengesRoute,
+      HacksRoute,
     ]
 
     // this._server.use(ExpressLogger)

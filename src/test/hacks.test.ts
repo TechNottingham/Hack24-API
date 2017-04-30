@@ -1,15 +1,16 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {Team} from './models/teams'
-import {Hack} from './models/hacks'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { Team } from './models/teams'
+import { Hack } from './models/hacks'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, HacksResource, HackResource} from '../resources'
-import {PusherListener} from './utils/pusherlistener'
-import {SlackApi} from './utils/slackapi'
+import { JSONApi, HacksResource, HackResource } from '../resources'
+import { PusherListener } from './utils/pusherlistener'
+import { SlackApi } from './utils/slackapi'
+import { Random } from './utils/random'
 
-describe.skip('Hacks resource', () => {
+describe('Hacks resource', () => {
 
   let api: request.SuperTest<request.Test>
 
@@ -151,7 +152,8 @@ describe.skip('Hacks resource', () => {
     it('should return an error with status code 409 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '409')
-      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.')
+      assert.strictEqual(response.errors[0].title, 'Conflict')
+      assert.strictEqual(response.errors[0].detail, 'Hack already exists')
     })
 
     after(() => Promise.all([
@@ -166,8 +168,10 @@ describe.skip('Hacks resource', () => {
     let createdHack: Hack
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
     let slackApi: SlackApi
+    let pusherListener: PusherListener
 
     before(async () => {
       const hack = MongoDB.Hacks.createRandomHack()
@@ -187,6 +191,8 @@ describe.skip('Hacks resource', () => {
         error: 'user_not_found',
       }
 
+      pusherListener = await PusherListener.Create(ApiServer.PusherPort)
+
       const res = await api.post('/hacks')
         .auth('U12345678', ApiServer.HackbotPassword)
         .type('application/vnd.api+json')
@@ -195,51 +201,73 @@ describe.skip('Hacks resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
 
       createdHack = await MongoDB.Hacks.findByHackId(hack.hackid)
+      await pusherListener.waitForEvent()
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     it('should not create the hack document', () => {
       assert.strictEqual(createdHack, null)
     })
 
-    after(() => slackApi.close())
+    it('should not send an event to Pusher', () => {
+      assert.strictEqual(pusherListener.events.length, 0)
+    })
 
+    after(() => Promise.all([
+      slackApi.close(),
+      pusherListener.close(),
+    ]))
   })
 
   describe('OPTIONS hacks', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
-      const res = await api.options('/hacks').end()
+      origin = Random.str()
+
+      const res = await api.options('/hacks')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -251,10 +279,12 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -265,28 +295,31 @@ describe.skip('Hacks resource', () => {
 
   describe('GET hacks', () => {
 
+    let origin: string
     let firstHack: Hack
     let secondHack: Hack
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: HacksResource.TopLevelDocument
 
     before(async () => {
       await MongoDB.Hacks.removeAll()
 
+      origin = Random.str()
+
       firstHack = await MongoDB.Hacks.insertRandomHack('A')
       secondHack = await MongoDB.Hacks.insertRandomHack('B')
 
-      const res = await api.get('/hacks').end()
+      const res = await api.get('/hacks')
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -298,10 +331,9 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the hacks resource object self link', () => {
@@ -333,23 +365,33 @@ describe.skip('Hacks resource', () => {
 
   describe('OPTIONS hacks by slug (hackid)', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
+      origin = Random.str()
+
       const hack = MongoDB.Hacks.createRandomHack()
 
-      const res = await api.options(`/hacks/${hack.hackid}`).end()
+      const res = await api.options(`/hacks/${hack.hackid}`)
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -361,10 +403,12 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -375,26 +419,28 @@ describe.skip('Hacks resource', () => {
 
   describe('GET hack by slug (hackid)', () => {
 
+    let origin: string
     let hack: Hack
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: HackResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       hack = await MongoDB.Hacks.insertRandomHack()
 
       const res = await api.get(`/hacks/${hack.hackid}`)
+        .set('Origin', origin)
         .set('Accept', 'application/json')
         .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -406,10 +452,9 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the hack resource object self link', () => {
@@ -428,23 +473,25 @@ describe.skip('Hacks resource', () => {
 
   describe('GET hack by slug (hackid) which does not exist', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: HackResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       const res = await api.get(`/hacks/does not exist`)
+        .set('Origin', origin)
         .set('Accept', 'application/json')
         .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -452,10 +499,9 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(statusCode, 404)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -465,36 +511,41 @@ describe.skip('Hacks resource', () => {
     it('should respond with the expected "Resource not found" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '404')
-      assert.strictEqual(response.errors[0].title, 'Resource not found.')
+      assert.strictEqual(response.errors[0].title, 'Not Found')
+      assert.strictEqual(response.errors[0].detail, 'Hack not found')
     })
   })
 
   describe('GET hacks by filter', () => {
 
+    let origin: string
     let firstHack: Hack
     let secondHack: Hack
     let thirdHack: Hack
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: HacksResource.TopLevelDocument
 
     before(async () => {
       await MongoDB.Hacks.removeAll()
 
+      origin = Random.str()
+
       firstHack = await MongoDB.Hacks.insertRandomHack('ABCD')
       secondHack = await MongoDB.Hacks.insertRandomHack('ABEF')
       thirdHack = await MongoDB.Hacks.insertRandomHack('ABCE')
 
-      const res = await api.get('/hacks?filter[name]=ABC').end()
+      const res = await api.get('/hacks?filter[name]=ABC')
+        .set('Origin', origin)
+        .set('Accept', 'application/json')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -506,10 +557,9 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the hacks resource object self link', () => {
@@ -630,7 +680,8 @@ describe.skip('Hacks resource', () => {
     it('should respond with the expected "Hack is entered into a team" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Hack is entered into a team.')
+      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].detail, 'Hack is entered into a team')
     })
 
     it('should not delete the hack', () => {
@@ -672,10 +723,11 @@ describe.skip('Hacks resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Resource not found" error', () => {
+    it('should respond with the expected "Hack not found" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '404')
-      assert.strictEqual(response.errors[0].title, 'Resource not found.')
+      assert.strictEqual(response.errors[0].title, 'Not Found')
+      assert.strictEqual(response.errors[0].detail, 'Hack not found')
     })
 
     after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid))
@@ -685,12 +737,14 @@ describe.skip('Hacks resource', () => {
   describe('DELETE hack with incorrect auth', () => {
 
     let hack: Hack
+    let deletedHack: Hack
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
 
     before(async () => {
-      hack = MongoDB.Hacks.createRandomHack()
+      hack = await MongoDB.Hacks.insertRandomHack()
 
       const res = await api.delete(`/hacks/${encodeURIComponent(hack.hackid)}`)
         .auth('sack', 'boy')
@@ -698,23 +752,36 @@ describe.skip('Hacks resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
+
+      deletedHack = await MongoDB.Hacks.findByHackId(hack.hackid)
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
+
+    it('should not delete the hack', () => {
+      assert.strictEqual(deletedHack.hackid, hack.hackid)
+    })
+
+    after(() => MongoDB.Hacks.removeByHackId(hack.hackid))
 
   })
 
