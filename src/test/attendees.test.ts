@@ -10,8 +10,7 @@ describe('Attendees resource', () => {
   let api: request.SuperTest<request.Test>
 
   before(() => {
-    const s = `http://localhost:${ApiServer.Port}`
-    api = request(s)
+    api = request(`http://localhost:${ApiServer.Port}`)
   })
 
   describe('GET attendee by ID', () => {
