@@ -1,12 +1,12 @@
 import * as respond from './respond'
 import * as middleware from '../middleware'
 
-import { UserModel, TeamModel } from '../models'
-import { Request, Response, Router } from 'express'
-import { MongoDBErrors } from '../models'
-import { UserResource, UsersResource, TeamResource } from '../../resources'
-import EventBroadcaster from '../eventbroadcaster'
-import { JsonApiParser } from '../parsers'
+import {UserModel, TeamModel} from '../models'
+import {Request, Response, Router} from 'express'
+import {MongoDBErrors} from '../models'
+import {UserResource, UsersResource, TeamResource} from '../../resources'
+import {EventBroadcaster} from '../eventbroadcaster'
+import {JsonApiParser} from '../parsers'
 
 export class UsersRoute {
   private _eventBroadcaster: EventBroadcaster
@@ -177,7 +177,7 @@ export class UsersRoute {
       || !requestDoc.data.attributes.name
       || typeof requestDoc.data.attributes.name !== 'string') {
       return respond.Send400(res)
-    }
+      }
 
     const user = new UserModel({
       userid: requestDoc.data.id,
