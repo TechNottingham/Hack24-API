@@ -15,6 +15,7 @@ import UsersRoute from './routes/users'
 import RootRoute from './routes/root'
 import ChallengesRoute from './routes/challenges'
 import HacksRoute from './routes/hacks'
+import HackChallengesRoute from './routes/hack-challenges'
 import TeamMembersRoute from './routes/team-members'
 import TeamEntriesRoute from './routes/team-entries'
 
@@ -100,6 +101,7 @@ export default class Server {
       TeamEntriesRoute,
       ChallengesRoute,
       HacksRoute,
+      HackChallengesRoute,
     ]
 
     // this._server.use(ExpressLogger)
