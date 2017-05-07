@@ -16,5 +16,5 @@ export default async function handler(req: Request, reply: IReply) {
 
   await TeamModel.remove({ _id: team._id }).exec()
 
-  reply().code(204)
+  reply()
 }

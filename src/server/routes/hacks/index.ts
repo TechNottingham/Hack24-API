@@ -41,6 +41,9 @@ const register: PluginRegister = (server, _, next) => {
             hackId: Joi.string(),
           },
         },
+        response: {
+          emptyStatusCode: 204,
+        },
       },
     }, {
       method: 'GET',

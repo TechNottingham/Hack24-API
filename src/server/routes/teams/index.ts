@@ -66,6 +66,9 @@ const register: PluginRegister = (server, _, next) => {
             teamId: Joi.string(),
           },
         },
+        response: {
+          emptyStatusCode: 204,
+        },
       },
     },
     {
@@ -115,6 +118,9 @@ const register: PluginRegister = (server, _, next) => {
               }).optionalKeys('name', 'motto'),
             }).optionalKeys('attributes'),
           }),
+        },
+        response: {
+          emptyStatusCode: 204,
         },
       },
     },

@@ -18,5 +18,5 @@ export default async function handler(req: Request, reply: IReply) {
   }
 
   await HackModel.remove({ _id: hack._id }).exec()
-  reply().code(204)
+  reply()
 }

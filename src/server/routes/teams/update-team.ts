@@ -14,12 +14,12 @@ export default async function handler(req: Request, reply: IReply) {
   }
 
   if (requestDoc.data.attributes === undefined) {
-    reply().code(204)
+    reply()
     return
   }
 
   if (requestDoc.data.attributes.motto === undefined) {
-    reply().code(204)
+    reply()
     return
   }
 
@@ -38,7 +38,7 @@ export default async function handler(req: Request, reply: IReply) {
     .findOneAndUpdate({ teamid }, { motto: newMotto }, { select: projection })
     .exec()
 
-  reply().code(204)
+  reply()
 
   if (team.motto === newMotto) {
     return

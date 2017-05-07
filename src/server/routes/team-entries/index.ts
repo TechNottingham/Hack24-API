@@ -30,6 +30,9 @@ const register: PluginRegister = (server, _, next) => {
           },
           payload: multipleEntriesSchema,
         },
+        response: {
+          emptyStatusCode: 204,
+        },
       },
     }, {
       method: 'DELETE',
@@ -44,6 +47,9 @@ const register: PluginRegister = (server, _, next) => {
             teamId: Joi.string(),
           },
           payload: multipleEntriesSchema,
+        },
+        response: {
+          emptyStatusCode: 204,
         },
       },
     }, {

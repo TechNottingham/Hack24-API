@@ -26,9 +26,30 @@ function handleBoom(response: Response, contentType: string) {
   }
 }
 
+function applyEmptyStatusCode(request: Request) {
+  const { method, response } = request
+  const { source, statusCode } = response
+
+  // slight customisations over the Hapi default behaviour
+  // see: https://github.com/hapijs/hapi/blob/b92664d9e4e1a184e7e2d958049af0f065d04f02/lib/response.js#L68
+
+  if (source !== null) {
+    return
+  }
+
+  if (statusCode === 204 ||
+    (statusCode === 200 && request.route.settings.response.emptyStatusCode === 204) ||
+    (method === 'options' && statusCode === 200)) {
+    response.code(204)
+    delete response.headers['content-type']
+  }
+}
+
 const register: PluginRegister = (server, options: Options, next) => {
   const contentType = options.type
   server.ext('onPreResponse', (request: Request, reply: IReply) => {
+    applyEmptyStatusCode(request)
+
     const response = request.response
 
     if (response.isBoom) {
@@ -38,16 +59,8 @@ const register: PluginRegister = (server, options: Options, next) => {
       if (response.statusCode !== 204 && typeof response.headers['content-type'] === 'undefined') {
         response.headers['content-type'] = contentType
       }
-
-      // return 204 for all preflight OPTIONS requests
-      if (request.method === 'options' && response.statusCode === 200) {
-        response.statusCode = 204
-      }
-
-      if (response.statusCode === 204) {
-        delete response.headers['content-type']
-      }
     }
+
     reply.continue()
   })
 

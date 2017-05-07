@@ -14,5 +14,5 @@ export default async function handler(request: Request, reply: IReply) {
     return
   }
 
-  reply().code(204)
+  reply()
 }

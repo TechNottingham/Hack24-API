@@ -38,6 +38,9 @@ const register: PluginRegister = (server, _, next) => {
             attendeeId: Joi.string(),
           },
         },
+        response: {
+          emptyStatusCode: 204,
+        },
       },
     }, {
       method: 'GET',

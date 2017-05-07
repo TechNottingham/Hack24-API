@@ -30,6 +30,9 @@ const register: PluginRegister = (server, _, next) => {
           },
           payload: multipleChallengesSchema,
         },
+        response: {
+          emptyStatusCode: 204,
+        },
       },
     }, {
       method: 'DELETE',
@@ -44,6 +47,9 @@ const register: PluginRegister = (server, _, next) => {
             hackId: Joi.string(),
           },
           payload: multipleChallengesSchema,
+        },
+        response: {
+          emptyStatusCode: 204,
         },
       },
     }, {
