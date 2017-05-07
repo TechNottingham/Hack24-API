@@ -14,10 +14,10 @@ export default async function handler(_: Request, reply: IReply) {
     id: attendee.attendeeid,
   }))
 
-  const attendeesResponse = {
+  const attendeesResponse: AttendeesResource.TopLevelDocument = {
     links: { self: '/attendees' },
     data: attendeesData,
-  } as AttendeesResource.TopLevelDocument
+  }
 
   reply(attendeesResponse)
 }

@@ -36,7 +36,7 @@ export default async function handler(req: Request, reply: IReply) {
     throw err
   }
 
-  const userResponse = {
+  const userResponse: UserResource.TopLevelDocument = {
     links: {
       self: `/users/${encodeURIComponent(user.userid)}`,
     },
@@ -55,7 +55,7 @@ export default async function handler(req: Request, reply: IReply) {
         },
       },
     },
-  } as UserResource.TopLevelDocument
+  }
 
   const eventBroadcaster: EventBroadcaster = req.server.app.eventBroadcaster
   eventBroadcaster.trigger('users_add', {

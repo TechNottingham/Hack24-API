@@ -52,11 +52,11 @@ export default async function handler(_: Request, reply: IReply) {
     },
   }))
 
-  const usersResponse = {
+  const usersResponse: UsersResource.TopLevelDocument = {
     links: { self: '/users' },
     data: userResponses,
     included: includedTeams,
-  } as UsersResource.TopLevelDocument
+  }
 
   reply(usersResponse)
 }

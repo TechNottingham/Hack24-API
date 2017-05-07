@@ -17,13 +17,13 @@ export default async function handler(request: Request, reply: IReply) {
     return
   }
 
-  const attendeeResponse = {
+  const attendeeResponse: AttendeeResource.TopLevelDocument = {
     links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
     data: {
       type: 'attendees',
       id: attendee.attendeeid,
     },
-  } as AttendeeResource.TopLevelDocument
+  }
 
   reply(attendeeResponse)
 }

@@ -23,7 +23,7 @@ export default async function handler(req: Request, reply: IReply) {
     .populate('members', 'userid name')
     .exec()
 
-  const userResponse = {
+  const userResponse: UserResource.TopLevelDocument = {
     links: { self: `/users/${encodeURIComponent(user.userid)}` },
     data: {
       type: 'users',
@@ -36,12 +36,12 @@ export default async function handler(req: Request, reply: IReply) {
         },
       },
     },
-  } as UserResource.TopLevelDocument
+  }
 
   if (team) {
     userResponse.data.relationships.team.data = { type: 'teams', id: team.teamid }
 
-    const includedTeam = {
+    const includedTeam: TeamResource.ResourceObject = {
       links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
       type: 'teams',
       id: team.teamid,
@@ -59,7 +59,7 @@ export default async function handler(req: Request, reply: IReply) {
           data: null,
         },
       },
-    } as TeamResource.ResourceObject
+    }
 
     const includedUsers = team.members
       .filter((member) => member.userid !== user.userid)

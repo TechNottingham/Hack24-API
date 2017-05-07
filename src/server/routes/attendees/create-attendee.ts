@@ -31,13 +31,13 @@ export default async function handler(request: Request, reply: IReply) {
     throw err
   }
 
-  const attendeeResponse = {
+  const attendeeResponse: AttendeeResource.TopLevelDocument = {
     links: { self: `/attendees/${encodeURIComponent(attendee.attendeeid)}` },
     data: {
       type: 'attendees',
       id: attendee.attendeeid,
     },
-  } as AttendeeResource.TopLevelDocument
+  }
 
   reply(attendeeResponse).code(201)
 }
