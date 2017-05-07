@@ -15,7 +15,7 @@ const register: PluginRegister = (server, pluginOptions: CustomOptions, next) =>
       if (username !== pluginOptions.username || password !== pluginOptions.password) {
         return callback(null, false)
       }
-      callback(null, true, {})
+      callback(null, true, { username })
     },
   })
 
