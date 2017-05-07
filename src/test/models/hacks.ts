@@ -1,5 +1,5 @@
-import {Db, Collection, ObjectID} from 'mongodb'
-import {Random} from '../utils/random'
+import { Db, Collection, ObjectID } from 'mongodb'
+import { Random } from '../utils/random'
 
 export interface Hack {
   _id?: ObjectID

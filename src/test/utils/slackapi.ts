@@ -1,5 +1,5 @@
 import * as express from 'express'
-import {Server} from 'http'
+import { Server } from 'http'
 
 export class SlackApi {
   public static Create(port: number, basePath: string) {
@@ -9,7 +9,7 @@ export class SlackApi {
   private _server: Server
   private _usersInfo: any
 
-  constructor(private basePath: string) {}
+  constructor(private basePath: string) { }
 
   public set UsersList(response: any) {
     this._usersInfo = response

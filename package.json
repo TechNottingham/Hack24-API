@@ -44,7 +44,7 @@
     "promisify-supertest": "^1.0.0",
     "rimraf": "^2.6.1",
     "supertest": "^3.0.0",
-    "tslint": "^5.1.0",
+    "tslint": "^5.2.0",
     "typescript": "^2.3.2"
   }
 }

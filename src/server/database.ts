@@ -1,6 +1,5 @@
 import * as mongoose from 'mongoose'
-
-import {Logger} from 'pino'
+import { Logger } from 'pino'
 
 // see: http://mongoosejs.com/docs/promises.html#plugging-in-your-own-promises-library
 (mongoose as any).Promise = global.Promise
@@ -13,7 +12,7 @@ export default function connect(url: string, log: Logger) {
     let attempts = 0
 
     function connect() {
-      attempts ++
+      attempts++
       mongoose.connect(url).then(() => {
         resolve()
       }, (err) => {

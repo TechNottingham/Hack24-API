@@ -1,4 +1,4 @@
-import {fork, ChildProcess} from 'child_process'
+import { fork, ChildProcess } from 'child_process'
 import * as path from 'path'
 
 export class ApiServer {
@@ -33,15 +33,18 @@ export class ApiServer {
       })
 
       this._api.stderr.on('data', (data: Buffer) => {
-        console.log(`!> ${data.toString('utf8')}`) // tslint:disable-line:no-console
+        // tslint:disable-next-line:no-console
+        console.log(`!> ${data.toString('utf8')}`)
       })
 
       this._api.stdout.on('data', (data: Buffer) => {
-        console.log(`#> ${data.toString('utf8')}`) // tslint:disable-line:no-console
+        // tslint:disable-next-line:no-console
+        console.log(`#> ${data.toString('utf8')}`)
       })
 
       this._api.once('close', (code) => {
         if (code !== null && code !== 0) {
+          // tslint:disable-next-line:no-console
           return console.error(new Error('API closed with non-zero exit code (' + code + ')'))
         }
       })

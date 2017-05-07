@@ -1,5 +1,5 @@
-import {Db, Collection, ObjectID} from 'mongodb'
-import {Random} from '../utils/random'
+import { Db, Collection, ObjectID } from 'mongodb'
+import { Random } from '../utils/random'
 
 export interface User {
   _id?: ObjectID
@@ -37,7 +37,7 @@ export class Users {
 
   public removeByUserId(userid: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this._collection.deleteOne({ userid: userid}).then(() => {
+      this._collection.deleteOne({ userid: userid }).then(() => {
         resolve()
       }).catch((err) => {
         reject(new Error('Could not remove user: ' + err.message))

@@ -304,14 +304,14 @@ declare module "@slack/client" {
     list(opts: any, optCb: (err: any, response: UsersListResponse) => void): void;
     list(optCb: (err: any, response: UsersListResponse) => void): void;
     list(opts?: any): Promise<UsersListResponse>;
-    
+
     info(user: string, optCb: (err: any, response: UsersInfoResponse) => void): void;
     info(user: string): Promise<UsersInfoResponse>;
   }
 
-  class IncomingWebhook {}
+  class IncomingWebhook { }
 
-  class LegacyRtmClient {}
+  class LegacyRtmClient { }
 
   var CLIENT_EVENTS: {
     WEB: string;

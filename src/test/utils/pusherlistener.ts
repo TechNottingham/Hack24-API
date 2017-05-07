@@ -1,7 +1,7 @@
 import * as express from 'express'
-import {json as jsonBodyParser} from 'body-parser'
-import {Server} from 'http'
-import {EventEmitter} from 'events'
+import { json as jsonBodyParser } from 'body-parser'
+import { Server } from 'http'
+import { EventEmitter } from 'events'
 
 const bodyParser = jsonBodyParser()
 
