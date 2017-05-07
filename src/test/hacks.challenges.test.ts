@@ -326,7 +326,7 @@ describe('Hack Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, undefined)
     })
 
@@ -521,7 +521,7 @@ describe('Hack Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'One or more of the specified challenges are already in a hack')
     })
 
@@ -597,7 +597,7 @@ describe('Hack Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'One or more of the specified challenges could not be found')
     })
 

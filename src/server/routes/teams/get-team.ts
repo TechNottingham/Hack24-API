@@ -1,5 +1,5 @@
 import { Request, IReply } from 'hapi'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 import { TeamModel } from '../../models'
 import { TeamResource, UserResource, HackResource } from '../../../resources'
 

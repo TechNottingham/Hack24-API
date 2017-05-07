@@ -2,7 +2,7 @@ import { Request, IReply } from 'hapi'
 import { HackModel } from '../../models'
 import { HackChallengesRelationship } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 
 export default async function handler(req: Request, reply: IReply) {
   const { hackId: hackid } = req.params

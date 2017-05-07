@@ -1,7 +1,7 @@
 import { Request, IReply } from 'hapi'
 import { TeamModel } from '../../models'
 import { JSONApi, UserResource, TeamMembersRelationship } from '../../../resources'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 
 export default async function handler(req: Request, reply: IReply) {
   const { teamId: teamid } = req.params

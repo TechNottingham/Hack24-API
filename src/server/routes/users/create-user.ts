@@ -3,7 +3,7 @@ import { UserModel } from '../../models'
 import { MongoDBErrors } from '../../models'
 import { UserResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 
 export default async function handler(req: Request, reply: IReply) {
   const requestDoc: UserResource.TopLevelDocument = req.payload

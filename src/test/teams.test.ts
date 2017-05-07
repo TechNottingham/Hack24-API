@@ -295,7 +295,7 @@ describe('Teams resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -638,7 +638,7 @@ describe('Teams resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -1693,7 +1693,7 @@ describe('Teams resource', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'Only empty teams can be deleted')
     })
 

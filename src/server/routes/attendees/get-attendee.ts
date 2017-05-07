@@ -1,7 +1,7 @@
 import { Request, IReply } from 'hapi'
 import { AttendeeModel } from '../../models'
 import { AttendeeResource } from '../../../resources'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 
 export default async function handler(request: Request, reply: IReply) {
   const { attendeeId: attendeeid } = request.params

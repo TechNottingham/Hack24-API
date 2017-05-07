@@ -2,7 +2,7 @@ import { Request, IReply } from 'hapi'
 import { MongoDBErrors } from '../../models'
 import { ChallengeModel } from '../../models'
 import { ChallengeResource } from '../../../resources'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 import { slugify } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {

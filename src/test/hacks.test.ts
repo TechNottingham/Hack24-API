@@ -213,7 +213,7 @@ describe('Hacks resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -680,7 +680,7 @@ describe('Hacks resource', () => {
     it('should respond with the expected "Hack is entered into a team" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'Hack is entered into a team')
     })
 
@@ -763,7 +763,7 @@ describe('Hacks resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {

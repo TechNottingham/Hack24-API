@@ -327,7 +327,7 @@ describe('Team Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, undefined)
     })
 
@@ -524,7 +524,7 @@ describe('Team Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'One or more of the specified hacks are already in a team')
     })
 
@@ -600,7 +600,7 @@ describe('Team Entries relationship', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Bad request')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
       assert.strictEqual(response.errors[0].detail, 'One or more of the specified hacks could not be found')
     })
 

@@ -1,6 +1,6 @@
 import { Server, Request, IReply, IServerAuthScheme } from 'hapi'
 import { PluginRegister } from '../../hapi.types'
-import * as Boom from '../boom'
+import * as Boom from 'boom'
 
 type ValidateFuncCallback = (err: any, isValid?: boolean, credentials?: any) => void
 

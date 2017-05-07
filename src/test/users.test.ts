@@ -753,7 +753,7 @@ describe('Users resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Credentials required"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -806,7 +806,7 @@ describe('Users resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {

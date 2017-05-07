@@ -3,7 +3,7 @@ import { MongoDBErrors } from '../../models'
 import { HackModel } from '../../models'
 import { HackResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 import { slugify } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {

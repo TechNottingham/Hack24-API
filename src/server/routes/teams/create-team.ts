@@ -2,7 +2,7 @@ import { Request, IReply } from 'hapi'
 import { UserModel, TeamModel, HackModel, MongoDBErrors } from '../../models'
 import { JSONApi, TeamResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 import { slugify } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {

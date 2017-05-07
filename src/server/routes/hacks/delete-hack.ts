@@ -1,6 +1,6 @@
 import { Request, IReply } from 'hapi'
 import { HackModel, TeamModel } from '../../models'
-import * as Boom from '../../boom'
+import * as Boom from 'boom'
 
 export default async function handler(req: Request, reply: IReply) {
   const { hackId: hackid } = req.params

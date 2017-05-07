@@ -82,7 +82,7 @@ describe('Attendees resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -192,7 +192,7 @@ describe('Attendees resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -340,7 +340,7 @@ describe('Attendees resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
@@ -459,7 +459,7 @@ describe('Attendees resource', () => {
     })
 
     it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access"')
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
