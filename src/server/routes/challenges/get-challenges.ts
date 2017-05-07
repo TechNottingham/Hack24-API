@@ -1,16 +1,13 @@
 import { Request, IReply } from 'hapi'
 import { ChallengeModel } from '../../models'
 import { ChallengeResource, ChallengesResource } from '../../../resources'
-
-function escapeForRegex(str: string): string {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
-}
+import { createEscapedRegex } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {
   const query: any = {}
 
   if (req.query['filter[name]']) {
-    query.name = new RegExp(escapeForRegex(req.query['filter[name]']), 'i')
+    query.name = createEscapedRegex(req.query['filter[name]'])
   }
 
   const challenges = await ChallengeModel

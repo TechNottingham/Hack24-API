@@ -1,10 +1,7 @@
 import { Request, IReply } from 'hapi'
 import { TeamModel } from '../../models'
 import { TeamResource, TeamsResource, UserResource, HackResource, ChallengeResource } from '../../../resources'
-
-function escapeForRegex(str: string): string {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
-}
+import { createEscapedRegex } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {
   const query: any = {}
@@ -12,7 +9,7 @@ export default async function handler(req: Request, reply: IReply) {
   req.logger.info('Filter: ', req.query)
 
   if (req.query['filter[name]']) {
-    query.name = new RegExp(escapeForRegex(req.query['filter[name]']), 'i')
+    query.name = createEscapedRegex(req.query['filter[name]'])
   }
 
   const teams = await TeamModel
