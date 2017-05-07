@@ -16,12 +16,12 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  const members = team.members.map<JSONApi.ResourceIdentifierObject>((member) => ({
+  const members = team.members.map((member): JSONApi.ResourceIdentifierObject => ({
     type: 'users',
     id: member.userid,
   }))
 
-  const includedUsers = team.members.map<UserResource.ResourceObject>((member) => ({
+  const includedUsers = team.members.map((member): UserResource.ResourceObject => ({
     links: { self: `/users/${member.userid}` },
     type: 'users',
     id: member.userid,

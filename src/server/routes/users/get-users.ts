@@ -32,7 +32,7 @@ export default async function handler(_: Request, reply: IReply) {
     return userResponse
   })
 
-  const includedTeams = teams.map<TeamResource.ResourceObject>((team) => ({
+  const includedTeams = teams.map((team): TeamResource.ResourceObject => ({
     links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
     type: 'teams',
     id: team.teamid,

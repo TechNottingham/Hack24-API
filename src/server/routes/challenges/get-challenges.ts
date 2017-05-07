@@ -15,7 +15,7 @@ export default async function handler(req: Request, reply: IReply) {
     .sort({ challengeid: 1 })
     .exec()
 
-  const challengeResponses = challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+  const challengeResponses = challenges.map((challenge): ChallengeResource.ResourceObject => ({
     links: { self: `/challenges/${encodeURIComponent(challenge.challengeid)}` },
     type: 'challenges',
     id: challenge.challengeid,

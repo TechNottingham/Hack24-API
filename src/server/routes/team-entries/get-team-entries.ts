@@ -16,12 +16,12 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  const entries = team.entries.map<JSONApi.ResourceIdentifierObject>((hack) => ({
+  const entries = team.entries.map((hack): JSONApi.ResourceIdentifierObject => ({
     type: 'hacks',
     id: hack.hackid,
   }))
 
-  const includedHacks = team.entries.map<HackResource.ResourceObject>((hack) => ({
+  const includedHacks = team.entries.map((hack): HackResource.ResourceObject => ({
     links: { self: `/hacks/${hack.hackid}` },
     type: 'hacks',
     id: hack.hackid,

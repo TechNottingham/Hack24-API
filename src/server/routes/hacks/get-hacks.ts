@@ -15,7 +15,7 @@ export default async function handler(req: Request, reply: IReply) {
     .sort({ hackid: 1 })
     .exec()
 
-  const hackResponses = hacks.map<HackResource.ResourceObject>((hack) => ({
+  const hackResponses = hacks.map((hack): HackResource.ResourceObject => ({
     links: { self: `/hacks/${encodeURIComponent(hack.hackid)}` },
     type: 'hacks',
     id: hack.hackid,

@@ -63,7 +63,7 @@ export default async function handler(req: Request, reply: IReply) {
 
     const includedUsers = team.members
       .filter((member) => member.userid !== user.userid)
-      .map<UserResource.ResourceObject>((member) => ({
+      .map((member): UserResource.ResourceObject => ({
         links: { self: `/users/${encodeURIComponent(member.userid)}` },
         type: 'users',
         id: member.userid,

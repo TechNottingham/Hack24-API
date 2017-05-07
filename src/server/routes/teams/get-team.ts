@@ -27,14 +27,14 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  const includedUsers = team.members.map<UserResource.ResourceObject>((user) => ({
+  const includedUsers = team.members.map((user): UserResource.ResourceObject => ({
     links: { self: `/users/${user.userid}` },
     type: 'users',
     id: user.userid,
     attributes: { name: user.name },
   }))
 
-  const includedHacks = team.entries.map<HackResource.ResourceObject>((hack) => ({
+  const includedHacks = team.entries.map((hack): HackResource.ResourceObject => ({
     links: { self: `/hacks/${hack.hackid}` },
     type: 'hacks',
     id: hack.hackid,

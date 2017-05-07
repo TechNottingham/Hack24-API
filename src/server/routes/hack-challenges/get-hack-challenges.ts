@@ -16,12 +16,12 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  const challenges = hack.challenges.map<JSONApi.ResourceIdentifierObject>((challenge) => ({
+  const challenges = hack.challenges.map((challenge): JSONApi.ResourceIdentifierObject => ({
     type: 'challenges',
     id: challenge.challengeid,
   }))
 
-  const includedChallenges = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+  const includedChallenges = hack.challenges.map((challenge): ChallengeResource.ResourceObject => ({
     links: { self: `/challenges/${challenge.challengeid}` },
     type: 'challenges',
     id: challenge.challengeid,

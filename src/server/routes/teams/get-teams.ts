@@ -1,6 +1,6 @@
 import { Request, IReply } from 'hapi'
 import { TeamModel } from '../../models'
-import { TeamResource, TeamsResource, UserResource, HackResource, ChallengeResource } from '../../../resources'
+import { TeamResource, TeamsResource, UserResource, HackResource, ChallengeResource, JSONApi } from '../../../resources'
 import { createEscapedRegex } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {
@@ -29,7 +29,7 @@ export default async function handler(req: Request, reply: IReply) {
     })
     .exec()
 
-  const teamResponses = teams.map<TeamResource.ResourceObject>((team) => ({
+  const teamResponses = teams.map((team): TeamResource.ResourceObject => ({
     links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
     type: 'teams',
     id: team.teamid,
@@ -49,15 +49,15 @@ export default async function handler(req: Request, reply: IReply) {
     },
   }))
 
-  const includes = teams.reduce((docs, team) => {
-    const members = team.members.map<UserResource.ResourceObject>((member) => ({
+  const includes: JSONApi.ResourceObject[] = [].concat(...teams.map((team): JSONApi.ResourceObject[] => {
+    const members = team.members.map((member): UserResource.ResourceObject => ({
       links: { self: `/users/${member.userid}` },
       type: 'users',
       id: member.userid,
       attributes: { name: member.name },
     }))
 
-    const entries = team.entries.map<HackResource.ResourceObject>((hack) => ({
+    const entries = team.entries.map((hack): HackResource.ResourceObject => ({
       links: { self: `/hacks/${hack.hackid}` },
       type: 'hacks',
       id: hack.hackid,
@@ -70,18 +70,17 @@ export default async function handler(req: Request, reply: IReply) {
       },
     }))
 
-    const challenges = team.entries.reduce<ChallengeResource.ResourceObject[]>((previous, hack) => {
-      const these = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+    const challenges: ChallengeResource.ResourceObject[] = [].concat(...team.entries.map((hack) => (
+      hack.challenges.map((challenge): ChallengeResource.ResourceObject => ({
         links: { self: `/challenges/${challenge.challengeid}` },
         type: 'challenges',
         id: challenge.challengeid,
         attributes: { name: challenge.name },
       }))
-      return [...previous, ...these]
-    }, [])
+    )))
 
-    return [...docs, ...members, ...entries, ...challenges]
-  }, [])
+    return [...members, ...entries, ...challenges]
+  }))
 
   const teamsResponse: TeamsResource.TopLevelDocument = {
     links: { self: `/teams` },
