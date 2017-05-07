@@ -43,23 +43,21 @@ export default async function handler(req: Request, reply: IReply) {
     'members.name': true,
   }
 
-  TeamModel
+  const team = await TeamModel
     .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: newMotto }, { select: projection })
     .exec()
-    .then((team) => {
-      reply().code(204)
 
-      if (team.motto === newMotto) {
-        return
-      }
+  reply().code(204)
 
-      const eventBroadcaster: EventBroadcaster = req.server.app.eventBroadcaster
-      eventBroadcaster.trigger('teams_update_motto', {
-        teamid: team.teamid,
-        name: team.name,
-        motto: newMotto,
-        members: team.members.map((member) => ({ userid: member.userid, name: member.name })),
-      }, req.logger)
+  if (team.motto === newMotto) {
+    return
+  }
 
-    }, (err) => reply(Boom.badImplementation(err)))
+  const eventBroadcaster: EventBroadcaster = req.server.app.eventBroadcaster
+  eventBroadcaster.trigger('teams_update_motto', {
+    teamid: team.teamid,
+    name: team.name,
+    motto: newMotto,
+    members: team.members.map((member) => ({ userid: member.userid, name: member.name })),
+  }, req.logger)
 }
