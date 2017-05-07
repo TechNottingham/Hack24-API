@@ -12,8 +12,7 @@ export default class EventBroadcaster {
     this._pusher = Pusher.forURL(url)
   }
 
-  public trigger(event: string, data: any, log?: Logger) {
-    const logger = log ? log : this.log
+  public trigger(event: string, data: any, logger: Logger) {
     if (!this._pusher) {
       return logger.info(`Suppressing Pusher event "${event}" for channel "api_events"`, data)
     }

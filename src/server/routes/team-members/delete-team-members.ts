@@ -52,7 +52,7 @@ export default async function handler(req: Request, reply: IReply) {
         userid: user.userid,
         name: user.name,
       },
-    })
+    }, req.logger)
   })
 
   reply().code(204)

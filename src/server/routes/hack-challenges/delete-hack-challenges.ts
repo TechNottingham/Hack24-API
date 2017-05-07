@@ -54,7 +54,7 @@ export default async function handler(req: Request, reply: IReply) {
         challengeid: challenge.challengeid,
         name: challenge.name,
       },
-    })
+    }, req.logger)
   })
 
   reply().code(204)

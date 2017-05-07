@@ -61,7 +61,7 @@ export default async function handler(req: Request, reply: IReply) {
   eventBroadcaster.trigger('users_add', {
     userid: user.userid,
     name: user.name,
-  })
+  }, req.logger)
 
   reply(userResponse).code(201)
 }

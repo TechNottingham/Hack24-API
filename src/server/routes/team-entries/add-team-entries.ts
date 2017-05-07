@@ -72,7 +72,7 @@ export default async function handler(req: Request, reply: IReply) {
         hackid: hack.hackid,
         name: hack.name,
       },
-    })
+    }, req.logger)
   })
 
   reply().code(204)
