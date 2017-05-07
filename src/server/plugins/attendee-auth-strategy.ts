@@ -11,31 +11,31 @@ interface CustomOptions {
   password: string,
 }
 
-async function validateAttendeeUser(username: string, slack: WebClient, log: Logger) {
-  if (username.indexOf('@') > -1) {
-    log.info(`Finding attendee with email "${username}"...`)
+const slackIdPattern = /U[A-Z0-9]{8}/
 
-    // Username is an attendee email address
-    const attendees = await AttendeeModel
-      .find({ attendeeid: username }, '_id')
-      .limit(1)
-      .exec()
+async function validateAttendeeByEmailAddress(username: string, log: Logger) {
+  log.info(`Finding attendee with email "${username}"...`)
 
-    if (attendees.length === 0) {
-      return null
-    }
+  const attendees = await AttendeeModel
+    .find({ attendeeid: username }, '_id')
+    .limit(1)
+    .exec()
 
-    return { username }
+  if (attendees.length === 0) {
+    return null
   }
 
-  if (!/U[A-Z0-9]{8}/.test(username)) {
+  return { username }
+}
+
+async function validateAttendeeBySlackId(username: string, slack: WebClient, log: Logger) {
+  if (!slackIdPattern.test(username)) {
     log.info(`Invalid slackid: "${username}"`)
     return null
   }
 
   log.info(`Finding attendee with slackid "${username}"...`)
 
-  // Username is a Slack user ID
   const attendee = await AttendeeModel
     .findOne({ slackid: username }, '_id attendeeid')
     .exec()
@@ -67,6 +67,13 @@ async function validateAttendeeUser(username: string, slack: WebClient, log: Log
   }
 
   return { username: slackUser.user.profile.email }
+}
+
+function validateAttendeeUser(username: string, slack: WebClient, log: Logger) {
+  if (username.indexOf('@') > 0) {
+    return validateAttendeeByEmailAddress(username, log)
+  }
+  return validateAttendeeBySlackId(username, slack, log)
 }
 
 const register: PluginRegister = (server, options: CustomOptions, next) => {
