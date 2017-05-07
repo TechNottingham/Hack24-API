@@ -38,20 +38,11 @@ export default class Server {
   private server: Hapi.Server
   private eventBroadcaster: EventBroadcaster
   private plugins: Array<(PluginRegister | PluginRegisterDefinition)>
-  private routes: any[]
+  private routes: Array<(PluginRegister | PluginRegisterDefinition)>
   private slack: WebClient
 
   constructor(private pino: Logger) {
     this.eventBroadcaster = new EventBroadcaster(Config.pusher.url, this.pino)
-
-    // const usersRouter = new UsersRoute(eventBroadcaster).createRouter()
-    // const teamsRouter = new TeamsRoute(eventBroadcaster).createRouter()
-    // const teamMembersRouter = new TeamMembersRoute(eventBroadcaster).createRouter()
-    // const teamEntriesRouter = new TeamEntriesRoute(eventBroadcaster).createRouter()
-    // const hacksRouter = new HacksRoute(eventBroadcaster).createRouter()
-    // const hackChallengesRouter = new HackChallengesRoute(eventBroadcaster).createRouter()
-    // const challengesRouter = new ChallengesRoute(eventBroadcaster).createRouter()
-    // const attendeesRouter = new AttendeesRoute(eventBroadcaster).createRouter()
 
     this.slack = new WebClient(Config.slack.token, Config.slack.apiUrl ? {
       slackAPIUrl: Config.slack.apiUrl,
@@ -103,22 +94,6 @@ export default class Server {
       HacksRoute,
       HackChallengesRoute,
     ]
-
-    // this._server.use(ExpressLogger)
-
-    // this._server.use('/attendees', attendeesRouter)
-    // this._server.use('/users', usersRouter)
-    // this._server.use('/teams', teamMembersRouter)
-    // this._server.use('/teams', teamEntriesRouter)
-    // this._server.use('/teams', teamsRouter)
-    // this._server.use('/hacks', hacksRouter)
-    // this._server.use('/hacks', hackChallengesRouter)
-    // this._server.use('/challenges', challengesRouter)
-
-    // this._server.get('/api', (_, res) => res.send('Hack24 API is running'))
-
-    // this._server.get('/', middleware.allowAllOriginsWithGetAndHeaders, Root.Get)
-    // this._server.options('/', middleware.allowAllOriginsWithGetAndHeaders, (_, res) => respond.Send204(res))
   }
 
   public async start() {
