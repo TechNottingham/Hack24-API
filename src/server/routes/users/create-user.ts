@@ -8,19 +8,6 @@ import * as Boom from '../../boom'
 export default async function handler(req: Request, reply: IReply) {
   const requestDoc: UserResource.TopLevelDocument = req.payload
 
-  if (!requestDoc
-    || !requestDoc.data
-    || !requestDoc.data.id
-    || typeof requestDoc.data.id !== 'string'
-    || !requestDoc.data.type
-    || requestDoc.data.type !== 'users'
-    || !requestDoc.data.attributes
-    || !requestDoc.data.attributes.name
-    || typeof requestDoc.data.attributes.name !== 'string') {
-    reply(Boom.badRequest())
-    return
-  }
-
   const user = new UserModel({
     userid: requestDoc.data.id,
     name: requestDoc.data.attributes.name,

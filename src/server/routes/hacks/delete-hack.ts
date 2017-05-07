@@ -3,14 +3,9 @@ import { HackModel, TeamModel } from '../../models'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const hackId = req.params.hackId
+  const { hackId: hackid } = req.params
 
-  if (hackId === undefined || typeof hackId !== 'string' || hackId.length === 0) {
-    reply(Boom.badRequest())
-    return
-  }
-
-  const hack = await HackModel.findOne({ hackid: hackId }).exec()
+  const hack = await HackModel.findOne({ hackid }, '_id').exec()
   if (hack === null) {
     reply(Boom.notFound('Hack not found'))
     return

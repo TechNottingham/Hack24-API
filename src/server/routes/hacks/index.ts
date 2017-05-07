@@ -1,3 +1,4 @@
+import * as Joi from 'joi'
 import { PluginRegister } from '../../../hapi.types'
 import createHack from './create-hack'
 import deleteHack from './delete-hack'
@@ -15,6 +16,17 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'attendee',
+        validate: {
+          payload: Joi.object().keys({
+            data: Joi.object().keys({
+              id: Joi.string(),
+              type: Joi.only('hacks'),
+              attributes: Joi.object().keys({
+                name: Joi.string(),
+              }),
+            }),
+          }),
+        },
       },
     }, {
       method: 'DELETE',
@@ -24,6 +36,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'attendee',
+        validate: {
+          params: {
+            hackId: Joi.string(),
+          },
+        },
       },
     }, {
       method: 'GET',
@@ -42,6 +59,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         cors: true,
+        validate: {
+          params: {
+            hackId: Joi.string(),
+          },
+        },
       },
     },
   ])

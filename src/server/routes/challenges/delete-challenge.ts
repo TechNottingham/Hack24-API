@@ -3,15 +3,10 @@ import { ChallengeModel } from '../../models'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const challengeId = req.params.challengeId
-
-  if (challengeId === undefined || typeof challengeId !== 'string' || challengeId.length === 0) {
-    reply(Boom.badRequest())
-    return
-  }
+  const { challengeId: challengeid } = req.params
 
   const deletedChallenge = await ChallengeModel
-    .findOneAndRemove({ challengeid: challengeId }, { select: { _id: true } })
+    .findOneAndRemove({ challengeid }, { select: { _id: true } })
     .exec()
 
   if (deletedChallenge === null) {

@@ -4,10 +4,10 @@ import { HackResource } from '../../../resources'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const hackId = req.params.hackId
+  const { hackId: hackid } = req.params
 
   const hack = await HackModel
-    .findOne({ hackid: hackId }, 'hackid name')
+    .findOne({ hackid }, 'hackid name')
     .exec()
 
   if (hack === null) {

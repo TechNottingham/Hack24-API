@@ -1,3 +1,4 @@
+import * as Joi from 'joi'
 import { PluginRegister } from '../../../hapi.types'
 import createAttendee from './create-attendee'
 import deleteAttendee from './delete-attendee'
@@ -15,6 +16,14 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'admin',
+        validate: {
+          payload: Joi.object().keys({
+            data: Joi.object().keys({
+              id: Joi.string(),
+              type: Joi.only('attendees'),
+            }),
+          }),
+        },
       },
     }, {
       method: 'DELETE',
@@ -24,6 +33,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'admin',
+        validate: {
+          params: {
+            attendeeId: Joi.string(),
+          },
+        },
       },
     }, {
       method: 'GET',
@@ -42,6 +56,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'admin',
+        validate: {
+          params: {
+            attendeeId: Joi.string(),
+          },
+        },
       },
     },
   ])

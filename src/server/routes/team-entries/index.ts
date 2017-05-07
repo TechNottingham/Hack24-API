@@ -1,7 +1,17 @@
+import * as Joi from 'joi'
 import { PluginRegister } from '../../../hapi.types'
 import addTeamEntries from './add-team-entries'
 import deleteTeamEntries from './delete-team-entries'
 import getTeamEntries from './get-team-entries'
+
+const multipleEntriesSchema = Joi.object().keys({
+  data: Joi.array().items(
+    Joi.object().keys({
+      id: Joi.string(),
+      type: Joi.only('hacks'),
+    }),
+  ),
+})
 
 const register: PluginRegister = (server, _, next) => {
 
@@ -14,6 +24,12 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'attendee',
+        validate: {
+          params: {
+            teamId: Joi.string(),
+          },
+          payload: multipleEntriesSchema,
+        },
       },
     }, {
       method: 'DELETE',
@@ -23,6 +39,12 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'attendee',
+        validate: {
+          params: {
+            teamId: Joi.string(),
+          },
+          payload: multipleEntriesSchema,
+        },
       },
     }, {
       method: 'GET',
@@ -32,6 +54,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         cors: true,
+        validate: {
+          params: {
+            teamId: Joi.string(),
+          },
+        },
       },
     },
   ])

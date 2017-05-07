@@ -7,16 +7,6 @@ import * as Boom from '../../boom'
 export default async function handler(request: Request, reply: IReply) {
   const requestDoc: AttendeeResource.TopLevelDocument = request.payload
 
-  if (!requestDoc
-    || !requestDoc.data
-    || !requestDoc.data.id
-    || typeof requestDoc.data.id !== 'string'
-    || !requestDoc.data.type
-    || requestDoc.data.type !== 'attendees') {
-    reply({}).code(400)
-    return
-  }
-
   const attendee = new AttendeeModel({
     attendeeid: requestDoc.data.id,
   })

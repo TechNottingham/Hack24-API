@@ -5,24 +5,11 @@ import EventBroadcaster from '../../eventbroadcaster'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const hackId = req.params.hackId
+  const { hackId: hackid } = req.params
   const requestDoc: HackChallengesRelationship.TopLevelDocument = req.payload
 
-  if (!requestDoc
-    || !requestDoc.data
-    || (requestDoc.data !== null && !Array.isArray(requestDoc.data))) {
-    reply(Boom.badRequest())
-    return
-  }
-
-  const errorCases = requestDoc.data.filter((challenge) => challenge.type !== 'challenges' || typeof challenge.id !== 'string')
-  if (errorCases.length > 0) {
-    reply(Boom.badRequest())
-    return
-  }
-
   const hack = await HackModel
-    .findOne({ hackid: hackId }, 'hackid name challenges')
+    .findOne({ hackid }, 'hackid name challenges')
     .populate('challenges', 'challengeid name')
     .exec()
 

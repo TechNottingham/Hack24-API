@@ -5,20 +5,11 @@ import { TeamResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
 
 export default async function handler(req: Request, reply: IReply) {
-  const teamId = req.params.teamId
+  const { teamId: teamid } = req.params
   const requestDoc: TeamResource.TopLevelDocument = req.payload
 
-  if (!requestDoc
-    || !requestDoc.data
-    || !requestDoc.data.id
-    || !requestDoc.data.type
-    || requestDoc.data.type !== 'teams') {
-    reply(Boom.badRequest())
-    return
-  }
-
-  if (teamId !== requestDoc.data.id) {
-    reply(Boom.badRequest(`The id '${teamId}' does not match the document id '${requestDoc.data.id}'.`))
+  if (teamid !== requestDoc.data.id) {
+    reply(Boom.badRequest(`The id '${teamid}' does not match the document id '${requestDoc.data.id}'.`))
     return
   }
 
@@ -32,7 +23,7 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  req.logger.info(`Modifying team "${teamId}" motto to "${requestDoc.data.attributes.motto}"`)
+  req.logger.info(`Modifying team "${teamid}" motto to "${requestDoc.data.attributes.motto}"`)
 
   const newMotto = requestDoc.data.attributes.motto.toString()
   const projection = {
@@ -44,7 +35,7 @@ export default async function handler(req: Request, reply: IReply) {
   }
 
   const team = await TeamModel
-    .findOneAndUpdate({ teamid: requestDoc.data.id }, { motto: newMotto }, { select: projection })
+    .findOneAndUpdate({ teamid }, { motto: newMotto }, { select: projection })
     .exec()
 
   reply().code(204)

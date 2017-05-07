@@ -1,29 +1,13 @@
 import { Request, IReply } from 'hapi'
-import * as slug from 'slug'
 import { MongoDBErrors } from '../../models'
 import { HackModel } from '../../models'
 import { HackResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
 import * as Boom from '../../boom'
-
-function slugify(name: string): string {
-  return slug(name, { lower: true })
-}
+import { slugify } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {
   const requestDoc: HackResource.TopLevelDocument = req.payload
-
-  if (!requestDoc
-    || !requestDoc.data
-    || requestDoc.data.id
-    || !requestDoc.data.type
-    || requestDoc.data.type !== 'hacks'
-    || !requestDoc.data.attributes
-    || !requestDoc.data.attributes.name
-    || typeof requestDoc.data.attributes.name !== 'string') {
-    reply(Boom.badRequest())
-    return
-  }
 
   const hack = new HackModel({
     hackid: slugify(requestDoc.data.attributes.name),

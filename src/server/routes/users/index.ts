@@ -1,3 +1,4 @@
+import * as Joi from 'joi'
 import { PluginRegister } from '../../../hapi.types'
 import createUser from './create-user'
 import getUser from './get-user'
@@ -14,6 +15,17 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'attendee',
+        validate: {
+          payload: Joi.object().keys({
+            data: Joi.object().keys({
+              id: Joi.string(),
+              type: Joi.only('users'),
+              attributes: Joi.object().keys({
+                name: Joi.string(),
+              }),
+            }),
+          }),
+        },
       },
     },
     {
@@ -34,6 +46,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         cors: true,
+        validate: {
+          params: {
+            userId: Joi.string(),
+          },
+        },
       },
     },
   ])

@@ -1,19 +1,17 @@
 import { Request, IReply } from 'hapi'
 import { AttendeeModel } from '../../models'
 import { AttendeeResource } from '../../../resources'
+import * as Boom from '../../boom'
 
 export default async function handler(request: Request, reply: IReply) {
-  if (request.params.attendeeId === undefined || typeof request.params.attendeeId !== 'string') {
-    reply('Missing attendeeId parameter').code(400)
-    return
-  }
+  const { attendeeId: attendeeid } = request.params
 
   const attendee = await AttendeeModel
-    .findOne({ attendeeid: request.params.attendeeId }, 'attendeeid')
+    .findOne({ attendeeid }, 'attendeeid')
     .exec()
 
   if (!attendee) {
-    reply('Attendee not found').code(404)
+    reply(Boom.notFound('Attendee not found'))
     return
   }
 

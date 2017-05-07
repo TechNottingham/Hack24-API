@@ -4,13 +4,10 @@ import { UserResource, TeamResource } from '../../../resources'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  if (req.params.userId === undefined || typeof req.params.userId !== 'string') {
-    reply(Boom.badRequest())
-    return
-  }
+  const { userId: userid } = req.params
 
   const user = await UserModel
-    .findOne({ userid: req.params.userId }, 'userid name')
+    .findOne({ userid }, 'userid name')
     .exec()
 
   if (!user) {

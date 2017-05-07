@@ -3,15 +3,10 @@ import { AttendeeModel } from '../../models'
 import * as Boom from '../../boom'
 
 export default async function handler(request: Request, reply: IReply) {
-  const attendeeid = request.params.attendeeId
-
-  if (attendeeid === undefined || typeof attendeeid !== 'string' || attendeeid.length === 0) {
-    reply('attendeeid was not specified').code(400)
-    return
-  }
+  const { attendeeId: attendeeid } = request.params
 
   const deletedAttendee = await AttendeeModel
-    .findOneAndRemove({ attendeeid: attendeeid }, { select: { _id: true } })
+    .findOneAndRemove({ attendeeid }, { select: { _id: true } })
     .exec()
 
   if (deletedAttendee === null) {

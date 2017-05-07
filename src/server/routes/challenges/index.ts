@@ -1,3 +1,4 @@
+import * as Joi from 'joi'
 import { PluginRegister } from '../../../hapi.types'
 import createChallenge from './create-challenge'
 import deleteChallenge from './delete-challenge'
@@ -15,6 +16,17 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'admin',
+        validate: {
+          payload: Joi.object().keys({
+            data: Joi.object().keys({
+              id: Joi.string(),
+              type: Joi.only('challenges'),
+              attributes: Joi.object().keys({
+                name: Joi.string(),
+              }),
+            }),
+          }),
+        },
       },
     }, {
       method: 'DELETE',
@@ -24,6 +36,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         auth: 'admin',
+        validate: {
+          params: {
+            challengeId: Joi.string(),
+          },
+        },
       },
     }, {
       method: 'GET',
@@ -42,6 +59,11 @@ const register: PluginRegister = (server, _, next) => {
       },
       config: {
         cors: true,
+        validate: {
+          params: {
+            challengeId: Joi.string(),
+          },
+        },
       },
     },
   ])

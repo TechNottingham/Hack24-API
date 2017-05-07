@@ -4,10 +4,10 @@ import { JSONApi, UserResource, TeamMembersRelationship } from '../../../resourc
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const teamId = req.params.teamId
+  const { teamId: teamid } = req.params
 
   const team = await TeamModel
-    .findOne({ teamid: teamId }, 'teamid members')
+    .findOne({ teamid }, 'teamid members')
     .populate('members', 'userid name')
     .exec()
 

@@ -4,15 +4,15 @@ import { JSONApi, HackResource, TeamEntriesRelationship } from '../../../resourc
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const teamId = req.params.teamId
+  const { teamId: teamid } = req.params
 
   const team = await TeamModel
-    .findOne({ teamid: teamId }, 'teamid entries')
+    .findOne({ teamid }, 'teamid entries')
     .populate('entries', 'hackid name')
     .exec()
 
   if (team === null) {
-    reply(Boom.notFound())
+    reply(Boom.notFound('Team not found'))
     return
   }
 

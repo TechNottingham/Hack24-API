@@ -4,10 +4,10 @@ import { ChallengeResource } from '../../../resources'
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const challengeId = req.params.challengeId
+  const { challengeId: challengeid } = req.params
 
   const challenge = await ChallengeModel
-    .findOne({ challengeid: challengeId }, 'challengeid name')
+    .findOne({ challengeid }, 'challengeid name')
     .exec()
 
   if (challenge === null) {

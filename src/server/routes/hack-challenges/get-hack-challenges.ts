@@ -4,10 +4,10 @@ import { JSONApi, ChallengeResource, HackChallengesRelationship } from '../../..
 import * as Boom from '../../boom'
 
 export default async function handler(req: Request, reply: IReply) {
-  const hackId = req.params.hackId
+  const { hackId: hackid } = req.params
 
   const hack = await HackModel
-    .findOne({ hackid: hackId }, 'hackid challenges')
+    .findOne({ hackid }, 'hackid challenges')
     .populate('challenges', 'challengeid name')
     .exec()
 

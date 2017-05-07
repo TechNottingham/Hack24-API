@@ -4,7 +4,7 @@ import { HackResource, HacksResource } from '../../../resources'
 import { createEscapedRegex } from '../../utils'
 
 export default async function handler(req: Request, reply: IReply) {
-  const query: any = {}
+  const query: { name?: RegExp } = {}
 
   if (req.query['filter[name]']) {
     query.name = createEscapedRegex(req.query['filter[name]'])
