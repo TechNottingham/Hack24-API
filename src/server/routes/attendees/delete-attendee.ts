@@ -11,7 +11,7 @@ export default async function handler(request: Request, reply: IReply) {
   }
 
   const deletedAttendee = await AttendeeModel
-    .findOneAndRemove({ attendeeid: attendeeid }, { select: '_id' })
+    .findOneAndRemove({ attendeeid: attendeeid }, { select: { _id: true } })
     .exec()
 
   if (deletedAttendee === null) {

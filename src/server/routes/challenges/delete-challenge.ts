@@ -10,12 +10,14 @@ export default async function handler(req: Request, reply: IReply) {
     return
   }
 
-  const challenge = await ChallengeModel.findOne({ challengeid: challengeId }).exec()
-  if (challenge === null) {
+  const deletedChallenge = await ChallengeModel
+    .findOneAndRemove({ challengeid: challengeId }, { select: { _id: true } })
+    .exec()
+
+  if (deletedChallenge === null) {
     reply(Boom.notFound('Challenge not found'))
     return
   }
 
-  await ChallengeModel.remove({ _id: challenge._id }).exec()
   reply().code(204)
 }
