@@ -1,7 +1,7 @@
 import { Request, IReply } from 'hapi'
 import * as Boom from '../../boom'
 import { TeamModel } from '../../models'
-import { TeamResource, UserResource, HackResource, ChallengeResource } from '../../../resources'
+import { TeamResource, UserResource, HackResource } from '../../../resources'
 
 export default async function handler(req: Request, reply: IReply) {
   const teamId = req.params.teamId
@@ -47,15 +47,14 @@ export default async function handler(req: Request, reply: IReply) {
     },
   }))
 
-  const includedChallenges = team.entries.reduce<ChallengeResource.ResourceObject[]>((previous, hack) => {
-    const these = hack.challenges.map<ChallengeResource.ResourceObject>((challenge) => ({
+  const includedChallenges = [].concat(...team.entries.map((hack) => (
+    hack.challenges.map((challenge) => ({
       links: { self: `/challenges/${challenge.challengeid}` },
       type: 'challenges',
       id: challenge.challengeid,
       attributes: { name: challenge.name },
     }))
-    return [...previous, ...these]
-  }, [])
+  )))
 
   const result: TeamResource.TopLevelDocument = {
     links: { self: `/teams/${encodeURIComponent(team.teamid)}` },
