@@ -19,5 +19,5 @@ export default async function handler(_: Request, reply: IReply) {
     data: attendeesData,
   } as AttendeesResource.TopLevelDocument
 
-  reply(attendeesResponse).type('application/vnd.api+json; charset=utf-8')
+  reply(attendeesResponse)
 }
