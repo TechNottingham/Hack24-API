@@ -18,6 +18,7 @@ import HacksRoute from './routes/hacks'
 import HackChallengesRoute from './routes/hack-challenges'
 import TeamMembersRoute from './routes/team-members'
 import TeamEntriesRoute from './routes/team-entries'
+import HealthCheckRoute from './routes/health-check'
 
 import EventBroadcaster from './eventbroadcaster'
 import Config from './config'
@@ -93,6 +94,7 @@ export default class Server {
       ChallengesRoute,
       HacksRoute,
       HackChallengesRoute,
+      HealthCheckRoute,
     ]
   }
 
