@@ -7,7 +7,7 @@ An API for storing users, teams, hacks, challenges and sponsors
 
 ## Running the Server
 
-This API is written in TypeScript with an Express server using Mongoose for data storage in MongoDB.
+This API is written in TypeScript with [hapi.js](https://hapijs.com/) using Mongoose for data storage in MongoDB.
 
 ### Prerequisites
 
