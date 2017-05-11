@@ -24,6 +24,10 @@
     "SLACK_API_TOKEN": {
       "description": "Slack API Token",
       "value": "xoxo-XXXXXXXX"
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Configuration for dependancies - set to false to allow dev",
+      "value": "false"
     }
   },
   "addons": [
