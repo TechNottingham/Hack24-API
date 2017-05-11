@@ -1,37 +1,12 @@
+
 import { PluginRegister } from '../../../hapi.types'
-import { Root } from '../../../resources'
 
 const register: PluginRegister = (server, _, next) => {
 
   server.route({
     method: 'GET',
-    path: '/',
-    handler: (__, reply) => {
-      const rootResponse: Root.TopLevelDocument = {
-        jsonapi: {
-          version: '1.0',
-        },
-        links: {
-          self: '/',
-          teams: {
-            href: '/teams',
-          },
-          users: {
-            href: '/users',
-          },
-          attendees: {
-            href: '/attendees',
-          },
-          hacks: {
-            href: '/hacks',
-          },
-          challenges: {
-            href: '/challenges',
-          },
-        },
-      }
-      reply(rootResponse)
-    },
+    path: '/api',
+    handler: (__, reply) => reply('Hack24 API is running').type('text/plain'),
     config: {
       cors: true,
     },
@@ -41,7 +16,7 @@ const register: PluginRegister = (server, _, next) => {
 }
 
 register.attributes = {
-  name: 'root-routes',
+  name: 'health-check-routes',
   version: '0.0.0',
 }
 
