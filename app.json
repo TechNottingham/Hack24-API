@@ -26,7 +26,7 @@
       "value": "xoxo-XXXXXXXX"
     },
     "NPM_CONFIG_PRODUCTION": {
-      "description": "Configuration for dependancies - set to false to allow dev",
+      "description": "Configuration for dependencies - set to false to allow dev",
       "value": "false"
     }
   },
