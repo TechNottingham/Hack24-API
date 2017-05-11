@@ -5,6 +5,7 @@ declare module 'pino' {
   module pino {
     interface Options {
       prettyPrint?: boolean
+      level?: string
     }
 
     interface Logger {
