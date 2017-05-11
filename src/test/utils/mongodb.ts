@@ -1,9 +1,9 @@
-import {MongoClient, Db} from 'mongodb'
-import {Users} from '../models/users'
-import {Teams} from '../models/teams'
-import {Hacks} from '../models/hacks'
-import {Challenges} from '../models/challenges'
-import {Attendees} from '../models/attendees'
+import { MongoClient, Db } from 'mongodb'
+import { Users } from '../models/users'
+import { Teams } from '../models/teams'
+import { Hacks } from '../models/hacks'
+import { Challenges } from '../models/challenges'
+import { Attendees } from '../models/attendees'
 
 export class MongoDB {
 

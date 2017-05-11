@@ -1,7 +1,8 @@
 import * as assert from 'assert'
-import {ApiServer} from './utils/apiserver'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {Root} from '../resources'
+import { Root } from '../resources'
+import { Random } from './utils/random'
 
 describe('API Root', () => {
 
@@ -13,21 +14,24 @@ describe('API Root', () => {
 
   describe('GET root document', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: Root.TopLevelDocument
 
     before(async () => {
-      const res = await api.get('/').end()
+      origin = Random.str()
+
+      const res = await api.get('/')
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -39,10 +43,9 @@ describe('API Root', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return jsonapi version 1.0', () => {
@@ -69,21 +72,31 @@ describe('API Root', () => {
 
   describe('OPTIONS root document', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
-      const res = await api.options('/').end()
+      origin = Random.str()
+
+      const res = await api.options('/')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -95,10 +108,12 @@ describe('API Root', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {

@@ -36,7 +36,7 @@ export declare module JSONApi {
   }
 
   export interface RelationshipsDictionary {
-    [index: string]: ToOneRelationshipsObject|ToManyRelationshipsObject;
+    [index: string]: ToOneRelationshipsObject | ToManyRelationshipsObject;
   }
 
   export interface ResourceObject {
@@ -60,8 +60,8 @@ export declare module JSONApi {
 
   export interface TopLevelDocument {
     links?: LinksObject;
-    data?: ResourceObject|ResourceObject[];
-    errors?: ErrorObject[]  ;
+    data?: ResourceObject | ResourceObject[];
+    errors?: ErrorObject[];
     meta?: MetaObject;
     included?: ResourceObject[];
   }

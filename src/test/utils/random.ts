@@ -43,7 +43,7 @@ export class Random {
    * @param max The maximum character to use when generating. Default 'z'.
    * @returns The random string.
    */
-  public static str(length?: number, min?: string, max?: string) {
+  public static str(length: number = 50, min?: string, max?: string) {
     let result = ''
     for (let i = 0; i < length; i++) {
       result += this.char(min, max)

@@ -1,16 +1,17 @@
 import * as assert from 'assert'
-import {UsersInfoResponse} from '@slack/client'
-import {MongoDB} from './utils/mongodb'
-import {User} from './models/users'
-import {Team} from './models/teams'
-import {Hack} from './models/hacks'
-import {Challenge} from './models/challenges'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { UsersInfoResponse } from '@slack/client'
+import { MongoDB } from './utils/mongodb'
+import { User } from './models/users'
+import { Team } from './models/teams'
+import { Hack } from './models/hacks'
+import { Challenge } from './models/challenges'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, TeamsResource, TeamResource, UserResource, HackResource, ChallengeResource} from '../resources'
-import {PusherListener} from './utils/pusherlistener'
-import {SlackApi} from './utils/slackapi'
+import { JSONApi, TeamsResource, TeamResource, UserResource, HackResource, ChallengeResource } from '../resources'
+import { PusherListener } from './utils/pusherlistener'
+import { SlackApi } from './utils/slackapi'
+import { Random } from './utils/random'
 
 describe('Teams resource', () => {
 
@@ -241,8 +242,11 @@ describe('Teams resource', () => {
     let attendee: Attendee
     let team: Team
     let createdTeam: Team
-    let statusCode: number
     let slackApi: SlackApi
+    let statusCode: number
+    let contentType: string
+    let authenticateHeader: string
+    let response: TeamResource.TopLevelDocument
 
     before(async () => {
       attendee = MongoDB.Attendees.createRandomAttendee('', true)
@@ -279,12 +283,30 @@ describe('Teams resource', () => {
         .end()
 
       statusCode = res.status
+      contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
+      response = res.body
 
       createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid)
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
+    })
+
+    it('should return application/vnd.api+json content with charset utf-8', () => {
+      assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
+    })
+
+    it('should respond with the expected "Unauthorized" error', () => {
+      assert.strictEqual(response.errors.length, 1)
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     after(() => Promise.all([
@@ -556,7 +578,8 @@ describe('Teams resource', () => {
     it('should return an error with status code 409 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '409')
-      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.')
+      assert.strictEqual(response.errors[0].title, 'Conflict')
+      assert.strictEqual(response.errors[0].detail, 'Team already exists')
     })
 
     it('should not send an event to Pusher', () => {
@@ -576,6 +599,7 @@ describe('Teams resource', () => {
     let createdTeam: Team
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
     let pusherListener: PusherListener
 
@@ -602,25 +626,30 @@ describe('Teams resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
 
       createdTeam = await MongoDB.Teams.findbyTeamId(team.teamid)
       await pusherListener.waitForEvent()
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     it('should not create the team document', () => {
@@ -637,21 +666,31 @@ describe('Teams resource', () => {
 
   describe('OPTIONS teams', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
-      const res = await api.options('/teams').end()
+      origin = Random.str()
+
+      const res = await api.options('/teams')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -663,10 +702,12 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -677,6 +718,7 @@ describe('Teams resource', () => {
 
   describe('GET teams', () => {
 
+    let origin: string
     let firstChallenge: Challenge
     let secondChallenge: Challenge
     let firstUser: User
@@ -690,12 +732,13 @@ describe('Teams resource', () => {
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: TeamsResource.TopLevelDocument
 
     before(async () => {
       await MongoDB.Teams.removeAll()
+
+      origin = Random.str()
 
       firstChallenge = await MongoDB.Challenges.insertRandomChallenge('A')
       secondChallenge = await MongoDB.Challenges.insertRandomChallenge('B')
@@ -723,13 +766,14 @@ describe('Teams resource', () => {
       secondTeam.entries = [secondHack._id, thirdHack._id]
       await MongoDB.Teams.insertTeam(secondTeam)
 
-      const res = await api.get('/teams').end()
+      const res = await api.get('/teams')
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -741,10 +785,9 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the teams resource object self link', () => {
@@ -870,23 +913,33 @@ describe('Teams resource', () => {
 
   describe('OPTIONS teams by slug (teamid)', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
+      origin = Random.str()
+
       const team = MongoDB.Teams.createRandomTeam()
 
-      const res = await api.options(`/teams/${team.teamid}`).end()
+      const res = await api.options(`/teams/${team.teamid}`)
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -898,10 +951,12 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -912,6 +967,7 @@ describe('Teams resource', () => {
 
   describe('GET team by slug (teamid)', () => {
 
+    let origin: string
     let challenge: Challenge
     let firstUser: User
     let secondUser: User
@@ -921,11 +977,12 @@ describe('Teams resource', () => {
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: TeamResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       challenge = await MongoDB.Challenges.insertRandomChallenge()
 
       firstUser = await MongoDB.Users.insertRandomUser('A')
@@ -942,14 +999,14 @@ describe('Teams resource', () => {
       await MongoDB.Teams.insertTeam(team)
 
       const res = await api.get(`/teams/${team.teamid}`)
+        .set('Origin', origin)
         .set('Accept', 'application/json')
         .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -961,10 +1018,9 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the team resource object self link', () => {
@@ -1038,6 +1094,7 @@ describe('Teams resource', () => {
 
   describe('GET team by slug (teamid) without a motto', () => {
 
+    let origin: string
     let firstUser: User
     let secondUser: User
     let firstHack: Hack
@@ -1046,11 +1103,12 @@ describe('Teams resource', () => {
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: TeamResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       firstUser = await MongoDB.Users.insertRandomUser('A')
       secondUser = await MongoDB.Users.insertRandomUser('B')
       firstHack = await MongoDB.Hacks.insertRandomHack('A')
@@ -1064,14 +1122,14 @@ describe('Teams resource', () => {
       await MongoDB.Teams.insertTeam(team)
 
       const res = await api.get(`/teams/${team.teamid}`)
+        .set('Origin', origin)
         .set('Accept', 'application/json')
         .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -1083,10 +1141,9 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the team resource object self link', () => {
@@ -1150,9 +1207,6 @@ describe('Teams resource', () => {
 
     let statusCode: number
     let contentType: string
-    let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
     let response: TeamResource.TopLevelDocument
 
     before(async () => {
@@ -1162,9 +1216,6 @@ describe('Teams resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
-      accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
       response = res.body
     })
 
@@ -1172,20 +1223,15 @@ describe('Teams resource', () => {
       assert.strictEqual(statusCode, 404)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
-    })
-
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Resource not found" error', () => {
+    it('should respond with the expected "Team not found" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '404')
-      assert.strictEqual(response.errors[0].title, 'Resource not found.')
+      assert.strictEqual(response.errors[0].title, 'Not Found')
+      assert.strictEqual(response.errors[0].detail, 'Team not found')
     })
   })
 
@@ -1490,30 +1536,33 @@ describe('Teams resource', () => {
 
   describe('GET teams by filter', () => {
 
+    let origin: string
     let firstTeam: Team
     let secondTeam: Team
     let thirdTeam: Team
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: TeamsResource.TopLevelDocument
 
     before(async () => {
       await MongoDB.Teams.removeAll()
 
+      origin = Random.str()
+
       firstTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCD')
       secondTeam = await MongoDB.Teams.insertRandomTeam([], 'ABEF')
       thirdTeam = await MongoDB.Teams.insertRandomTeam([], 'ABCE')
 
-      const res = await api.get('/teams?filter[name]=ABC').end()
+      const res = await api.get('/teams?filter[name]=ABC')
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -1525,10 +1574,9 @@ describe('Teams resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the teams resource object self link', () => {
@@ -1645,7 +1693,8 @@ describe('Teams resource', () => {
     it('should return an error with status code 400 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '400')
-      assert.strictEqual(response.errors[0].title, 'Only empty teams can be deleted')
+      assert.strictEqual(response.errors[0].title, 'Bad Request')
+      assert.strictEqual(response.errors[0].detail, 'Only empty teams can be deleted')
     })
 
     it('should not delete the team', async () => {

@@ -1,8 +1,15 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "quotemark": [true, "single", "avoid-escape"],
-    "semicolon": [true, "never"],
+    "quotemark": [
+      true,
+      "single",
+      "avoid-escape"
+    ],
+    "semicolon": [
+      true,
+      "never"
+    ],
     "no-conditional-assignment": false,
     "no-var-requires": false,
     "variable-name": [
@@ -15,11 +22,31 @@
     ],
     "object-literal-sort-keys": false,
     "switch-default": false,
-    "max-line-length": [true, 160],
+    "max-line-length": [
+      true,
+      160
+    ],
     "no-string-literal": false,
-    "interface-name": [true, "never-prefix"],
-    "ordered-imports": [false],
-    "object-literal-shorthand": false
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
+    "ordered-imports": [
+      false
+    ],
+    "object-literal-shorthand": false,
+    "no-reference": true,
+    "import-spacing": true,
+    "whitespace": [
+      true,
+      "check-branch",
+      "check-decl",
+      "check-operator",
+      "check-module",
+      "check-separator",
+      "check-type",
+      "check-typecast"
+    ]
   },
   "rulesDirectory": []
 }

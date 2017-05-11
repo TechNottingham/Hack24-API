@@ -1,13 +1,13 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {User} from './models/users'
-import {Team} from './models/teams'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { User } from './models/users'
+import { Team } from './models/teams'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, UserResource, UsersResource, TeamResource} from '../resources'
-import {Random} from './utils/random'
-import {PusherListener} from './utils/pusherlistener'
+import { JSONApi, UserResource, UsersResource, TeamResource } from '../resources'
+import { Random } from './utils/random'
+import { PusherListener } from './utils/pusherlistener'
 
 describe('Users resource', () => {
 
@@ -19,23 +19,33 @@ describe('Users resource', () => {
 
   describe('OPTIONS user by ID', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
+      origin = Random.str()
+
       const user = MongoDB.Users.createRandomUser()
 
-      const res = await api.options(`/users/${user.userid}`).end()
+      const res = await api.options(`/users/${user.userid}`)
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -47,10 +57,12 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -61,24 +73,28 @@ describe('Users resource', () => {
 
   describe('GET user by ID', () => {
 
+    let origin: string
     let user: User
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: UserResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       user = await MongoDB.Users.insertRandomUser()
 
-      const res = await api.get(`/users/${user.userid}`).end()
+      const res = await api.get(`/users/${user.userid}`)
+        .set('Origin', origin)
+        .set('Accept', 'application/json')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -90,10 +106,9 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the user resource object self link', () => {
@@ -126,21 +141,31 @@ describe('Users resource', () => {
 
   describe('OPTIONS users', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlAllowMethods: string
+    let accessControlAllowHeaders: string
+    let accessControlExposeHeaders: string
+    let accessControlMaxAge: string
     let response: string
 
     before(async () => {
-      const res = await api.options('/users').end()
+      origin = Random.str()
+
+      const res = await api.options('/users')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlAllowMethods = res.header['access-control-allow-methods']
+      accessControlAllowHeaders = res.header['access-control-allow-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
+      accessControlMaxAge = res.header['access-control-max-age']
       response = res.text
     })
 
@@ -152,10 +177,12 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, undefined)
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.strictEqual(accessControlAllowMethods, 'GET')
+      assert.deepEqual(accessControlAllowHeaders.split(','), ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'])
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
+      assert.strictEqual(accessControlMaxAge, '86400')
     })
 
     it('should return no body', () => {
@@ -166,6 +193,7 @@ describe('Users resource', () => {
 
   describe('GET users in teams', () => {
 
+    let origin: string
     let user: User
     let otherUser: User
     let team: Team
@@ -173,11 +201,12 @@ describe('Users resource', () => {
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: UsersResource.TopLevelDocument
 
     before(async () => {
+      origin = Random.str()
+
       await MongoDB.Users.removeAll()
 
       user = await MongoDB.Users.insertRandomUser('A')
@@ -189,13 +218,15 @@ describe('Users resource', () => {
       await MongoDB.Teams.insertTeam(team)
       otherTeam = await MongoDB.Teams.insertRandomTeam([otherUser._id], 'B')
 
-      const res = await api.get(`/users`).end()
+      const res = await api.get(`/users`)
+        .set('Origin', origin)
+        .set('Accept', 'application/json')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -207,10 +238,9 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the user resource object self link', () => {
@@ -272,30 +302,34 @@ describe('Users resource', () => {
 
   describe('GET user by ID in team', () => {
 
+    let origin: string
     let user: User
     let otherUser: User
     let team: Team
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: UserResource.TopLevelDocument
     let includedTeam: TeamResource.ResourceObject
     let includedUser: UserResource.ResourceObject
 
     before(async () => {
+      origin = Random.str()
+
       user = await MongoDB.Users.insertRandomUser('A')
       otherUser = await MongoDB.Users.insertRandomUser('B')
       team = await MongoDB.Teams.insertRandomTeam([user._id, otherUser._id])
 
-      const res = await api.get(`/users/${user.userid}`).end()
+      const res = await api.get(`/users/${user.userid}`)
+        .set('Origin', origin)
+        .set('Accept', 'application/json')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
       includedTeam = response.included.find((include) => include.type === 'teams') as TeamResource.ResourceObject
       includedUser = response.included.find((include) => include.type === 'users') as UserResource.ResourceObject
@@ -309,10 +343,9 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the user resource object self link', () => {
@@ -383,19 +416,21 @@ describe('Users resource', () => {
 
   describe('GET user by ID in team without a motto', () => {
 
+    let origin: string
     let user: User
     let otherUser: User
     let team: Team
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: UserResource.TopLevelDocument
     let includedTeam: TeamResource.ResourceObject
     let includedUser: UserResource.ResourceObject
 
     before(async () => {
+      origin = Random.str()
+
       user = await MongoDB.Users.insertRandomUser('A')
       otherUser = await MongoDB.Users.insertRandomUser('B')
       team = await MongoDB.Teams.createRandomTeam()
@@ -403,13 +438,15 @@ describe('Users resource', () => {
       delete team.motto
       await MongoDB.Teams.insertTeam(team)
 
-      const res = await api.get(`/users/${user.userid}`).end()
+      const res = await api.get(`/users/${user.userid}`)
+        .set('Origin', origin)
+        .set('Accept', 'application/json')
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
       includedTeam = response.included.find((include) => include.type === 'teams') as TeamResource.ResourceObject
       includedUser = response.included.find((include) => include.type === 'users') as UserResource.ResourceObject
@@ -423,10 +460,9 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
     it('should return the user resource object self link', () => {
@@ -631,7 +667,8 @@ describe('Users resource', () => {
     it('should return an error with status code 409 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '409')
-      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.')
+      assert.strictEqual(response.errors[0].title, 'Conflict')
+      assert.strictEqual(response.errors[0].detail, 'User already exists')
     })
 
     after(() => Promise.all([
@@ -643,21 +680,24 @@ describe('Users resource', () => {
 
   describe('GET missing user by ID', () => {
 
+    let origin: string
     let statusCode: number
     let contentType: string
     let accessControlAllowOrigin: string
-    let accessControlRequestMethod: string
-    let accessControlRequestHeaders: string
+    let accessControlExposeHeaders: string
     let response: JSONApi.TopLevelDocument
 
     before(async () => {
-      const res = await api.get('/users/U' + Random.int(10000, 99999)).end()
+      origin = Random.str()
+
+      const res = await api.get('/users/U' + Random.int(10000, 99999))
+        .set('Origin', origin)
+        .end()
 
       statusCode = res.status
       contentType = res.header['content-type']
       accessControlAllowOrigin = res.header['access-control-allow-origin']
-      accessControlRequestMethod = res.header['access-control-request-method']
-      accessControlRequestHeaders = res.header['access-control-request-headers']
+      accessControlExposeHeaders = res.header['access-control-expose-headers']
       response = res.body
     })
 
@@ -669,16 +709,16 @@ describe('Users resource', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should allow all origins access to the resource with GET', () => {
-      assert.strictEqual(accessControlAllowOrigin, '*')
-      assert.strictEqual(accessControlRequestMethod, 'GET')
-      assert.strictEqual(accessControlRequestHeaders, 'Origin, X-Requested-With, Content-Type, Accept')
+    it('should allow the origin access to the resource with GET', () => {
+      assert.strictEqual(accessControlAllowOrigin, origin)
+      assert.deepEqual(accessControlExposeHeaders.split(','), ['WWW-Authenticate', 'Server-Authorization'])
     })
 
-    it('should respond with the expected "Resource not found" error', () => {
+    it('should respond with the expected "User not found" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '404')
-      assert.strictEqual(response.errors[0].title, 'Resource not found.')
+      assert.strictEqual(response.errors[0].title, 'Not Found')
+      assert.strictEqual(response.errors[0].detail, 'User not found')
     })
 
   })
@@ -708,23 +748,23 @@ describe('Users resource', () => {
       createdUser = await MongoDB.Users.findbyUserId(userId)
     })
 
-    it('should respond with status code 401 Unauthorized', () => {
+    it('should respond with status code 401 Unauthorised', () => {
       assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Credentials required"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with WWW-Authenticate header for basic realm "api.hack24.co.uk"', () => {
-      assert.strictEqual(authenticateHeader, 'Basic realm="api.hack24.co.uk"')
-    })
-
     it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '401')
-      assert.strictEqual(response.errors[0].title, 'Unauthorized.')
-      assert.strictEqual(response.errors[0].detail, 'An authentication header is required.')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Credentials required')
     })
 
     it('should not create the user document', () => {
@@ -741,6 +781,7 @@ describe('Users resource', () => {
     let createdUser: User
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
 
     before(async () => {
@@ -754,24 +795,29 @@ describe('Users resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
 
       createdUser = await MongoDB.Users.findbyUserId(userId)
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Attendee access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Attendee access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     it('should not create the user document', () => {

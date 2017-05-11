@@ -1,9 +1,9 @@
 import * as assert from 'assert'
-import {MongoDB} from './utils/mongodb'
-import {Attendee} from './models/attendees'
-import {ApiServer} from './utils/apiserver'
+import { MongoDB } from './utils/mongodb'
+import { Attendee } from './models/attendees'
+import { ApiServer } from './utils/apiserver'
 import * as request from 'supertest'
-import {JSONApi, AttendeeResource, AttendeesResource} from '../resources'
+import { JSONApi, AttendeeResource, AttendeesResource } from '../resources'
 
 describe('Attendees resource', () => {
 
@@ -61,6 +61,7 @@ describe('Attendees resource', () => {
     let attendee: Attendee
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: AttendeeResource.TopLevelDocument
 
     before(async () => {
@@ -72,22 +73,27 @@ describe('Attendees resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid))
@@ -155,6 +161,7 @@ describe('Attendees resource', () => {
     let createdAttendee: Attendee
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: AttendeeResource.TopLevelDocument
 
     before(async () => {
@@ -174,24 +181,29 @@ describe('Attendees resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
 
       createdAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid)
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
     it('should not create the attendee document', () => {
@@ -241,7 +253,8 @@ describe('Attendees resource', () => {
     it('should return an error with status code 409 and the expected title', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '409')
-      assert.strictEqual(response.errors[0].title, 'Resource ID already exists.')
+      assert.strictEqual(response.errors[0].title, 'Conflict')
+      assert.strictEqual(response.errors[0].detail, 'Attendee already exists')
     })
 
     after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid))
@@ -308,6 +321,7 @@ describe('Attendees resource', () => {
 
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: AttendeesResource.TopLevelDocument
 
     before(async () => {
@@ -317,22 +331,27 @@ describe('Attendees resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
 
   })
@@ -406,19 +425,22 @@ describe('Attendees resource', () => {
     it('should respond with the expected "Resource not found" error', () => {
       assert.strictEqual(response.errors.length, 1)
       assert.strictEqual(response.errors[0].status, '404')
-      assert.strictEqual(response.errors[0].title, 'Resource not found.')
+      assert.strictEqual(response.errors[0].title, 'Not Found')
+      assert.strictEqual(response.errors[0].detail, 'Attendee not found')
     })
   })
 
   describe('DELETE attendee with incorrect auth', () => {
 
     let attendee: Attendee
+    let deletedAttendee: Attendee
     let statusCode: number
     let contentType: string
+    let authenticateHeader: string
     let response: JSONApi.TopLevelDocument
 
     before(async () => {
-      attendee = MongoDB.Attendees.createRandomAttendee()
+      attendee = await MongoDB.Attendees.insertRandomAttendee()
 
       const res = await api.delete(`/attendees/${encodeURIComponent(attendee.attendeeid)}`)
         .auth('sack', 'boy')
@@ -426,23 +448,36 @@ describe('Attendees resource', () => {
 
       statusCode = res.status
       contentType = res.header['content-type']
+      authenticateHeader = res.header['www-authenticate']
       response = res.body
+
+      deletedAttendee = await MongoDB.Attendees.findbyAttendeeId(attendee.attendeeid)
     })
 
-    it('should respond with status code 403 Forbidden', () => {
-      assert.strictEqual(statusCode, 403)
+    it('should respond with status code 401 Unauthorised', () => {
+      assert.strictEqual(statusCode, 401)
+    })
+
+    it('should respond with WWW-Authenticate header for basic realm "Admin access"', () => {
+      assert.strictEqual(authenticateHeader, 'Basic realm="Admin access", error="Bad username or password"')
     })
 
     it('should return application/vnd.api+json content with charset utf-8', () => {
       assert.strictEqual(contentType, 'application/vnd.api+json; charset=utf-8')
     })
 
-    it('should respond with the expected "Forbidden" error', () => {
+    it('should respond with the expected "Unauthorized" error', () => {
       assert.strictEqual(response.errors.length, 1)
-      assert.strictEqual(response.errors[0].status, '403')
-      assert.strictEqual(response.errors[0].title, 'Access is forbidden.')
-      assert.strictEqual(response.errors[0].detail, 'You are not permitted to perform that action.')
+      assert.strictEqual(response.errors[0].status, '401')
+      assert.strictEqual(response.errors[0].title, 'Unauthorized')
+      assert.strictEqual(response.errors[0].detail, 'Bad username or password')
     })
+
+    it('should not delete the attendee', () => {
+      assert.strictEqual(deletedAttendee.attendeeid, attendee.attendeeid)
+    })
+
+    after(() => MongoDB.Attendees.removeByAttendeeId(attendee.attendeeid))
 
   })
 
