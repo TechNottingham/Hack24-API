@@ -67,6 +67,7 @@ export const ChallengeModel = model<ChallengeModel>('Challenge', ChallengeSchema
 
 export interface Attendee {
   attendeeid: string
+  slackid: string
 }
 
 interface AttendeeModel extends Attendee, Document { }
