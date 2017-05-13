@@ -1,6 +1,6 @@
 import { Request, IReply } from 'hapi'
 import { MongoDBErrors } from '../../models'
-import { HackModel } from '../../models'
+import { Hack, HackModel } from '../../models'
 import { HackResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
 import * as Boom from 'boom'
@@ -12,8 +12,7 @@ export default async function handler(req: Request, reply: IReply) {
   const hack = new HackModel({
     hackid: slugify(requestDoc.data.attributes.name),
     name: requestDoc.data.attributes.name,
-    members: [],
-  })
+  } as Hack)
 
   try {
     await hack.save()

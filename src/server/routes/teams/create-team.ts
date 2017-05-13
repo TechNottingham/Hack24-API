@@ -1,5 +1,5 @@
 import { Request, IReply } from 'hapi'
-import { UserModel, TeamModel, HackModel, MongoDBErrors } from '../../models'
+import { Team, UserModel, TeamModel, HackModel, MongoDBErrors } from '../../models'
 import { JSONApi, TeamResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
 import * as Boom from 'boom'
@@ -36,7 +36,7 @@ export default async function handler(req: Request, reply: IReply) {
     motto: requestDoc.data.attributes.motto || null,
     members: [],
     entries: [],
-  })
+  } as Team)
 
   let users: UserModel[] = []
   let hacks: HackModel[] = []

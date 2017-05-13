@@ -1,5 +1,5 @@
 import { Request, IReply } from 'hapi'
-import { UserModel } from '../../models'
+import { User, UserModel } from '../../models'
 import { MongoDBErrors } from '../../models'
 import { UserResource } from '../../../resources'
 import EventBroadcaster from '../../eventbroadcaster'
@@ -11,7 +11,7 @@ export default async function handler(req: Request, reply: IReply) {
   const user = new UserModel({
     userid: requestDoc.data.id,
     name: requestDoc.data.attributes.name,
-  })
+  } as User)
 
   try {
     await user.save()

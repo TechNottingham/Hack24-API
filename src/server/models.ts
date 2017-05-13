@@ -69,7 +69,7 @@ export interface Attendee {
   attendeeid: string
 }
 
-export interface AttendeeModel extends Attendee, Document { }
+interface AttendeeModel extends Attendee, Document { }
 
 export const AttendeeSchema = new Schema({
   attendeeid: { type: String, unique: true, required: true },
