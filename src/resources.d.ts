@@ -5,12 +5,12 @@ export declare module JSONApi {
   }
 
   export interface LinkObject {
-    href: string;
+    href: string
     meta?: MetaObject
   }
 
   export interface LinksObject {
-    self?: string;
+    self?: string
   }
 
   export interface AttributesObject {
@@ -18,52 +18,52 @@ export declare module JSONApi {
   }
 
   export interface ResourceIdentifierObject {
-    type: string;
-    id: string;
-    meta?: MetaObject;
+    type: string
+    id: string
+    meta?: MetaObject
   }
 
   export interface ToManyRelationshipsObject {
-    links?: LinksObject;
-    data: ResourceIdentifierObject[];
-    meta?: MetaObject;
+    links?: LinksObject
+    data: ResourceIdentifierObject[]
+    meta?: MetaObject
   }
 
   export interface ToOneRelationshipsObject {
-    links?: LinksObject;
-    data: ResourceIdentifierObject;
-    meta?: MetaObject;
+    links?: LinksObject
+    data: ResourceIdentifierObject
+    meta?: MetaObject
   }
 
   export interface RelationshipsDictionary {
-    [index: string]: ToOneRelationshipsObject | ToManyRelationshipsObject;
+    [index: string]: ToOneRelationshipsObject | ToManyRelationshipsObject
   }
 
   export interface ResourceObject {
-    links?: LinksObject;
-    type: string;
-    id?: string;
-    attributes?: AttributesObject;
-    relationships?: RelationshipsDictionary;
+    links?: LinksObject
+    type: string
+    id?: string
+    attributes?: AttributesObject
+    relationships?: RelationshipsDictionary
   }
 
   export interface ErrorObject {
-    id?: string;
-    links?: LinksObject;
-    status?: string;
-    code?: string;
-    title?: string;
-    detail?: string;
-    source?: string;
-    meta?: MetaObject;
+    id?: string
+    links?: LinksObject
+    status?: string
+    code?: string
+    title?: string
+    detail?: string
+    source?: string
+    meta?: MetaObject
   }
 
   export interface TopLevelDocument {
-    links?: LinksObject;
-    data?: ResourceObject | ResourceObject[];
-    errors?: ErrorObject[];
-    meta?: MetaObject;
-    included?: ResourceObject[];
+    links?: LinksObject
+    data?: ResourceObject | ResourceObject[]
+    errors?: ErrorObject[]
+    meta?: MetaObject
+    included?: ResourceObject[]
   }
 }
 
@@ -78,13 +78,13 @@ export declare module UserResource {
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes?: AttributesObject;
-    relationships?: RelationshipsDictionary;
+    attributes?: AttributesObject
+    relationships?: RelationshipsDictionary
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ResourceObject;
+    links?: JSONApi.LinksObject
+    data: ResourceObject
   }
 
 }
@@ -92,8 +92,8 @@ export declare module UserResource {
 export declare module UsersResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links: JSONApi.LinksObject;
-    data: UserResource.ResourceObject[];
+    links: JSONApi.LinksObject
+    data: UserResource.ResourceObject[]
   }
 
 }
@@ -101,23 +101,22 @@ export declare module UsersResource {
 export declare module TeamResource {
 
   export interface RelationshipsDictionary extends JSONApi.RelationshipsDictionary {
-    members: JSONApi.ToManyRelationshipsObject;
-    entries: JSONApi.ToManyRelationshipsObject;
+    members: JSONApi.ToManyRelationshipsObject
   }
 
   export interface AttributesObject extends JSONApi.AttributesObject {
-    name?: string;
-    motto?: string;
+    name?: string
+    motto?: string
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes?: AttributesObject;
-    relationships?: RelationshipsDictionary;
+    attributes?: AttributesObject
+    relationships?: RelationshipsDictionary
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ResourceObject;
+    links?: JSONApi.LinksObject
+    data: ResourceObject
   }
 
 }
@@ -125,8 +124,8 @@ export declare module TeamResource {
 export declare module TeamsResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: TeamResource.ResourceObject[];
+    links?: JSONApi.LinksObject
+    data: TeamResource.ResourceObject[]
   }
 
 }
@@ -134,8 +133,8 @@ export declare module TeamsResource {
 export declare module TeamMembersRelationship {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: JSONApi.ResourceIdentifierObject[];
+    links?: JSONApi.LinksObject
+    data: JSONApi.ResourceIdentifierObject[]
   }
 
 }
@@ -143,8 +142,8 @@ export declare module TeamMembersRelationship {
 export declare module TeamEntriesRelationship {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: JSONApi.ResourceIdentifierObject[];
+    links?: JSONApi.LinksObject
+    data: JSONApi.ResourceIdentifierObject[]
   }
 
 }
@@ -152,16 +151,16 @@ export declare module TeamEntriesRelationship {
 export declare module HackResource {
 
   export interface AttributesObject extends JSONApi.AttributesObject {
-    name?: string;
+    name?: string
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes?: AttributesObject;
+    attributes?: AttributesObject
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ResourceObject;
+    links?: JSONApi.LinksObject
+    data: ResourceObject
   }
 
 }
@@ -169,8 +168,8 @@ export declare module HackResource {
 export declare module HackChallengesRelationship {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: JSONApi.ResourceIdentifierObject[];
+    links?: JSONApi.LinksObject
+    data: JSONApi.ResourceIdentifierObject[]
   }
 
 }
@@ -178,8 +177,8 @@ export declare module HackChallengesRelationship {
 export declare module HacksResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: HackResource.ResourceObject[];
+    links?: JSONApi.LinksObject
+    data: HackResource.ResourceObject[]
   }
 
 }
@@ -187,8 +186,8 @@ export declare module HacksResource {
 export declare module ChallengesResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ChallengeResource.ResourceObject[];
+    links?: JSONApi.LinksObject
+    data: ChallengeResource.ResourceObject[]
   }
 
 }
@@ -196,16 +195,16 @@ export declare module ChallengesResource {
 export declare module ChallengeResource {
 
   export interface AttributesObject extends JSONApi.AttributesObject {
-    name?: string;
+    name?: string
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes?: AttributesObject;
+    attributes?: AttributesObject
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ResourceObject;
+    links?: JSONApi.LinksObject
+    data: ResourceObject
   }
 
 }
@@ -217,12 +216,12 @@ export declare module AttendeeResource {
   }
 
   export interface ResourceObject extends JSONApi.ResourceObject {
-    attributes?: AttributesObject;
+    attributes?: AttributesObject
   }
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: ResourceObject;
+    links?: JSONApi.LinksObject
+    data: ResourceObject
   }
 
 }
@@ -230,8 +229,8 @@ export declare module AttendeeResource {
 export declare module AttendeesResource {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
-    links?: JSONApi.LinksObject;
-    data: AttendeeResource.ResourceObject[];
+    links?: JSONApi.LinksObject
+    data: AttendeeResource.ResourceObject[]
   }
 
 }
@@ -240,15 +239,15 @@ export declare module Root {
 
   export interface TopLevelDocument extends JSONApi.TopLevelDocument {
     jsonapi: {
-      version: string;
+      version: string
     },
     links: {
-      self: string;
-      teams: JSONApi.LinkObject;
-      users: JSONApi.LinkObject;
-      attendees: JSONApi.LinkObject;
-      hacks: JSONApi.LinkObject;
-      challenges: JSONApi.LinkObject;
+      self: string
+      teams: JSONApi.LinkObject
+      users: JSONApi.LinkObject
+      attendees: JSONApi.LinkObject
+      hacks: JSONApi.LinkObject
+      challenges: JSONApi.LinkObject
     }
   }
 
