@@ -17,7 +17,7 @@ async function validateAttendeeByEmailAddress(username: string, log: Logger) {
   log.info(`Finding attendee with email "${username}"...`)
 
   const attendees = await AttendeeModel
-    .find({ attendeeid: username }, '_id')
+    .find({ attendeeid: username }, '_id attendeeid slackid')
     .limit(1)
     .exec()
 
@@ -25,7 +25,13 @@ async function validateAttendeeByEmailAddress(username: string, log: Logger) {
     return null
   }
 
-  return { username }
+  const attendee = attendees[0]
+
+  return {
+    attendeeid: attendee._id,
+    email: attendee.attendeeid,
+    slackid: attendee.slackid,
+  }
 }
 
 async function validateAttendeeBySlackId(username: string, slack: WebClient, log: Logger) {
@@ -37,12 +43,16 @@ async function validateAttendeeBySlackId(username: string, slack: WebClient, log
   log.info(`Finding attendee with slackid "${username}"...`)
 
   const attendee = await AttendeeModel
-    .findOne({ slackid: username }, '_id attendeeid')
+    .findOne({ slackid: username }, '_id attendeeid slackid')
     .exec()
 
   if (attendee !== null) {
     log.info(`Found attendee "${username}" to be "${attendee.attendeeid}`)
-    return { username: attendee.attendeeid }
+    return {
+      attendeeid: attendee._id,
+      email: attendee.attendeeid,
+      slackid: attendee.slackid,
+    }
   }
 
   log.info(`Looking up Slack profile for attendee "${username}"...`)
@@ -57,16 +67,20 @@ async function validateAttendeeBySlackId(username: string, slack: WebClient, log
 
   log.info(`Found "${username}" to be "${slackUser.user.profile.email}"`)
 
-  const updateResponse = await AttendeeModel
+  const attendeeUpdate = await AttendeeModel
     .findOneAndUpdate({ attendeeid: slackUser.user.profile.email }, { slackid: slackUser.user.id })
     .select('_id')
     .exec()
 
-  if (updateResponse === null) {
+  if (attendeeUpdate === null) {
     return null
   }
 
-  return { username: slackUser.user.profile.email }
+  return {
+    attendeeid: attendeeUpdate._id,
+    email: slackUser.user.profile.email,
+    slackid: slackUser.user.id,
+  }
 }
 
 function validateAttendeeUser(username: string, slack: WebClient, log: Logger) {

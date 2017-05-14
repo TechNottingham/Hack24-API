@@ -1,6 +1,6 @@
 import { Request, IReply } from 'hapi'
 import { MongoDBErrors } from '../../models'
-import { AttendeeModel } from '../../models'
+import { Attendee, AttendeeModel } from '../../models'
 import { AttendeeResource } from '../../../resources'
 import * as Boom from 'boom'
 
@@ -9,7 +9,7 @@ export default async function handler(request: Request, reply: IReply) {
 
   const attendee = new AttendeeModel({
     attendeeid: requestDoc.data.id,
-  })
+  } as Attendee)
 
   try {
     await attendee.save()

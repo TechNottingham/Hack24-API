@@ -1,6 +1,6 @@
 import { Request, IReply } from 'hapi'
 import { MongoDBErrors } from '../../models'
-import { ChallengeModel } from '../../models'
+import { Challenge, ChallengeModel } from '../../models'
 import { ChallengeResource } from '../../../resources'
 import * as Boom from 'boom'
 import { slugify } from '../../utils'
@@ -12,7 +12,7 @@ export default async function handler(req: Request, reply: IReply) {
     challengeid: slugify(requestDoc.data.attributes.name),
     name: requestDoc.data.attributes.name,
     members: [],
-  })
+  } as Challenge)
 
   try {
     await challenge.save()

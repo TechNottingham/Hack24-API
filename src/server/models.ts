@@ -67,9 +67,10 @@ export const ChallengeModel = model<ChallengeModel>('Challenge', ChallengeSchema
 
 export interface Attendee {
   attendeeid: string
+  slackid: string
 }
 
-export interface AttendeeModel extends Attendee, Document { }
+interface AttendeeModel extends Attendee, Document { }
 
 export const AttendeeSchema = new Schema({
   attendeeid: { type: String, unique: true, required: true },
